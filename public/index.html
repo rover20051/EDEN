@@ -1,0 +1,1895 @@
+<!doctype html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Edén · De regreso al Jardín</title>
+<meta name="description" content="Edén: volver al jardín, al lugar de origen. Biblias artesanales de cuero, hechas a mano en Argentina.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Courier+Prime&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#F3EBE0;
+  --papel-2:#EADFD0;
+  --tinta:#4E4540;
+  --raiz:#2C221C;
+  --musgo:#39432A;
+  --hierba:#8A9A5E;
+  --oro:#B28F3C;
+  --flor:#C4908A;
+  --linea:rgba(84,69,65,.2);
+  --nota:#FBF7F0;
+  --texto-suave:#76665E;
+  --serif:"Cormorant Garamond","Cormorant",Garamond,"Times New Roman",serif;
+  --maquina:"Courier Prime","Courier New",Courier,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --papel:#221B16; --papel-2:#2A221C; --tinta:#EDE4D3; --raiz:#15100D;
+    --musgo:#2B3320; --linea:rgba(237,228,211,.16); --nota:#E9DFCB; --texto-suave:#BFB3A2; --oro:#C9A553;
+  }
+}
+:root[data-theme="dark"]{
+  --papel:#221B16; --papel-2:#2A221C; --tinta:#EDE4D3; --raiz:#15100D;
+  --musgo:#2B3320; --linea:rgba(237,228,211,.16); --nota:#E9DFCB; --texto-suave:#BFB3A2; --oro:#C9A553;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 4.5rem)}
+body{
+  margin:0;background:var(--papel);color:var(--tinta);
+  font-family:var(--serif);font-size:clamp(1.18rem,1.05rem + .45vw,1.35rem);line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+body.cerrado{overflow:hidden}
+body::after{ /* grano de papel */
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.07;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+img{max-width:100%;display:block}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--oro);outline-offset:3px}
+p{margin:0 0 1.1em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- Umbral ---------- */
+.umbral{
+  position:fixed;inset:0;z-index:100;background:var(--papel);
+  display:grid;place-items:center;text-align:center;padding:2rem;
+  transition:opacity 1.1s ease .5s, visibility 0s linear 1.6s;
+}
+.umbral-centro{display:grid;justify-items:center;gap:1.6rem}
+.ventana{
+  width:min(46vw,220px);aspect-ratio:640/741;background:#D09F37;
+  -webkit-mask:url(/img/020f40c8c3bf.png) center/contain no-repeat;mask:url(/img/020f40c8c3bf.png) center/contain no-repeat;
+  transition:transform 1.6s cubic-bezier(.7,0,.2,1), opacity 1.2s ease .3s;
+}
+.umbral p{margin:0;font-style:italic;font-size:1.3rem;color:var(--texto-suave);max-width:22ch}
+.boton{
+  font:inherit;font-size:1.1rem;letter-spacing:.02em;cursor:pointer;
+  background:transparent;color:var(--tinta);border:1px solid currentColor;border-radius:999px;
+  padding:.55rem 1.5rem .65rem;transition:background .2s,color .2s;
+}
+.boton:hover{background:var(--tinta);color:var(--papel)}
+.boton.lleno{background:var(--tinta);color:var(--papel)}
+.boton.lleno:hover{background:var(--raiz);color:var(--papel)}
+.umbral.abriendo{opacity:0;visibility:hidden}
+.umbral.abriendo .ventana{transform:scale(7);opacity:0}
+.umbral.abriendo .umbral-centro > :not(.ventana){opacity:0;transition:opacity .4s}
+.umbral.oculto{display:none}
+
+/* ---------- Navegación ---------- */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  padding:calc(env(safe-area-inset-top,0px) + .9rem) clamp(1rem,4vw,2.5rem) .9rem;
+  display:flex;align-items:center;gap:1.5rem;
+  transition:background .3s, box-shadow .3s;
+}
+.nav.solida{background:color-mix(in srgb,var(--papel) 92%,transparent);box-shadow:0 1px 0 var(--linea);backdrop-filter:blur(6px)}
+.mono{display:block;width:22px;aspect-ratio:237/520;background:var(--tinta);
+  -webkit-mask:url(/img/9272fcecb654.png) center/contain no-repeat;mask:url(/img/9272fcecb654.png) center/contain no-repeat}
+.nav{display:grid !important;grid-template-columns:1fr auto 1fr}
+.nav:not(.solida){color:#FBF7EE}
+.menu-btn,.carrito-btn{font:inherit;font-size:1.05rem;background:none;border:0;color:inherit;cursor:pointer;padding:.2rem 0;display:inline-flex;align-items:center}
+.menu-btn{justify-self:start;gap:.6rem}
+.carrito-btn{justify-self:end}
+.carrito-btn span{font-variant-numeric:oldstyle-nums}
+.hamb{display:inline-block;width:20px;height:9px;border-top:1px solid currentColor;border-bottom:1px solid currentColor}
+.logo-mini{display:block;width:88px;aspect-ratio:1140/520;background:currentColor;
+  -webkit-mask:url(/img/6cf6f09a943a.png) center/contain no-repeat;mask:url(/img/6cf6f09a943a.png) center/contain no-repeat}
+.nav-marca{justify-self:center;color:inherit}
+
+/* Menú lateral */
+.menu{position:fixed;top:0;left:0;bottom:0;z-index:80;width:min(400px,100%);background:var(--papel);color:var(--tinta);
+  padding:calc(env(safe-area-inset-top,0px) + 1.2rem) 1.8rem calc(env(safe-area-inset-bottom,0px) + 1.5rem);
+  display:flex;flex-direction:column;overflow-y:auto;transform:translateX(-100%);transition:transform .45s cubic-bezier(.3,.7,.2,1);box-shadow:1px 0 0 var(--linea)}
+.menu.abierto{transform:none}
+.menu-cab{display:flex;justify-content:space-between;align-items:center;padding-bottom:1.2rem;border-bottom:1px solid var(--linea)}
+.menu nav{flex:1;padding-top:.5rem}
+.menu details{border-bottom:1px solid var(--linea)}
+.menu summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:1.1rem 0;font-size:1.7rem;font-weight:400}
+.menu summary::-webkit-details-marker{display:none}
+.menu summary::after{content:"+";color:var(--oro);font-size:1.5rem;transition:transform .3s}
+.menu details[open] summary::after{transform:rotate(45deg)}
+.menu ul{list-style:none;margin:0;padding:0}
+.menu details ul{padding:0 0 1.1rem}
+.menu details li a{display:block;padding:.35rem 0;font-size:1.15rem;text-decoration:none}
+.menu details li a:hover,.menu-simple a:hover{text-decoration:underline;text-underline-offset:.25em;text-decoration-thickness:1px}
+.menu details li.todo a{font-style:italic;color:var(--texto-suave)}
+.menu-simple{padding-top:1.4rem !important}
+.menu-simple a{display:block;padding:.45rem 0;font-size:1.25rem;text-decoration:none}
+.menu-pie{padding-top:2rem;border-top:1px solid var(--linea);margin-top:2rem;font-size:1rem;color:var(--texto-suave)}
+.menu-pie a{color:var(--tinta)}
+.menu-pie p{margin:.6rem 0 0;font-style:italic}
+
+/* ---------- Portada ---------- */
+.portada{
+  position:relative;min-height:100vh;min-height:100svh;display:grid;grid-template-rows:1fr auto;
+  background:#56603A url(/img/2f9ea11aa8fe.jpg) center 38%/cover no-repeat;overflow:hidden;
+}
+.portada::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(28,24,16,.5) 0%,rgba(28,24,16,0) 24%,rgba(28,24,16,0) 60%,rgba(28,24,16,.5) 100%)}
+.portada-marca{position:relative;align-self:start;justify-self:center;text-align:center;margin-top:clamp(6.5rem,18vh,11rem);padding:2rem 1.2rem 3rem;
+  background:radial-gradient(ellipse 60% 55% at 50% 60%,rgba(247,243,235,.62),rgba(247,243,235,0) 72%)}
+.logo{width:min(80vw,760px);aspect-ratio:1140/520;background:#4E4540;margin:0 auto;
+  -webkit-mask:url(/img/6cf6f09a943a.png) center/contain no-repeat;mask:url(/img/6cf6f09a943a.png) center/contain no-repeat}
+.portada-marca p{font-style:italic;font-size:clamp(1.25rem,1rem + 1.2vw,1.9rem);color:#4E4540;margin:1.4rem 0 0}
+.portada-frase{position:absolute;left:clamp(1.25rem,5vw,3.5rem);bottom:clamp(2.2rem,6vh,3.5rem);margin:0;max-width:21ch;
+  color:#FBF7EE;font-style:italic;font-weight:300;font-size:clamp(1.35rem,1.05rem + 1.1vw,2.1rem);line-height:1.25;text-shadow:0 1px 16px rgba(20,18,10,.45)}
+@media (max-width:720px){.portada-frase{bottom:8.5rem;max-width:17ch}}
+.portada-pie{position:relative;grid-row:2;justify-self:center;color:#F6F0E4;font-style:italic;padding:0 1rem 2.2rem;text-decoration:none;font-size:1.1rem}
+.portada-pie::after{content:"";display:block;width:1px;height:2.6rem;background:currentColor;margin:.7rem auto 0;opacity:.7}
+
+/* ---------- Pradera ---------- */
+.pradera{position:relative;min-height:46vh;display:grid;place-items:center;text-align:center;
+  background:#8d9168 url(/img/5fe3e67def78.jpg) center 70%/cover no-repeat;color:#FBF7EE;padding:4rem 1.5rem}
+.pradera::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,26,18,.05),rgba(30,26,18,.28))}
+.pradera blockquote{position:relative;margin:0;max-width:26ch;font-size:clamp(1.5rem,1.1rem + 1.6vw,2.4rem);line-height:1.3;font-style:italic;text-shadow:0 1px 18px rgba(30,26,18,.35)}
+.pradera cite{display:block;font-style:normal;font-size:1.1rem;margin-top:1.2rem;opacity:.9}
+
+/* ---------- Corazón ---------- */
+#corazon{background:#544541;color:#F6F3EE;text-align:center;padding:clamp(7rem,16vw,12rem) clamp(1.5rem,6vw,4rem)}
+#corazon p{max-width:22ch;margin:0 auto;font-weight:300;font-size:clamp(1.9rem,1.2rem + 3vw,3.6rem);line-height:1.18}
+#corazon .firma{display:block;width:30px;aspect-ratio:237/520;margin:3.5rem auto 0;background:#F6F3EE;
+  -webkit-mask:url(/img/9272fcecb654.png) center/contain no-repeat;mask:url(/img/9272fcecb654.png) center/contain no-repeat}
+
+/* ---------- Capítulos ---------- */
+.capitulo{padding:clamp(5rem,12vw,10rem) clamp(1.25rem,5vw,3rem)}
+.rejilla{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(1rem,2.5vw,2rem);align-items:start}
+.num{font-style:italic;color:var(--texto-suave);font-size:1.15rem;margin:0 0 .6rem}
+h2{font-weight:300;font-size:clamp(2.4rem,1.6rem + 3.4vw,4.6rem);line-height:1.02;letter-spacing:-.01em;margin:0 0 2.2rem}
+.prosa{max-width:34em}
+.prosa p:first-of-type::first-letter{float:left;font-size:4.3em;line-height:.82;padding:.06em .09em 0 0;font-weight:300;color:var(--oro)}
+
+.nota{
+  font-family:var(--maquina);font-size:.8rem;line-height:1.7;color:#3b322c;background:var(--nota);
+  padding:1.3rem 1.4rem 1.4rem;max-width:17rem;transform:rotate(var(--giro,-3deg));
+  box-shadow:0 1px 0 rgba(44,34,28,.06),0 18px 28px -18px rgba(44,34,28,.45);
+}
+.nota ul{margin:0;padding:0 0 0 1rem}
+.nota li{margin:0 0 .75rem}
+.nota li:last-child{margin:0}
+.nota p{margin:0}
+
+/* I */
+#origen .cab{grid-column:2 / span 7}
+#origen .prosa{grid-column:2 / span 6}
+#origen .nota{grid-column:9 / span 4;justify-self:center;margin-top:6rem;--giro:4deg}
+#restaurar{padding-top:0}
+#restaurar .cab{grid-column:2 / span 7}
+#restaurar .prosa{grid-column:2 / span 6}
+#restaurar .nota{grid-column:9 / span 4;justify-self:center;margin-top:10rem;--giro:-3deg}
+
+/* II */
+#palabra{background:var(--musgo);color:#EFE7D6}
+#palabra .num{color:#B9B79D}
+#palabra .foto{grid-column:1 / span 6;grid-row:1 / span 3;position:relative}
+#palabra .foto img{width:100%;aspect-ratio:820/1040;object-fit:cover;object-position:center 60%}
+#palabra .cab{grid-column:8 / span 5;margin-top:2rem}
+#palabra .prosa{grid-column:8 / span 5}
+#palabra .prosa p:first-of-type::first-letter{color:#D5B566}
+#palabra .nota-palabra{grid-column:1 / span 5;grid-row:4;margin:-4rem 0 0 2rem;--giro:-3deg;z-index:1}
+.detalles{grid-column:8 / span 5;margin:1rem 0 0;border-top:1px solid rgba(239,231,214,.25)}
+.detalles div{display:flex;justify-content:space-between;gap:1rem;padding:.7rem 0;border-bottom:1px solid rgba(239,231,214,.25)}
+.detalles dt{font-style:italic;color:#C9C3AE}
+.detalles dd{margin:0;text-align:right}
+
+/* III */
+#nosotras .cab{grid-column:1 / span 6}
+#nosotras .prosa{grid-column:1 / span 5}
+#nosotras .foto{grid-column:7 / span 6;grid-row:1 / span 3;position:relative;margin-top:1rem}
+#nosotras .foto img{width:100%;aspect-ratio:900/844;object-fit:cover;object-position:center 30%}
+#nosotras .nota{position:absolute;left:-2.5rem;bottom:-3rem;--giro:-5deg}
+
+/* IV Tienda */
+#tienda{background:var(--papel-2)}
+#tienda .cab{grid-column:1 / span 12;text-align:center}
+#tienda .cab p{max-width:30em;margin:0 auto}
+.grupo{grid-column:1 / -1;font-weight:400;font-style:italic;font-size:1.6rem;margin:4.5rem 0 1.8rem;padding-bottom:.8rem;border-bottom:1px solid var(--linea)}
+.coleccion{grid-column:1 / -1;display:grid;gap:clamp(1.5rem,3vw,2.75rem)}
+.tres{grid-template-columns:repeat(3,minmax(0,1fr))}
+.dos{grid-template-columns:repeat(2,minmax(0,1fr));width:calc((100% - 2 * clamp(1.5rem,3vw,2.75rem)) * 2 / 3 + clamp(1.5rem,3vw,2.75rem))}
+.pieza img,.sin-foto{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center 58%;display:block}
+.sin-foto{background:var(--papel);border:1px solid var(--linea);display:grid;place-content:center;justify-items:center;gap:1rem;color:var(--texto-suave);font-style:italic;font-size:1rem}
+.sin-foto .mono{width:26px}
+.pieza h4{font-weight:400;font-size:clamp(1.6rem,1.3rem + .8vw,2rem);line-height:1.1;margin:1.2rem 0 .35rem}
+.pieza .variante{margin:0 0 1.2rem;font-size:1.05rem;line-height:1.5}
+.pieza .pie{display:flex;justify-content:space-between;align-items:center;gap:.8rem 1rem;flex-wrap:wrap}
+.precio{font-size:1.35rem;margin:0}
+.aviso-tienda{grid-column:1 / -1;text-align:center;margin:4rem auto 0 !important}
+.cant-item{display:inline-flex;align-items:center;gap:.2rem;margin-top:.3rem}
+.cant-item button{font:inherit;width:1.9rem;height:1.9rem;border:1px solid var(--linea);border-radius:50%;background:none;color:inherit;cursor:pointer;line-height:1}
+.cant-item span{min-width:1.6rem;text-align:center;font-variant-numeric:lining-nums}
+.aviso{font-size:1rem;color:var(--texto-suave);margin:1.6rem 0 0;max-width:30em}
+
+/* Epílogo */
+#caminar{text-align:center}
+#caminar .rejilla{justify-items:center}
+#caminar .ventana-chica{grid-column:1 / -1;width:70px;aspect-ratio:640/741;background:#D09F37;margin-bottom:2rem;
+  -webkit-mask:url(/img/020f40c8c3bf.png) center/contain no-repeat;mask:url(/img/020f40c8c3bf.png) center/contain no-repeat}
+#caminar h2,#caminar p,#caminar .enlaces{grid-column:1 / -1}
+#caminar p{max-width:30em}
+.versiculo{font-style:italic;font-size:1.3rem;color:var(--texto-suave);margin-bottom:2.5rem !important}
+.versiculo span{display:block;font-style:normal;font-size:1rem;margin-top:.4rem}
+.enlaces{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:1rem}
+
+/* Preguntas */
+#preguntas{padding-top:0}
+#preguntas .cab{grid-column:3 / span 8;text-align:center}
+.faq{grid-column:3 / span 8;border-top:1px solid var(--linea)}
+.faq details{border-bottom:1px solid var(--linea)}
+.faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:baseline;gap:1.5rem;padding:1.3rem 0;font-size:clamp(1.3rem,1.1rem + .6vw,1.6rem)}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:1.6rem;line-height:1;color:var(--oro);transition:transform .3s}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq details p{margin:0 0 1.5rem;max-width:36em;color:var(--texto-suave)}
+.faq a{text-decoration:underline;text-underline-offset:.2em;text-decoration-thickness:1px}
+
+footer{border-top:1px solid var(--linea);padding:4rem clamp(1.25rem,5vw,3rem) 2rem;color:var(--texto-suave);font-size:1.05rem}
+.pie-rejilla{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:2fr repeat(4,1fr);gap:2.5rem 2rem}
+.pie-marca .logo-mini{width:120px;color:var(--tinta)}
+.pie-marca p{margin:1rem 0 0;font-style:italic;max-width:18em}
+footer h3{font-weight:400;font-size:1.25rem;color:var(--tinta);margin:0 0 .8rem}
+footer ul{list-style:none;margin:0;padding:0}
+footer li{margin:0 0 .4rem}
+.pie-legal{max-width:1180px;margin:3.5rem auto 0;padding-top:1.5rem;border-top:1px solid var(--linea);font-size:.95rem;display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+@media (max-width:860px){.pie-rejilla{grid-template-columns:1fr 1fr}.pie-marca{grid-column:1 / -1}}
+
+.devo-cab{text-align:center;padding:clamp(5rem,10vw,8rem) 1.5rem 0}
+.devo-cab h2{max-width:16ch;margin:0 auto}
+/* Nuestra historia */
+.historia{position:fixed;inset:0;z-index:85;background:var(--papel);overflow-y:auto;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s}
+.historia.abierta{opacity:1;visibility:visible;transition:opacity .5s ease}
+.historia-barra{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;
+  padding:calc(env(safe-area-inset-top,0px) + .9rem) clamp(1rem,4vw,2.5rem) .9rem;background:color-mix(in srgb,var(--papel) 92%,transparent);box-shadow:0 1px 0 var(--linea)}
+footer a{text-decoration:none}
+footer a:hover{text-decoration:underline;text-underline-offset:.25em}
+
+/* Carrito */
+.velo{position:fixed;inset:0;background:rgba(28,22,18,.4);z-index:70;opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s linear .3s}
+.velo.abierto{opacity:1;visibility:visible;transition:opacity .3s}
+.cajon{
+  position:fixed;top:0;right:0;bottom:0;z-index:80;width:min(420px,100%);background:var(--papel);
+  padding:calc(env(safe-area-inset-top,0px) + 1.5rem) 1.6rem calc(env(safe-area-inset-bottom,0px) + 1.5rem);
+  display:flex;flex-direction:column;transform:translateX(100%);transition:transform .45s cubic-bezier(.3,.7,.2,1);
+  box-shadow:-1px 0 0 var(--linea);
+}
+.cajon.abierto{transform:none}
+.cajon-cab{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--linea);padding-bottom:1rem}
+.cajon h2{font-size:2rem;margin:0}
+.cerrar{font:inherit;background:none;border:0;color:inherit;cursor:pointer;font-style:italic;font-size:1.05rem}
+.items{flex:1;overflow:auto;padding:1rem 0}
+.item{display:grid;grid-template-columns:64px 1fr auto;gap:1rem;align-items:center;padding:1rem 0;border-bottom:1px solid var(--linea)}
+.item img{width:64px;aspect-ratio:4/5;object-fit:cover}
+.item h3{font-weight:400;font-size:1.2rem;margin:0}
+.item small{font-style:italic;color:var(--texto-suave);font-size:.95rem}
+.quitar{font:inherit;font-size:.95rem;background:none;border:0;color:var(--texto-suave);cursor:pointer;text-decoration:underline;text-underline-offset:.2em;padding:0}
+.vacio{font-style:italic;color:var(--texto-suave);text-align:center;margin-top:3rem}
+.cajon-pie{border-top:1px solid var(--linea);padding-top:1.2rem;display:grid;gap:1rem}
+.total{display:flex;justify-content:space-between;font-size:1.2rem}
+.cajon-pie .boton{width:100%;padding:.8rem}
+.mensaje{font-size:1rem;color:var(--texto-suave);margin:0;min-height:1.2em}
+
+.item-texto{display:grid;gap:.15rem}
+.item-cant{display:inline-flex;align-items:center;gap:.7rem;margin-top:.35rem}
+.item-cant button{font:inherit;font-size:1.05rem;line-height:1;width:1.7rem;height:1.7rem;border:1px solid var(--linea);border-radius:999px;background:transparent;color:var(--tinta);cursor:pointer;display:grid;place-items:center;padding:0}
+.item-cant button:hover{border-color:var(--tinta)}
+.item-cant span{min-width:1ch;text-align:center;font-variant-numeric:lining-nums}
+.item-der{display:grid;justify-items:end;gap:.5rem}
+.item-der .precio-item{font-size:1.05rem}
+.cajon .vacio a{color:inherit}
+.cajon-pie[hidden]{display:none}
+.carrito-btn span{transition:color .3s}
+.carrito-btn.pulso span{color:var(--oro)}
+.pieza .agregar.hecho{background:var(--tinta);color:var(--papel)}
+
+/* Móvil */
+@media (max-width:860px){
+  .rejilla > *{grid-column:1 / -1 !important}
+  #origen .nota{margin:3rem auto 0}
+  #restaurar .nota{margin:3rem auto 0}
+  #palabra .foto,#nosotras .foto{grid-row:auto;margin:0 0 3rem}
+  #palabra .cab{margin-top:0}
+  #palabra .nota-palabra{margin:.5rem auto 2.5rem}
+  #nosotras .foto{order:3;margin:2rem 0 5rem}
+  #nosotras .nota{left:auto;right:-.25rem;bottom:-3.5rem}
+  .tres,.dos{grid-template-columns:1fr;width:auto}
+  .grupo{margin-top:3rem}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition-duration:.01ms !important;transition-delay:0s !important}
+}
+
+/* ====== Añadidos con la info de la versión jardín ====== */
+html:not(.js) .umbral{display:none!important}
+.aviso-lanz{grid-column:1 / -1;margin:0 0 .5rem;text-align:center;font-size:.9rem;font-style:italic;opacity:.9;transition:opacity .3s,margin .3s,max-height .3s;max-height:3em;overflow:hidden}
+.nav.solida .aviso-lanz{opacity:0;max-height:0;margin:0}
+a.carrito-btn{text-decoration:none}
+.portada-frase em{display:block}
+/* Versículos */
+.versos{background:var(--papel-2);padding:clamp(1.6rem,3vw,2.4rem) 1.5rem;text-align:center;border-bottom:1px solid var(--linea)}
+.versos-pista{display:grid;max-width:40rem;margin:0 auto}
+.verso{grid-area:1 / 1;margin:0;opacity:0;visibility:hidden;transition:opacity 1.6s ease,visibility 0s linear 1.6s}
+.verso.activo{opacity:1;visibility:visible;transition:opacity 1.6s ease}
+.verso blockquote{margin:0;font-style:italic;font-size:clamp(1.15rem,1rem + .6vw,1.45rem);line-height:1.4;text-wrap:balance}
+.verso figcaption{font-family:var(--maquina);font-size:.75rem;letter-spacing:.06em;color:var(--texto-suave);margin-top:.4rem}
+/* Pradera con la invitación */
+.pradera h2{position:relative;font-size:clamp(2.2rem,1.4rem + 3.2vw,4rem);margin:0 auto 1.6rem;max-width:16ch;text-shadow:0 1px 18px rgba(30,26,18,.35)}
+.pradera h2 em{display:block}
+.pradera-texto{position:relative;display:grid;justify-items:center}
+.pradera-texto p{max-width:30ch;font-style:italic;font-size:clamp(1.2rem,1rem + .6vw,1.5rem);text-shadow:0 1px 14px rgba(30,26,18,.4)}
+.enlace-claro{color:#FBF7EE;font-style:italic;text-underline-offset:.25em;text-decoration-thickness:1px}
+/* Colección */
+#tienda .cab{grid-column:1 / -1;text-align:center;margin-bottom:3rem}
+#tienda h2 em{color:var(--oro)}
+.pieza .verbo{font-family:var(--maquina);font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--oro);margin:1.2rem 0 0}
+.pieza h4{margin-top:.3rem}
+.pieza img{transition:transform 1.2s cubic-bezier(.2,.6,.3,1)}
+.pieza{overflow:hidden}
+.pieza:hover img{transform:scale(1.025)}
+.precio.pend{font-style:italic;font-size:1.05rem;color:var(--texto-suave)}
+a.boton{text-decoration:none;display:inline-block}
+/* Momentos */
+.momentos{padding-left:0;padding-right:0}
+.momentos .cab{grid-column:1 / -1;text-align:center;margin-bottom:2.5rem}
+.momentos h2 em,#parte h2 em,#caminar h2 em{color:var(--oro)}
+.tira{display:flex;gap:clamp(.75rem,1.6vw,1.25rem);list-style:none;margin:0;padding:0 max(1.25rem,calc((100vw - 1180px)/2));overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 max(1.25rem,calc((100vw - 1180px)/2));scrollbar-width:none;cursor:grab}
+.tira::-webkit-scrollbar{display:none}
+.tira.arrastrando{cursor:grabbing;scroll-snap-type:none;scroll-behavior:auto}
+.momento{flex:none;scroll-snap-align:start}
+.momento button{all:unset;display:block;cursor:zoom-in;overflow:hidden}
+.momento button:focus-visible{outline:2px solid var(--oro);outline-offset:3px}
+.momento img{height:clamp(360px,60vh,580px);width:auto;max-width:none;user-select:none;-webkit-user-drag:none;transition:transform 1.2s cubic-bezier(.2,.6,.3,1)}
+.momento button:hover img{transform:scale(1.03)}
+@media (max-width:600px){.momento img{height:auto;width:78vw;aspect-ratio:3/4;object-fit:cover}}
+.tira-controles{display:flex;justify-content:center;align-items:center;gap:1.5rem;margin-top:1.8rem;color:var(--texto-suave)}
+.tira-pista{font-family:var(--maquina);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase}
+.flecha-btn{width:2.8rem;height:2.8rem;border-radius:50%;border:1px solid var(--linea);background:transparent;color:var(--tinta);font:inherit;font-size:1.05rem;cursor:pointer;transition:background .2s,color .2s}
+.flecha-btn:hover{background:var(--tinta);color:var(--papel)}
+.flecha-btn:disabled{opacity:.3;cursor:default;background:transparent;color:var(--tinta)}
+#visor{width:100vw;height:100dvh;max-width:100vw;max-height:100dvh;margin:0;padding:0;border:0;background:rgba(28,22,18,.94);display:none;place-items:center}
+#visor[open]{display:grid}
+#visor::backdrop{background:rgba(28,22,18,.85)}
+#visor img{max-width:92vw;max-height:86dvh;width:auto;height:auto;object-fit:contain}
+.visor-btn{position:absolute;width:3rem;height:3rem;border-radius:50%;border:1px solid rgba(251,247,238,.35);background:rgba(28,22,18,.4);color:#FBF7EE;font:inherit;font-size:1.1rem;cursor:pointer}
+.cerrar-v{top:calc(env(safe-area-inset-top,0px) + 1rem);right:1rem}
+.visor-btn.ant{left:1rem;top:50%;transform:translateY(-50%)}
+.visor-btn.sig{right:1rem;top:50%;transform:translateY(-50%)}
+@media (max-width:600px){.visor-btn.ant,.visor-btn.sig{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 1.2rem);transform:none}.visor-btn.ant{left:calc(50% - 3.6rem)}.visor-btn.sig{right:calc(50% - 3.6rem)}}
+/* Ser parte */
+#parte{background:var(--papel-2);text-align:center}
+#parte .cab{grid-column:3 / span 8}
+#parte .cab p{max-width:30em;margin:0 auto}
+.unete{grid-column:3 / span 8;justify-self:center;width:min(30rem,100%);display:grid;gap:1rem;margin-top:2rem;text-align:left}
+.campo{display:flex;gap:.6rem;align-items:center;border-bottom:1px solid var(--tinta);padding-bottom:.4rem}
+.campo input{flex:1 1 0;width:0;min-width:0;border:0;background:transparent;color:var(--tinta);font:inherit;font-size:1.2rem;padding:.4rem 0}
+.campo input::placeholder{color:var(--texto-suave);font-style:italic}
+.campo input:focus{outline:none}
+.campo:focus-within{border-color:var(--oro)}
+.campo .boton{white-space:nowrap}
+.consent{display:grid;grid-template-columns:1.2rem 1fr;gap:.6rem;font-size:1rem;line-height:1.45;color:var(--texto-suave)}
+.consent input{width:1rem;height:1rem;margin:.25rem 0 0;accent-color:var(--tinta)}
+.unete-pie{text-align:center;font-size:1rem;color:var(--texto-suave);margin:.5rem 0 0}
+.unete-caja{display:grid}
+.unete[hidden],.unete-gracias[hidden]{display:none}
+.unete-caja > *{grid-area:1 / 1}
+.unete.saliendo{opacity:0;transform:translateY(-6px);transition:opacity .5s ease,transform .6s ease}
+.unete-gracias{margin-top:1.6rem;padding-top:1.4rem;border-top:1px solid var(--linea);align-self:start}
+.unete-gracias:focus{outline:none}
+.unete-gracias p{margin:0;max-width:30em;color:var(--texto-suave)}
+.unete-gracias .gracias-titulo{margin-bottom:.6rem;font-style:italic;font-size:clamp(1.5rem,1.2rem + 1vw,2rem);line-height:1.25;color:var(--tinta)}
+.unete-gracias #u-dir{color:var(--tinta);overflow-wrap:anywhere}
+.unete-gracias.aparece-g{animation:u-aparecer 1.1s cubic-bezier(.2,.6,.3,1) both}
+@keyframes u-aparecer{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.unete.saliendo,.unete-gracias.aparece-g{transition:none;animation:none}}
+@media (max-width:520px){.campo{flex-wrap:wrap}.campo input{flex-basis:100%;width:100%}.campo .boton{width:100%}}
+/* Epílogo al final */
+#caminar{padding-top:clamp(4rem,9vw,7rem)}
+
+/* ====== Ajustes: franja café, menú del jardín, portada con frase ====== */
+.barra-cafe{position:relative;z-index:60;background:#2C221C;color:#F3EBE0;text-align:center;font-family:var(--serif);font-size:.95rem;letter-spacing:.02em;padding:calc(env(safe-area-inset-top,0px) + .5rem) 1rem .5rem}
+.nav{position:absolute;top:var(--barra-h,36px);padding-top:.9rem}
+.nav.solida{position:fixed;top:0;padding-top:calc(env(safe-area-inset-top,0px) + .7rem);padding-bottom:.7rem}
+.nav-marca{justify-self:start}
+.nav-links{justify-self:center;display:flex;gap:clamp(1.2rem,3vw,2.6rem)}
+.nav-links a{text-decoration:none;font-size:1.05rem;white-space:nowrap;padding:.2rem 0;border-bottom:1px solid transparent;transition:border-color .3s}
+.nav-links a:hover{border-bottom-color:currentColor}
+.portada{grid-template-rows:1fr auto}
+.portada::before{background:rgba(28,24,16,.36)}
+.portada-titulo{position:relative;align-self:center;justify-self:center;text-align:center;margin:0;padding:6rem 1.25rem 0;color:#FBF7EE;font-weight:400;font-size:clamp(2.4rem,1.4rem + 4.4vw,5rem);line-height:1.08;max-width:20ch;text-shadow:0 1px 20px rgba(20,18,10,.35)}
+.portada-titulo em{display:block}
+@media (max-width:720px){
+  .nav{grid-template-columns:1fr auto;row-gap:.7rem}
+  .nav-links{grid-column:1 / -1;grid-row:2;gap:1.4rem}
+  .nav-links a{font-size:.98rem}
+  .nav .largo{display:none}
+}
+/* Quiénes somos */
+#nosotras-inicio{padding-bottom:clamp(3rem,7vw,5rem)}
+.quienes{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(2rem,6vw,5rem);align-items:center}
+.quienes img{width:100%;height:auto}
+.quienes-texto{font-size:clamp(1.3rem,1.1rem + .8vw,1.75rem);line-height:1.5;max-width:26em;margin:0}
+@media (max-width:760px){.quienes{grid-template-columns:1fr}.quienes img{max-width:440px}}
+
+/* ====== Fotos alrededor de la página ====== */
+.pradera{padding:clamp(3.5rem,8vw,6rem) 1.5rem}
+.pradera h2{font-size:clamp(1.8rem,1.2rem + 2.2vw,3rem);max-width:20ch;margin-bottom:1.1rem}
+.pradera-texto p{font-size:clamp(1.05rem,.95rem + .4vw,1.25rem);max-width:34ch;margin-bottom:.9rem}
+.foto-btn{all:unset;display:block;cursor:zoom-in;overflow:hidden;width:100%}
+.foto-btn:focus-visible{outline:2px solid var(--oro);outline-offset:4px}
+.foto-btn img{width:100%;height:100%;object-fit:cover;transition:transform 1.4s cubic-bezier(.2,.6,.3,1)}
+.foto-btn:hover img{transform:scale(1.03)}
+html.anim .rv{opacity:0;transform:translateY(28px);transition:opacity 1.1s ease,transform 1.2s cubic-bezier(.2,.6,.3,1)}
+html.anim .rv.visto{opacity:1;transform:none}
+html.anim .polaroid.rv.visto{transform:rotate(var(--giro))}
+/* Collage */
+.collage-sec{padding-left:clamp(1.25rem,5vw,3rem);padding-right:clamp(1.25rem,5vw,3rem)}
+.collage{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(1rem,2.5vw,2rem);row-gap:1.5rem;align-items:start}
+.c{margin:0}
+.c1{grid-column:1 / span 6;grid-row:1 / span 2}
+.c1 .foto-btn{aspect-ratio:4/5}
+.ctexto{grid-column:8 / span 5;grid-row:1;align-self:end;padding-bottom:1rem}
+.ctexto h2{margin-bottom:0}
+.ctexto h2 em{display:block;color:var(--oro)}
+.c2{grid-column:8 / span 4;grid-row:2;margin-top:1.5rem}
+.c2 .foto-btn{aspect-ratio:1}
+.c3{grid-column:3 / span 5;grid-row:3;margin-top:-5rem;position:relative;z-index:1}
+.c3 .foto-btn{aspect-ratio:4/5;box-shadow:0 0 0 clamp(.5rem,1vw,.9rem) var(--papel)}
+@media (max-width:860px){
+  .collage{display:flex;flex-direction:column;gap:1.6rem}
+  .ctexto{order:-1;text-align:left}
+  .c1{width:100%}
+  .c2{width:68%;align-self:flex-end;margin-top:-3.5rem;position:relative;z-index:1}
+  .c2 .foto-btn{box-shadow:0 0 0 .5rem var(--papel)}
+  .c3{width:82%;margin-top:0}
+}
+/* Ven al jardín con foto */
+.parte-grid{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(2rem,6vw,5rem);align-items:center;text-align:left}
+.parte-foto{margin:0}
+.parte-foto .foto-btn{aspect-ratio:4/5}
+.parte-texto .cab p{margin:0}
+#parte .parte-texto .unete{margin-top:1.6rem;width:100%}
+#parte .unete-pie{text-align:left}
+@media (max-width:760px){.parte-grid{grid-template-columns:1fr}.parte-foto{max-width:420px}}
+/* Nuestras Biblias (verde) más compacta */
+#palabra{padding-top:clamp(3.5rem,7vw,5.5rem);padding-bottom:clamp(3.5rem,7vw,5.5rem)}
+#palabra .rejilla{max-width:1000px;align-items:center}
+#palabra .foto{grid-column:2 / span 4}
+#palabra .foto img{aspect-ratio:4/5;object-position:center 55%}
+#palabra .cab{grid-column:7 / span 5;margin-top:0}
+#palabra .prosa,#palabra .detalles{grid-column:7 / span 5}
+#palabra h2{font-size:clamp(2rem,1.4rem + 2.4vw,3.4rem);margin-bottom:1.2rem}
+#palabra .foto{grid-row:1 / span 3;align-self:center}
+#palabra .nota-palabra{grid-column:2 / span 4;grid-row:3;align-self:end;justify-self:end;margin:0 -2rem -1rem 0;max-width:15rem;font-size:.75rem;z-index:1}
+#palabra .prosa{font-size:.95em}
+#palabra .prosa p{margin-bottom:.8em}
+#palabra .detalles div{padding:.45rem 0}
+/* compacta de verdad */
+#palabra{padding-top:clamp(2.5rem,5vw,3.5rem)!important;padding-bottom:clamp(2.5rem,5vw,3.5rem)!important}
+#palabra .rejilla{max-width:900px;row-gap:0}
+#palabra .foto{grid-column:2 / span 3}
+#palabra .cab,#palabra .prosa,#palabra .detalles{grid-column:6 / span 6}
+#palabra .num{margin-bottom:.2rem}
+#palabra h2{font-size:clamp(1.8rem,1.3rem + 1.8vw,2.6rem);margin-bottom:.8rem}
+#palabra .prosa{font-size:.9em}
+#palabra .prosa p:first-of-type::first-letter{font-size:3em}
+#palabra .detalles{display:grid;grid-template-columns:1fr;font-size:.92em;margin-top:.4rem}
+#palabra .detalles div{padding:.35rem 0}
+#palabra .nota-palabra{grid-column:2 / span 4;max-width:12.5rem;font-size:.7rem;padding:.9rem 1rem;margin:0 -1.5rem -.5rem 0}
+@media (max-width:860px){
+  #palabra .rejilla{display:grid;grid-template-columns:120px 1fr;column-gap:1.2rem}
+  #palabra .foto{grid-column:1 !important;grid-row:1 / span 2 !important;max-width:none;margin:0;align-self:start}
+  #palabra .cab{grid-column:2 !important;grid-row:1}
+  #palabra .prosa{grid-column:1 / -1 !important;margin-top:1rem}
+  #palabra .nota-palabra{display:none}
+  #palabra .detalles{grid-column:1 / -1 !important;grid-template-columns:1fr}
+}
+@media (max-width:860px){#palabra .foto{max-width:260px;justify-self:center;margin:0 auto 2rem}#palabra .nota-palabra{grid-row:auto;justify-self:center;margin:.5rem auto 1.5rem}}
+
+/* Cierre con polaroids */
+#caminar{position:relative;overflow:hidden}
+.polaroid{position:absolute;margin:0;width:clamp(150px,16vw,230px);background:var(--nota);padding:.6rem .6rem 2.2rem;box-shadow:0 1px 0 rgba(44,34,28,.06),0 18px 28px -18px rgba(44,34,28,.45);transform:rotate(var(--giro))}
+.polaroid .foto-btn{aspect-ratio:4/5}
+.pl{left:clamp(1rem,6vw,6rem);top:22%;--giro:-5deg}
+.pr{right:clamp(1rem,6vw,6rem);top:38%;--giro:4deg}
+@media (max-width:860px){
+  #caminar{display:flex;flex-direction:column;align-items:center}
+  .polaroid{position:relative;left:auto;right:auto;top:auto;width:42vw;max-width:190px}
+  .pl{align-self:flex-start;margin:0 0 -3rem 4%}
+  .pr{align-self:flex-end;margin:0 4% 2rem 0}
+  #caminar .rejilla{width:100%}
+}
+
+/* Botón "Volver al jardín" con flechita */
+.volver-jardin{display:inline-flex;align-items:center;gap:.55rem;padding:.4rem 1rem .45rem .85rem;border:1px solid var(--linea);border-radius:999px;transition:background .25s,border-color .25s}
+.volver-jardin svg{width:24px;height:12px;fill:none;stroke:var(--oro);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round;transition:transform .35s cubic-bezier(.3,.7,.2,1)}
+.volver-jardin:hover{background:var(--papel-2);border-color:var(--oro)}
+.volver-jardin:hover svg{transform:translateX(-4px)}
+
+
+/* Botón de las tres rayitas */
+.nav-izq{justify-self:start;display:flex;align-items:center;gap:1rem}
+.nav-izq .menu-btn{padding:.5rem .3rem;margin-left:-.3rem}
+.nav-izq .hamb{width:22px;height:11px;border-top-width:1.5px;border-bottom-width:1.5px;position:relative}
+.nav-izq .hamb::after{content:"";position:absolute;left:0;right:0;top:50%;border-top:1.5px solid currentColor;transform:translateY(-50%)}
+
+/* Colección: 5 Biblias y 5 journals, fotos más pequeñas */
+#tienda .grupo{margin:3rem 0 1.4rem}
+#tienda .cab + .grupo{margin-top:0}
+.cinco{grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(.9rem,1.8vw,1.5rem)}
+.cinco .pieza h4{font-size:clamp(1.2rem,1rem + .5vw,1.45rem);margin:.7rem 0 .2rem}
+.cinco .pieza .verbo{margin-top:.7rem;font-size:.68rem}
+.cinco .pieza .verbo + h4{margin-top:.15rem}
+.cinco .pieza .variante{font-size:.92rem;line-height:1.4;margin-bottom:.7rem}
+.cinco .pieza .pie{flex-direction:column;align-items:flex-start;gap:.4rem}
+.cinco .precio.pend{font-size:.9rem}
+.cinco .boton{font-size:.92rem;padding:.35rem 1rem .45rem}
+/* más chiquitas: las cinco en una misma línea */
+#tienda .coleccion.cinco{max-width:920px;justify-self:center;width:100%;gap:clamp(.7rem,1.4vw,1.1rem)}
+#tienda .grupo{max-width:920px;justify-self:center;width:100%}
+.cinco .pieza img{aspect-ratio:3/4}
+.cinco .pieza h4{font-size:clamp(1.05rem,.95rem + .35vw,1.25rem);margin:.55rem 0 .1rem}
+.cinco .pieza .verbo{margin-top:.55rem;font-size:.62rem}
+.cinco .pieza .variante{font-size:.85rem;line-height:1.35;margin-bottom:.5rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cinco .pieza .pie{gap:.3rem}
+.cinco .precio.pend{font-size:.82rem}
+.cinco .boton{font-size:.85rem;padding:.25rem .85rem .35rem}
+@media (max-width:860px){
+  #tienda .coleccion.cinco{display:flex !important;overflow-x:auto;scroll-snap-type:x mandatory;gap:.8rem;margin:0;padding:0 0 .6rem;width:100%;max-width:100%;min-width:0;scrollbar-width:none}
+  #tienda .coleccion.cinco::-webkit-scrollbar{display:none}
+  #tienda .coleccion.cinco .pieza{flex:0 0 38%;scroll-snap-align:start}
+  .cinco .pieza .variante{display:none}
+  .cinco .precio.pend{display:none}
+}
+.cinco .precio:not(.pend){font-size:1rem;font-weight:500}
+#palabra .nota-palabra{background:#F3EBE0}
+#tienda .cab{max-width:920px;justify-self:center;width:100%;text-align:left}
+#tienda .col-nombre{font-style:italic;font-size:.55em;color:var(--texto-suave);white-space:nowrap}
+#palabra .cierre-palabra{grid-column:6 / span 6;margin:1.4rem 0 0;font-style:italic;font-size:.95em;line-height:1.6;color:#EFE7D6}
+@media (max-width:860px){#palabra .cierre-palabra{grid-column:1 / -1 !important}}
+#momentos .ctexto{padding:0;min-height:0}
+@media (max-width:860px){#momentos .ctexto{display:none}}
+#nosotras-inicio{position:relative}
+.divisor{position:absolute;top:0;left:50%;transform:translate(-50%,-50%);width:min(1080px,calc(100% - 2*clamp(1.25rem,5vw,3rem)));display:flex;align-items:center;gap:1.1rem;pointer-events:none}
+.divisor::before,.divisor::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(178,143,60,.45))}
+.divisor::after{background:linear-gradient(90deg,rgba(178,143,60,.45),transparent)}
+.divisor span{width:5px;height:5px;transform:rotate(45deg);background:var(--oro);opacity:.75}
+
+/* ====== Cartas del jardín · rediseño ====== */
+.historia [hidden]{display:none !important}
+.historia{--hoja:#FBF7F0;--hoja-tinta:#3b322c;--sobre:#E9DDCB;--sobre-2:#E1D2BC;--fibra:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.07 .55' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42  0 0 0 0 .34  0 0 0 0 .26  0 0 0 .42 -.17'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E")}
+.historia .bot{display:block;width:100%;height:auto;fill:none;stroke:currentColor;stroke-width:.9;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.mecer{display:block;will-change:transform;transition:transform 1.1s cubic-bezier(.2,.6,.3,1)}
+.cj-etiqueta{display:flex;align-items:center;gap:1rem;margin:0;font-family:var(--maquina);font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-suave)}
+.cj-linea{width:3.5rem;height:1px;background:var(--oro);opacity:.55}
+.historia-barra{gap:1rem}
+.historia-barra::after{content:"";position:absolute;left:0;bottom:-1px;height:1px;width:calc(var(--progreso,0) * 100%);background:var(--oro);opacity:.75;transition:width .25s linear}
+.cj-barra-cartas{font-size:1rem;color:var(--texto-suave)}
+.cj-barra-cartas:hover{color:var(--tinta)}
+
+/* Transiciones entre vistas */
+.cartas-indice,.carta-vista{transition:opacity .5s ease,transform .6s cubic-bezier(.3,.6,.2,1)}
+.saliendo{opacity:0 !important;transform:translateY(-14px)}
+.cartas-indice.entrando{animation:cj-entrar 1.1s cubic-bezier(.2,.6,.3,1) both}
+@keyframes cj-entrar{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+/* 1 · Introducción */
+.cj-intro{position:relative;max-width:1180px;margin:0 auto;padding:clamp(4.5rem,11vw,9rem) clamp(1.25rem,5vw,3rem) clamp(3.5rem,7vw,6rem);display:grid;grid-template-columns:repeat(12,minmax(0,1fr));column-gap:clamp(1rem,2.5vw,2rem)}
+.cj-intro .cj-etiqueta{grid-column:2 / span 7}
+.cj-titulo{grid-column:2 / span 10;position:relative;z-index:1;margin:1.8rem 0 0;font-weight:300;font-size:clamp(3.7rem,1.6rem + 8.4vw,10rem);line-height:.86;letter-spacing:-.03em}
+.cj-titulo span{display:block}
+.cj-titulo em{display:block;padding-left:clamp(2.2rem,13vw,12.5rem);font-weight:300}
+.cj-frase{grid-column:7 / span 5;position:relative;z-index:1;margin:2.8rem 0 0;padding-left:1.3rem;border-left:1px solid rgba(178,143,60,.5);max-width:22ch;font-style:italic;font-size:clamp(1.25rem,1.05rem + .8vw,1.75rem);line-height:1.38;color:var(--texto-suave)}
+.cj-rama{position:absolute;right:clamp(-1rem,3vw,5rem);top:clamp(2.5rem,7vw,5.5rem);width:clamp(140px,21vw,290px);color:var(--tinta);opacity:.5;pointer-events:none}
+.cj-rama .bot{transform:rotate(8deg)}
+.cj-intro.trazando .cj-rama path{stroke-dasharray:1;stroke-dashoffset:1;animation:cj-trazo 2.6s cubic-bezier(.4,0,.2,1) forwards}
+@keyframes cj-trazo{to{stroke-dashoffset:0}}
+.cj-intro-pie{grid-column:2 / span 6;margin:3.5rem 0 0;display:flex;align-items:center;gap:.9rem;font-style:italic;font-size:1.05rem;color:var(--texto-suave)}
+.cj-intro-pie::before{content:"";width:1px;height:2.4rem;background:currentColor;opacity:.5}
+
+.lectura-meta{display:flex;justify-content:space-between;gap:1rem;padding-bottom:.9rem;border-bottom:1px solid rgba(84,69,65,.16);font-family:var(--maquina);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:#8a7a6e}
+.lectura-meta span:first-child{color:#9C7B31}
+.lectura-verso figcaption{margin-top:.6rem;font-family:var(--maquina);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:#8a7a6e}
+
+/* 2 · La colección */
+.cj-cartas{list-style:none;max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(1.25rem,5vw,3rem) clamp(6rem,12vw,10rem);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:clamp(1.1rem,2.6vw,2.2rem);align-items:start}
+.cj-cartas li{margin:0}
+.cj-cartas li:nth-child(2){margin-top:2.6rem}
+.cj-cartas li:nth-child(3){margin-top:.9rem}
+.cj-cartas li:nth-child(4){margin-top:3.2rem}
+.cj-cartas li:nth-child(5){margin-top:1.4rem}
+.cj-carta{all:unset;box-sizing:border-box;cursor:pointer;position:relative;display:block;width:100%;aspect-ratio:3/4;perspective:1100px;transform:rotate(var(--giro,0deg));transition:transform 1s cubic-bezier(.2,.6,.3,1)}
+.cj-carta::before{content:"";position:absolute;inset:0;background:var(--hoja);transform:translate(3px,4px) rotate(.8deg);box-shadow:0 22px 30px -24px rgba(44,34,28,.55)}
+.cj-carta-dentro,.cj-carta-tapa,.cj-cara{position:absolute;inset:0}
+.cj-carta-dentro{display:grid;align-content:center;justify-items:center;gap:.9rem;padding:14% 13%;text-align:center;background:linear-gradient(rgba(251,247,240,.55),rgba(251,247,240,.55)),var(--fibra),var(--hoja);color:var(--hoja-tinta);box-shadow:inset 0 14px 18px -16px rgba(44,34,28,.35);overflow:hidden}
+.cj-carta-dentro::before{content:"";position:absolute;inset:-20%;background:radial-gradient(closest-side,rgba(214,186,120,.32),transparent 70%);opacity:0;pointer-events:none}
+.revelando::before{animation:cj-luz 1.8s ease forwards}
+@keyframes cj-luz{0%{opacity:0}45%{opacity:1}100%{opacity:.35}}
+.cj-carta-dentro q{quotes:none;font-style:italic;font-size:clamp(1rem,.85rem + .45vw,1.2rem);line-height:1.35;text-wrap:balance}
+.cj-carta-dentro small{font-family:var(--maquina);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:#8a7a6e}
+.cj-carta-tapa{transform-origin:50% 0;transform-style:preserve-3d;transition:transform 1s cubic-bezier(.3,.7,.2,1)}
+.cj-cara{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.cj-cara.frente{display:grid;grid-template-rows:1fr auto 1fr;justify-items:center;align-items:center;padding:12% 10% 11%;background:linear-gradient(180deg,rgba(255,255,255,.3),transparent 35%),linear-gradient(rgba(238,228,211,.5),rgba(238,228,211,.5)),var(--fibra),#EEE4D3;color:#3b322c;box-shadow:0 1px 0 rgba(44,34,28,.06),0 18px 26px -20px rgba(44,34,28,.45)}
+.cj-cara.frente::after{content:"";position:absolute;inset:7px;border:1px solid rgba(178,143,60,.28);pointer-events:none}
+.cj-cara.reverso{transform:rotateX(180deg);background:linear-gradient(rgba(231,219,198,.5),rgba(231,219,198,.5)),var(--fibra),#E7DBC6}
+.cj-carta-etq{align-self:end;font-family:var(--maquina);font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:#9C7B31}
+.cj-carta-num{display:grid;justify-items:center;gap:.7rem;font-family:var(--serif);font-weight:300;font-size:clamp(2.6rem,1.6rem + 2.6vw,3.9rem);line-height:1;color:#2f2722}
+.cj-carta-num::after{content:"";width:1.6rem;height:1px;background:var(--oro);opacity:.7}
+.cj-carta-cita{align-self:start;font-family:var(--maquina);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:#8a7a6e;text-align:center}
+.cj-carta:hover,.cj-carta:focus-visible{transform:rotate(0deg) translateY(-8px)}
+.cj-carta:hover .cj-carta-tapa,.cj-carta:focus-visible .cj-carta-tapa{transform:rotateX(-20deg)}
+.cj-carta:focus-visible{outline:2px solid var(--oro);outline-offset:8px}
+
+/* Aparecer al llegar */
+html.anim .aparece{opacity:0;transform:translateY(26px);transition:opacity 1.4s ease,transform 1.5s cubic-bezier(.2,.6,.3,1)}
+html.anim .aparece.visto{opacity:1;transform:none}
+
+/* 4 · Experiencia de lectura */
+.lectura{position:relative;padding:clamp(3rem,8vw,6rem) clamp(.75rem,4vw,3rem) clamp(2rem,5vw,3rem)}
+.lectura-hoja{position:relative;z-index:1;max-width:46rem;margin:0 auto;padding:clamp(2.4rem,7vw,5rem) clamp(1.4rem,7vw,5rem) clamp(3rem,7vw,4.5rem);background:var(--fibra),linear-gradient(180deg,transparent 33.3%,rgba(84,69,65,.06) 33.3%,rgba(255,255,255,.45) calc(33.3% + 1px),transparent calc(33.3% + 3px),transparent 66.6%,rgba(84,69,65,.06) 66.6%,rgba(255,255,255,.45) calc(66.6% + 1px),transparent calc(66.6% + 3px)),var(--hoja);color:var(--hoja-tinta);box-shadow:0 1px 0 rgba(44,34,28,.05),0 34px 60px -40px rgba(44,34,28,.55)}
+.carta-vista.abriendo .lectura-hoja{animation:cj-desdoblar 1.2s cubic-bezier(.25,.7,.2,1) backwards}
+.carta-vista.abriendo .lectura-cab{animation:cj-asomar 1.3s cubic-bezier(.2,.6,.3,1) .15s both}
+.carta-vista.abriendo .lectura-verso{animation:cj-asomar 1.5s cubic-bezier(.2,.6,.3,1) .4s both}
+.carta-vista.abriendo .lectura-parte,.carta-vista.abriendo .lectura-firma{animation:cj-asomar 1.5s cubic-bezier(.2,.6,.3,1) .7s both}
+@keyframes cj-desdoblar{0%{opacity:0;transform:translateY(22px) scale(.99)}100%{opacity:1;transform:none}}
+@keyframes cj-asomar{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* Cartas breves: solo su versículo */
+.carta-breve .lectura-hoja{display:grid;align-content:center;min-height:min(78vh,44rem)}
+.carta-breve .lectura-verso{margin:clamp(3.5rem,9vw,6rem) auto clamp(1rem,3vw,2rem)}
+.carta-breve .lectura-verso blockquote{max-width:18ch;font-size:clamp(1.8rem,1.3rem + 1.8vw,2.7rem)}
+.carta-breve .lectura-verso blockquote:focus{outline:none}
+.carta-breve .lectura-firma{margin-top:clamp(2rem,5vw,3rem)}
+.lectura-cab h2{margin:2.2rem 0 1rem;font-weight:300;font-size:clamp(2.4rem,1.5rem + 3.2vw,4.1rem);line-height:1.02;letter-spacing:-.015em;color:#2f2722}
+.lectura-cab h2:focus{outline:none}
+.lectura-cab h2 em{display:block}
+.lectura-tiempo{margin:0;font-family:var(--maquina);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:#8a7a6e}
+.lectura-verso{margin:clamp(2.6rem,6vw,4rem) auto;text-align:center;display:grid;justify-items:center}
+.lectura-verso::before,.lectura-verso::after{content:"";width:3rem;height:1px;background:var(--oro);opacity:.6}
+.lectura-verso blockquote{margin:1.6rem 0 0;max-width:20ch;font-style:italic;font-size:clamp(1.55rem,1.2rem + 1.3vw,2.2rem);line-height:1.28;color:#2f2722;text-wrap:balance}
+.lectura-verso figcaption{margin:1rem 0 1.6rem}
+.lectura-parte{position:relative}
+.lectura-parte h3{display:flex;align-items:baseline;gap:1rem;margin:0 0 1.4rem;font-weight:400;font-style:italic;font-size:clamp(1.45rem,1.2rem + .8vw,1.85rem);line-height:1.2;color:#2f2722}
+.lectura-parte h3 span{font-family:var(--maquina);font-style:normal;font-size:.72rem;letter-spacing:.16em;color:#9C7B31}
+.lectura-prosa{max-width:34em;font-size:clamp(1.15rem,1.05rem + .35vw,1.3rem);line-height:1.8}
+.lectura-prosa p{margin:0 0 1.25em}
+.lectura-parte:first-of-type .lectura-prosa p:first-child::first-letter{float:left;font-size:4.4em;line-height:.8;padding:.07em .09em 0 0;font-weight:300;color:var(--oro)}
+.lectura-prosa .resalte{font-style:italic;font-size:1.12em;color:#2f2722;padding-left:1.1rem;border-left:1px solid rgba(178,143,60,.55)}
+.lectura-nota{margin:2rem 0 0 auto;--giro:2.5deg}
+.lectura-parte + .lectura-adorno + .lectura-parte .lectura-nota{--giro:-3deg}
+@media (min-width:1180px){
+  .lectura-nota{position:absolute;z-index:2;left:calc(100% + 2.4rem);top:4.5rem;width:13rem;margin:0}
+  .lectura-parte .lectura-nota.rv-nota{opacity:0;transform:translateX(-10px) rotate(var(--giro));transition:opacity 1.2s ease,transform 1.4s cubic-bezier(.2,.6,.3,1)}
+  .lectura-parte .lectura-nota.rv-nota.visto{opacity:1;transform:rotate(var(--giro))}
+}
+.lectura-adorno{display:flex;align-items:center;gap:1rem;margin:clamp(2.6rem,6vw,3.8rem) auto;max-width:16rem}
+.lectura-adorno::before,.lectura-adorno::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(178,143,60,.5))}
+.lectura-adorno::after{background:linear-gradient(90deg,rgba(178,143,60,.5),transparent)}
+.lectura-adorno span{width:5px;height:5px;background:var(--oro);opacity:.75;transform:rotate(45deg)}
+.lectura-firma{border:0;padding:0;font-size:inherit;margin-top:clamp(3rem,6vw,4.5rem);display:grid;justify-items:center;gap:1rem;text-align:center}
+.lectura-firma .mono{width:24px;background:#3b322c;opacity:.85}
+.lectura-firma p{margin:0;font-style:italic;color:#7a6b61;line-height:1.45}
+.lectura-bot{position:absolute;z-index:0;pointer-events:none;color:#5d5a3e;opacity:.45}
+.lectura-bot.lb1{top:9rem;right:calc(50% + 23rem + 1rem);width:clamp(120px,13vw,200px)}
+.lectura-bot.lb1 .bot{transform:rotate(-16deg)}
+.lectura-bot.lb2{top:58%;left:calc(50% + 23rem + 2rem);width:80px}
+.lectura-bot.lb2 .bot{stroke-width:1.5;transform:rotate(14deg)}
+@media (max-width:1100px){.lectura-bot{display:none}}
+.lectura-nav{max-width:46rem;margin:0 auto;padding:1.6rem clamp(1.25rem,4vw,0rem) clamp(4rem,8vw,6rem);display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:1rem}
+.lectura-nav > *:first-child{justify-self:start;text-align:left}
+.lectura-nav > *:last-child{justify-self:end;text-align:right}
+.cj-salto{all:unset;box-sizing:border-box;cursor:pointer;display:grid;gap:.2rem;max-width:16rem;transition:transform .6s cubic-bezier(.3,.7,.2,1)}
+.cj-salto small{font-family:var(--maquina);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--texto-suave)}
+.cj-salto span{font-style:italic;font-size:1.1rem;line-height:1.3}
+button.cj-salto:hover{transform:translateX(var(--empuje,4px))}
+button.cj-salto:focus-visible{outline:2px solid var(--oro);outline-offset:4px}
+.cj-salto.cerrada span{color:var(--texto-suave)}
+.lectura-nav .cerrar{justify-self:center;align-self:center}
+
+/* Apertura de la carta */
+.apertura{position:fixed;inset:0;z-index:5;pointer-events:none;visibility:hidden}
+.apertura.activa{visibility:visible}
+.ap-velo{position:absolute;inset:0;background:var(--papel);opacity:0}
+.apertura .cj-carta{position:fixed;margin:0;cursor:default;transition:none}
+.apertura .cj-carta::before{display:none}
+
+/* Móvil y tableta */
+@media (max-width:860px){
+  .cj-intro{display:block}
+  .cj-titulo{margin-top:1.4rem}
+  .cj-frase{margin:2.2rem 0 0 14%}
+  .cj-rama{width:120px;right:-1.5rem;top:3.2rem;opacity:.38}
+  .cj-cartas{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:2.6rem;max-width:40rem}
+  .cj-cartas li{margin-top:0 !important}
+  .cj-cartas li:nth-child(even){margin-top:1.6rem !important}
+  .lectura-nav{grid-template-columns:1fr 1fr;row-gap:1.6rem}
+  .lectura-nav .cerrar{grid-column:1 / -1;grid-row:2}
+  .cj-barra-cartas{display:none}
+}
+@media (max-width:560px){
+  .cj-cartas{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:1.1rem;max-width:26rem}
+  .cj-cartas li:nth-child(even){margin-top:1.8rem !important}
+  .cj-cartas li:last-child:nth-child(odd){grid-column:1 / -1;width:calc(50% - .55rem);justify-self:center}
+}
+@media (prefers-reduced-motion:reduce){
+  .cj-intro.trazando .cj-rama path{animation:none;stroke-dasharray:none}
+  .apertura{display:none}
+  html.anim .aparece{opacity:1;transform:none}
+}
+
+/* ====== Tienda conectada: catálogo en vivo, carrito y ficha ====== */
+/* Tarjetas alineadas: cada una ocupa 6 filas de la grilla (foto, nombre, verbo, descripción, precio, botones)
+   y usa subgrid, así cada parte queda a la misma altura en toda la fila aunque una tenga tachado, etiqueta o "Quedan N". */
+#tienda .coleccion.cinco{row-gap:0;align-items:start}
+#tienda .cinco .pieza{display:grid;grid-row:span 6;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr);row-gap:0;position:relative;overflow:visible}
+#tienda .cinco .pieza:nth-child(n+6){margin-top:2rem}
+.pieza-foto{position:relative;overflow:hidden}
+#tienda .cinco .pieza .verbo{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tienda .cinco .pieza .verbo .ver-producto{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pieza-verbo{margin:0;font-style:italic;font-size:.82rem;line-height:1.3;color:var(--texto-suave)}
+#tienda .cinco .pieza .variante{margin:0 0 .3rem}
+#tienda .cinco .pieza .variante:empty{margin:0}
+.pieza-precio{display:grid;align-content:start;gap:.1rem;margin:0 0 .3rem;min-width:0;min-height:1.62rem}
+.pieza-acciones{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .8rem;min-width:0}
+.cinco .precio .antes{font-size:.8em;font-weight:400;line-height:1}
+.agotado-txt{margin:0;font-style:italic;font-size:.82rem;color:var(--texto-suave)}
+/* Sin catálogo: "Precio por confirmar" también en celular */
+#tienda .cinco .precio.pend{display:block}
+/* Mientras llega el catálogo se reserva el lugar de precio y botones: no se muestra ningún precio hasta tener el real */
+#tienda.cargando .pieza-precio,#tienda.cargando .pieza-acciones{visibility:hidden}
+@media (max-width:860px){
+  #tienda .coleccion.cinco{display:grid !important;grid-auto-flow:column;grid-auto-columns:38%;grid-template-columns:none;grid-template-rows:repeat(6,auto)}
+  #tienda .cinco .pieza:nth-child(n+6){margin-top:0}
+  .cinco .distintivo{top:.4rem;left:.4rem;font-size:.54rem;letter-spacing:.06em;padding:.22rem .4rem;max-width:calc(100% - .8rem)}
+}
+/* Ver la ficha de una Biblia tocando la foto o el nombre */
+.ver-producto{all:unset;cursor:pointer;display:block;width:100%}
+.ver-producto:focus-visible{outline:2px solid var(--oro);outline-offset:3px}
+.ver-producto.nombre{text-decoration:underline;text-decoration-color:transparent;text-underline-offset:.2em;transition:text-decoration-color .25s}
+.ver-producto.nombre:hover{text-decoration-color:currentColor}
+/* Distintivo, oferta y stock */
+.distintivo{position:absolute;top:.6rem;left:.6rem;z-index:2;font-family:var(--maquina);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--tinta);background:rgba(251,247,240,.94);padding:.3rem .55rem;box-shadow:0 1px 0 rgba(44,34,28,.08);max-width:calc(100% - 1.2rem);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.precio .antes{color:var(--texto-suave);font-size:.85em}
+.precio .off{font-family:var(--maquina);font-size:.7rem;font-weight:400;letter-spacing:.06em;color:var(--musgo);vertical-align:middle;white-space:nowrap;line-height:1}
+.quedan{margin:0;font-style:italic;font-size:.85rem;color:var(--oro)}
+/* Regalar */
+.regalar{font:inherit;font-size:.95rem;font-style:italic;background:none;border:0;color:var(--texto-suave);cursor:pointer;text-decoration:underline;text-underline-offset:.2em;padding:0}
+.cinco .regalar{font-size:.88rem}
+.regalar:hover{color:var(--tinta)}
+/* Sets */
+#filaSets{display:contents}
+#filaSets[hidden]{display:none}
+/* "Avisame cuando vuelva" */
+.espera{display:grid;gap:.4rem;justify-items:start;width:100%;min-width:0}
+.espera[hidden]{display:none}
+.espera-form{display:grid;gap:.45rem;width:100%;min-width:0;position:relative}
+.espera-form input[type=email]{font:inherit;font-size:1rem;width:100%;min-width:0;border:0;border-bottom:1px solid var(--tinta);border-radius:0;background:transparent;color:var(--tinta);padding:.3rem 0}
+.espera-form input[type=email]::placeholder{font-style:italic;color:var(--texto-suave)}
+.espera-form input[type=email]:focus{outline:none;border-bottom-color:var(--oro)}
+.espera-form .boton{justify-self:start;font-size:.88rem;padding:.3rem .95rem .4rem}
+.espera-form .mensaje{font-size:.85rem;font-style:italic;min-height:0}
+.espera-form .hp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);opacity:0;pointer-events:none}
+.espera-ok{margin:0;font-style:italic;font-size:.92rem;color:var(--musgo)}
+#prodEspera .espera-form{max-width:22rem}
+/* Carrito: línea del Set, sugerencia, regalo y bloqueo sin precios */
+.cajon-pie [hidden]{display:none !important}
+.set-linea{font-size:1rem !important;color:var(--musgo)}
+.precio-item.pend{font-style:italic;font-size:.95rem;color:var(--texto-suave);white-space:nowrap}
+#hacerPedido:disabled{opacity:.5;cursor:default}
+.sugerencia{margin-top:1rem;padding:1rem 1.1rem;background:var(--nota);border:1px solid var(--linea);display:grid;gap:.7rem}
+.sugerencia p{margin:0;font-style:italic;font-size:1.05rem}
+.sugerencia .boton{justify-self:start;font-size:.95rem;padding:.35rem 1.1rem .45rem}
+.regalo-op{display:flex;gap:.7rem;align-items:flex-start;cursor:pointer;font-size:1.05rem;padding:.8rem 1rem;border:1px solid var(--linea);transition:border-color .2s,background .2s}
+.regalo-op:has(input:checked){border-color:var(--tinta);background:var(--nota)}
+.regalo-op input{accent-color:var(--tinta);margin-top:.3rem}
+.regalo-op small{display:block;font-style:italic;color:var(--texto-suave);font-size:.92rem}
+/* Ficha de cada Biblia: el carrito se abre por encima de ella */
+body:has(#producto.abierta) .velo{z-index:86}
+body:has(#producto.abierta) .cajon{z-index:87}
+.prod{max-width:1080px;margin:0 auto;padding:clamp(2rem,5vw,4rem) clamp(1.25rem,5vw,3rem) clamp(4rem,8vw,6rem);display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(2rem,5vw,4.5rem);align-items:start}
+.prod-galeria,.prod-info{min-width:0}
+.prod-principal{margin:0;background:var(--papel-2);aspect-ratio:4/5;overflow:hidden}
+.prod-principal img{width:100%;height:100%;object-fit:cover;animation:aparece .5s ease}
+@keyframes aparece{from{opacity:.3}to{opacity:1}}
+.prod-minis{display:flex;gap:.6rem;margin-top:.8rem;overflow-x:auto;scrollbar-width:none}
+.prod-minis button{all:unset;cursor:pointer;flex:0 0 4.4rem;aspect-ratio:1;overflow:hidden;opacity:.6;outline:1px solid transparent;transition:opacity .25s}
+.prod-minis button[aria-pressed="true"]{opacity:1;outline:1px solid var(--tinta);outline-offset:2px}
+.prod-minis button:focus-visible{outline:2px solid var(--oro)}
+.prod-minis img{width:100%;height:100%;object-fit:cover}
+.prod-info{display:grid;gap:1rem;position:sticky;top:5.5rem}
+.prod-info h2{margin:0}
+.prod-desc{margin:0;font-size:1.2rem;font-style:italic}
+.prod-info .precio{margin:0}
+#prodAgregar{justify-self:start;padding:.65rem 1.8rem .75rem}
+#prodRegalar{justify-self:start;margin-top:-.4rem}
+.prod-datos{margin:.8rem 0 0;border-top:1px solid var(--linea)}
+.prod-datos div{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--linea);font-size:1rem}
+.prod-datos dt{font-style:italic;color:var(--texto-suave)}
+.prod-datos dd{margin:0;text-align:right}
+@media (max-width:760px){.prod{grid-template-columns:minmax(0,1fr)}.prod-info{position:static}}
+/* Espacio de un producto sin foto cargada: mide lo mismo que una foto */
+.sin-foto{box-sizing:border-box}
+#tienda .cinco .sin-foto{aspect-ratio:3/4}
+.item .sin-foto{width:64px;aspect-ratio:4/5;flex:none}
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add("js")</script>
+
+<div class="umbral" id="umbral" role="dialog" aria-label="Bienvenida">
+  <div class="umbral-centro">
+    <div class="ventana" aria-hidden="true"></div>
+    <p>De regreso al Jardín.<br>Al lugar de origen.</p>
+    <button class="boton" id="entrar" type="button">Entrar al jardín</button>
+  </div>
+</div>
+
+<div class="barra-cafe" id="barraCafe">Primera edición de 30 ejemplares · Lanzamiento a fin de 2026 · Envíos dentro de Argentina</div>
+<header class="nav" id="nav">
+  <div class="nav-izq">
+    <button class="menu-btn" id="abrirMenu" type="button" aria-haspopup="dialog" aria-controls="menu" aria-label="Abrir menú"><span class="hamb" aria-hidden="true"></span></button>
+    <a class="nav-marca" href="#inicio" aria-label="Edén, inicio"><span class="logo-mini"></span></a>
+  </div>
+  <nav class="nav-links" aria-label="Principal">
+    <a href="#tienda">Colección</a>
+    <a href="#devocionales" data-devocionales>Devocionales</a>
+    <a href="#preguntas">Preguntas<span class="largo"> frecuentes</span></a>
+  </nav>
+  <button class="carrito-btn" type="button" id="abrirCarrito" aria-haspopup="dialog" aria-controls="carrito">Carrito&nbsp;<span id="carritoCuenta">(0)</span></button>
+</header>
+
+<aside class="cajon" id="carrito" role="dialog" aria-modal="true" aria-labelledby="t-carrito" aria-hidden="true">
+  <div class="cajon-cab">
+    <h2 id="t-carrito">Tu carrito</h2>
+    <button class="cerrar" type="button" id="cerrarCarrito">Cerrar</button>
+  </div>
+  <div class="items" id="carritoItems"></div>
+  <div class="cajon-pie" id="carritoPie">
+    <label class="regalo-op"><input type="checkbox" id="esRegalo"><span>Es para regalar<small>Sumamos una tarjeta con tu mensaje y el paquete va sin precios.</small></span></label>
+    <div class="total set-linea" id="setLinea" hidden><span>Set Biblia + Journal</span><span></span></div>
+    <div class="total"><span>Total</span><span id="carritoTotal"></span></div>
+    <button class="boton lleno" type="button" id="hacerPedido">Hacer mi pedido</button>
+    <p class="mensaje" id="carritoMsg" aria-live="polite"></p>
+  </div>
+</aside>
+
+<aside class="menu" id="menu" role="dialog" aria-modal="true" aria-label="Menú" aria-hidden="true">
+  <div class="menu-cab">
+    <span class="logo-mini" aria-hidden="true"></span>
+    <button class="cerrar" type="button" id="cerrarMenu">Cerrar</button>
+  </div>
+  <nav>
+    <details open><summary>Biblias</summary><ul id="menuBiblias"></ul></details>
+    <details><summary>Journals</summary><ul id="menuJournals"></ul></details>
+    <ul class="menu-simple">
+      <li><a href="#devocionales" data-devocionales>Devocionales</a></li>
+      <li><a href="#palabra">Nuestras Biblias</a></li>
+      <li><a href="#momentos">Momentos</a></li>
+      <li><a href="#nosotras-inicio">Nosotras</a></li>
+      <li><a href="#preguntas">Preguntas frecuentes</a></li>
+      <li><a href="#parte">Ser parte</a></li>
+    </ul>
+  </nav>
+  <div class="menu-pie">
+    <a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram @casa_edenn_</a>
+    <p>De regreso al Jardín. Al lugar de origen.</p>
+  </div>
+</aside>
+
+<main id="inicio" tabindex="-1" style="outline:none">
+  <section class="portada" aria-label="Portada">
+    <h1 class="sr">Edén</h1>
+    <p class="portada-titulo">De vuelta al jardín, <em>al lugar de origen.</em></p>
+    <a class="portada-pie" href="#tienda">Descubre la colección</a>
+  </section>
+
+  <section class="versos" aria-label="Versículos">
+    <div class="versos-pista" id="versos">
+      <figure class="verso activo"><blockquote>Dios el Señor plantó un jardín al oriente del Edén.</blockquote><figcaption>Génesis 2:8 · NVI</figcaption></figure>
+      <figure class="verso"><blockquote>Serás como jardín bien regado, como manantial cuyas aguas no se agotan.</blockquote><figcaption>Isaías 58:11 · NVI</figcaption></figure>
+      <figure class="verso"><blockquote>Permanezcan en mí, y yo permaneceré en ustedes.</blockquote><figcaption>Juan 15:4 · NVI</figcaption></figure>
+      <figure class="verso"><blockquote>Vengan a mí todos ustedes que están cansados y agobiados, y yo les daré descanso.</blockquote><figcaption>Mateo 11:28 · NVI</figcaption></figure>
+      <figure class="verso"><blockquote>Me has dado a conocer la senda de la vida; me llenarás de alegría en tu presencia.</blockquote><figcaption>Salmo 16:11 · NVI</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="pradera" aria-labelledby="t-invitacion">
+    <div class="pradera-texto">
+      <h2 id="t-invitacion">El jardín no desapareció. <em>Y la invitación sigue en pie.</em></h2>
+      <p>Lo que el pecado cerró fue abierto nuevamente por amor. El jardín dejó de ser memoria y volvió a ser invitación.</p>
+      <a class="enlace-claro" href="#devocionales" data-devocionales data-carta="1">Leer la reflexión completa</a>
+    </div>
+  </section>
+
+  <section class="capitulo" id="tienda">
+    <div class="rejilla">
+      <div class="cab">
+        <h2><span style="white-space:nowrap">Colección 1</span> <span class="col-nombre">/ De vuelta al jardín</span></h2>
+      </div>
+      <h3 class="grupo" id="grupo-biblias">Biblias</h3>
+      <div class="coleccion cinco" id="biblias"></div>
+      <h3 class="grupo" id="grupo-journals">Journals</h3>
+      <div class="coleccion cinco" id="journals"></div>
+      <div id="filaSets" hidden>
+        <h3 class="grupo" id="grupo-sets">Sets</h3>
+        <div class="coleccion cinco" id="sets"></div>
+      </div>
+      <p class="aviso aviso-tienda">Primera edición de 30 ejemplares · Lanzamiento a fin de 2026 · Envíos dentro de Argentina</p>
+    </div>
+  </section>
+
+  <section class="capitulo" id="palabra">
+    <div class="rejilla">
+      <figure class="foto" style="margin:0">
+        <button type="button" class="foto-btn" data-foto aria-label="Ampliar foto: Manos sosteniendo la Biblia Origen"><img src="/img/2542d9dcea84.jpg" alt="Manos sosteniendo la Biblia Origen, con la ventana dorada en la tapa" loading="lazy" width="833" height="1400"></button>
+      </figure>
+      <div class="cab">
+        <p class="num">Los detalles</p>
+        <h2>Nuestras Biblias</h2>
+      </div>
+      <div class="prosa">
+        <p>Biblias artesanales de cuero, hechas a mano en Argentina.</p>
+        <p>Cada una lleva un detalle dorado en la tapa: una ventana, flores o una casita.</p>
+      </div>
+      <aside class="nota nota-palabra" aria-label="Nota"><p>“Señor, ¿a quién iríamos? Tú tienes las palabras que dan vida eterna.”</p><p style="margin-top:.8rem">Juan 6:68-69</p></aside>
+      <dl class="detalles">
+        <div><dt>Idioma</dt><dd>Español</dd></div>
+        <div><dt>Tapa</dt><dd>Cuero</dd></div>
+        <div><dt>Versión</dt><dd>NVI</dd></div>
+        <div><dt>Hecha en</dt><dd>Argentina</dd></div>
+        <div><dt>Primera edición</dt><dd>30 ejemplares</dd></div>
+      </dl>
+      <p class="cierre-palabra">Desde el principio fuimos creados para caminar con Dios; el corazón de Edén es acompañarte a volver a ese lugar de comunión.</p>
+    </div>
+  </section>
+
+  <section class="capitulo collage-sec" id="momentos" aria-labelledby="t-momentos">
+    <div class="collage">
+      <figure class="c c1 rv"><button type="button" class="foto-btn " data-foto aria-label="Ampliar foto: Una mujer lee su Biblia de Edén en un café, bajo una luz cálida"><img src="/img/9fcc77147465.jpg" alt="Una mujer lee su Biblia de Edén en un café, bajo una luz cálida" width="1000" height="1333" loading="lazy" draggable="false"></button></figure>
+      <div class="c ctexto rv">
+        <h2 id="t-momentos" class="sr">Momentos</h2>
+      </div>
+      <figure class="c c2 rv"><button type="button" class="foto-btn " data-foto aria-label="Ampliar foto: Biblia abierta en Cantar de los Cantares sobre una mesa de madera, junto a un café"><img src="/img/da89658eb0a9.jpg" alt="Biblia abierta en Cantar de los Cantares sobre una mesa de madera, junto a un café" width="1000" height="1333" loading="lazy" draggable="false"></button></figure>
+      <figure class="c c3 rv"><button type="button" class="foto-btn " data-foto aria-label="Ampliar foto: Dos amigas leen juntas la Biblia, una con un café en la mano"><img src="/img/554e677851a6.jpg" alt="Dos amigas leen juntas la Biblia, una con un café en la mano" width="1000" height="1333" loading="lazy" draggable="false"></button></figure>
+    </div>
+  </section>
+
+  <section class="capitulo" id="nosotras-inicio" aria-labelledby="t-quienes">
+    <div class="divisor" aria-hidden="true"><span></span></div>
+    <div class="quienes">
+      <img src="/img/3a2e54a44ce7.jpg" alt="Nari y Michelle, sentadas juntas en el marco de una ventana" loading="lazy" width="900" height="1200">
+      <div>
+        <p class="num" id="t-quienes">Quiénes somos</p>
+        <p class="quienes-texto">Somos Nari y Mich.<br>Nos conocimos en Redding, California, en una escuela de ministerio. Desde entonces compartimos mesa, viajes, misiones, conversaciones largas y muchos sueños, con Jesús en el centro. Hoy una vive en Estados Unidos y la otra en Argentina.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="capitulo" id="parte" aria-labelledby="t-parte">
+    <div class="parte-grid">
+      <figure class="parte-foto rv"><button type="button" class="foto-btn " data-foto aria-label="Ampliar foto: Dos amigas sonríen sosteniendo juntas la Biblia Origen"><img src="/img/ea4e2c2a7733.jpg" alt="Dos amigas sonríen sosteniendo juntas la Biblia Origen" width="1000" height="1333" loading="lazy" draggable="false"></button></figure>
+      <div class="parte-texto">
+      <div class="cab">
+        <p class="num">Cartas del jardín</p>
+        <h2 id="t-parte">Ven al jardín.</h2>
+        <p>Un espacio en tu correo para los devocionales y las nuevas cartas de Edén.</p>
+      </div>
+      <div class="unete-caja">
+      <form class="unete" id="formUnete" name="cartas-del-jardin" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
+        <input type="hidden" name="form-name" value="cartas-del-jardin">
+        <input type="hidden" name="lista" value="Cartas del jardín">
+        <input type="hidden" name="fecha" id="u-fecha" value="">
+        <p class="sr"><label>No completar <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+        <div class="campo">
+          <label class="sr" for="u-correo">Correo electrónico</label>
+          <input id="u-correo" name="correo" type="email" autocomplete="email" inputmode="email" placeholder="Tu correo electrónico" required aria-describedby="u-msg">
+          <button class="boton lleno" type="submit" id="u-enviar">Suscribirme</button>
+        </div>
+        <label class="consent" for="u-acepto"><input id="u-acepto" name="acepto" type="checkbox" value="si" required><span>Acepto recibir por correo los devocionales y las cartas de Edén. Puedo darme de baja cuando quiera.</span></label>
+        <p class="mensaje" id="u-msg" aria-live="polite"></p>
+        <p class="unete-pie"><a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram @casa_edenn_</a></p>
+      </form>
+      <div class="unete-gracias" id="u-gracias" tabindex="-1" role="status" hidden>
+        <p class="gracias-titulo">Gracias. Ya eres parte del jardín.</p>
+        <p>Los devocionales y las nuevas cartas de Edén llegarán a <span id="u-dir"></span>.</p>
+      </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="capitulo" id="preguntas">
+    <div class="rejilla">
+      <div class="cab">
+        <p class="num">Para caminar juntas</p>
+        <h2>Preguntas frecuentes</h2>
+      </div>
+      <div class="faq">
+        <details><summary>¿Están hechas a mano?</summary>
+          <p>Sí. Cada Biblia se hace a mano en Argentina, en cuero marrón, con un detalle dorado en la tapa: <span id="faqDisenos">Origen, Habitación, Anaj, Prajim o Havilah</span>.</p></details>
+        <details><summary>¿Qué versión usan?</summary>
+          <p>Todas nuestras Biblias son de la Nueva Versión Internacional (NVI), en español.</p></details>
+        <details><summary>¿Cuándo y cómo puedo tener una?</summary>
+          <p>La primera edición sale a fin de 2026, con envíos dentro de Argentina. Precio, medidas y envíos: por confirmar. Si te unes al jardín, te avisamos primero.</p></details>
+        <details><summary>¿Cómo me comunico con ustedes?</summary>
+          <p>Escríbenos por <a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram @casa_edenn_</a>. Nos encanta conversar.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="capitulo" id="caminar">
+    <figure class="polaroid pl rv"><button type="button" class="foto-btn " data-foto aria-label="Ampliar foto: La Biblia Origen sostenida contra una chaqueta negra"><img src="/img/389e4201ce75.jpg" alt="La Biblia Origen sostenida contra una chaqueta negra" width="1000" height="1333" loading="lazy" draggable="false"></button></figure>
+    <figure class="polaroid pr rv"><button type="button" class="foto-btn " data-foto aria-label="Ampliar foto: Vista desde arriba: dos amigas leen la Biblia con un café"><img src="/img/f0b1f2e1c9f3.jpg" alt="Vista desde arriba: dos amigas leen la Biblia con un café" width="1000" height="1333" loading="lazy" draggable="false"></button></figure>
+    <div class="rejilla">
+      <div class="ventana-chica" aria-hidden="true"></div>
+      <h2>De vuelta. <em>Al origen.</em></h2>
+      <p>El jardín sigue abierto. La invitación sigue en pie, y Dios aún camina, esperando encontrarse contigo.</p>
+      <div class="enlaces">
+        <a class="boton" href="#" id="ig">Seguir en Instagram</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="visor" aria-label="Foto ampliada">
+  <img id="visorImg" alt="">
+  <button type="button" class="visor-btn cerrar-v" id="visorCerrar" aria-label="Cerrar">✕</button>
+  <button type="button" class="visor-btn ant" id="visorAnt" aria-label="Foto anterior">←</button>
+  <button type="button" class="visor-btn sig" id="visorSig" aria-label="Foto siguiente">→</button>
+</dialog>
+
+<footer>
+  <div class="pie-rejilla">
+    <div class="pie-marca"><span class="logo-mini" aria-hidden="true"></span><p>Biblias artesanales de cuero, hechas a mano en Argentina.</p></div>
+    <div><h3>Colección</h3><ul id="pieColeccion"></ul></div>
+    <div><h3>Edén</h3><ul><li><a href="#devocionales" data-devocionales>Devocionales</a></li><li><a href="#palabra">Nuestras Biblias</a></li><li><a href="#nosotras-inicio">Nosotras</a></li></ul></div>
+    <div><h3>Ayuda</h3><ul><li><a href="#preguntas">Preguntas frecuentes</a></li><li><a href="#parte">Ser parte</a></li><li><a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Contacto</a></li></ul></div>
+    <div><h3>Síguenos</h3><ul><li><a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram</a></li></ul></div>
+  </div>
+  <div class="pie-legal"><span>© 2026 Edén</span><span>De regreso al Jardín. Al lugar de origen.</span></div>
+</footer>
+
+<div class="historia" id="devocionales" role="dialog" aria-modal="true" aria-label="Devocionales" aria-hidden="true">
+  <div class="historia-barra">
+    <span class="mono" aria-hidden="true"></span>
+    <button class="cerrar cj-barra-cartas" type="button" id="barraCartas" data-volver-cartas hidden>Todas las cartas</button>
+    <button class="cerrar volver-jardin" type="button" id="cerrarDevocionales"><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 9.5c-4.5 0-6-6-12-6S6 8 1.5 8"/><path d="M5.5 4.2 1.5 8l4.3 3.3"/></svg>Volver al jardín</button>
+  </div>
+  <div class="apertura" id="apertura" aria-hidden="true"><div class="ap-velo"></div></div>
+
+  <div class="cartas-indice" id="cartasIndice">
+    <header class="cj-intro" id="cjIntro">
+      <p class="cj-etiqueta"><span>Devocionales</span><span class="cj-linea"></span><span>Edén</span></p>
+      <h2 class="cj-titulo" tabindex="-1" style="outline:none"><span>Cartas</span> <em>del jardín</em></h2>
+      <p class="cj-frase">Palabras para detenernos, recordar y volver a Su presencia.</p>
+      <div class="cj-rama" aria-hidden="true"><span class="mecer" data-mecer="1.2"><svg class="bot bot-rama" viewBox="0 0 340 600" aria-hidden="true" focusable="false"><path pathLength="1" d="M40.0 580.0C130.0 440.0 90.0 260.0 300.0 50.0"/><path pathLength="1" d="M67.4 527.9Q108.4 538.0 133.7 505.4Q91.4 500.6 67.4 527.9"/><path pathLength="1" d="M72.7 526.1Q98.4 521.0 121.8 509.5"/><path pathLength="1" d="M78.2 500.6Q85.1 466.7 46.1 440.6Q48.2 481.9 78.2 500.6"/><path pathLength="1" d="M75.6 495.8Q66.6 472.0 51.8 451.4"/><path pathLength="1" d="M87.6 472.4Q127.2 477.8 147.6 444.9Q107.4 444.5 87.6 472.4"/><path pathLength="1" d="M92.4 470.2Q115.9 462.9 136.8 449.8"/><path pathLength="1" d="M96.2 443.5Q100.5 411.4 62.1 389.3Q66.8 427.9 96.2 443.5"/><path pathLength="1" d="M93.4 439.1Q83.5 417.4 68.2 399.0"/><path pathLength="1" d="M104.4 413.7Q141.9 417.3 159.8 385.8Q122.1 386.8 104.4 413.7"/><path pathLength="1" d="M108.8 411.5Q130.7 403.8 149.8 390.8"/><path pathLength="1" d="M112.8 383.2Q116.8 353.3 80.6 332.5Q85.1 368.7 112.8 383.2"/><path pathLength="1" d="M110.2 379.1Q100.7 358.8 86.4 341.6"/><path pathLength="1" d="M121.8 351.9Q157.0 356.0 174.2 327.0Q138.9 327.1 121.8 351.9"/><path pathLength="1" d="M126.0 349.9Q146.6 343.2 164.8 331.5"/><path pathLength="1" d="M131.9 319.8Q137.3 292.4 104.3 271.0Q106.9 305.0 131.9 319.8"/><path pathLength="1" d="M129.7 315.9Q121.9 296.5 109.3 279.8"/><path pathLength="1" d="M143.7 287.0Q176.4 293.2 194.1 267.6Q161.4 265.2 143.7 287.0"/><path pathLength="1" d="M147.7 285.4Q167.3 280.7 185.0 271.1"/><path pathLength="1" d="M157.6 253.4Q165.1 228.8 136.4 205.9Q135.7 237.5 157.6 253.4"/><path pathLength="1" d="M155.9 249.6Q150.4 231.0 140.2 214.4"/><path pathLength="1" d="M174.1 219.1Q203.8 228.1 222.5 206.5Q192.6 200.9 174.1 219.1"/><path pathLength="1" d="M177.9 218.1Q196.5 215.8 213.8 208.8"/><path pathLength="1" d="M193.7 184.1Q203.4 162.8 179.7 138.2Q175.4 167.1 193.7 184.1"/><path pathLength="1" d="M192.5 180.5Q189.6 162.8 182.2 146.5"/><path pathLength="1" d="M216.8 148.5Q243.2 160.2 262.5 142.8Q235.9 134.1 216.8 148.5"/><path pathLength="1" d="M220.5 148.0Q237.7 148.1 254.3 143.8"/><path pathLength="1" d="M244.1 112.1Q255.7 94.2 237.1 68.6Q229.7 94.4 244.1 112.1"/><path pathLength="1" d="M243.6 108.6Q243.1 92.2 238.3 76.5"/><path pathLength="1" d="M276.0 75.1Q298.8 88.9 318.0 75.5Q295.0 64.3 276.0 75.1"/><path pathLength="1" d="M279.3 75.1Q294.9 77.3 310.4 75.4"/><path pathLength="1" d="M300.0 50.0Q320.3 46.7 326.2 23.8Q305.0 31.4 300.0 50.0"/><path pathLength="1" d="M302.1 47.9Q313.0 39.5 321.5 28.5"/></svg></span></div>
+    </header>
+
+    <ul class="cj-cartas" id="coleccionCartas" aria-label="Cartas del jardín"></ul>
+  </div>
+
+  <!-- ====== CARTA I ======
+       Para escribir una carta completa: copia este <article>, cámbiale el id (carta-2, carta-3…)
+       y revisa sus datos en CARTAS, dentro del <script> (busca "Cartas del jardín: editar aquí").
+       Si una carta no tiene su <article>, se abre igual y muestra su versículo. -->
+  <article class="carta-vista" id="carta-1" hidden>
+    <div class="lectura">
+      <span class="lectura-bot lb1" aria-hidden="true"><span class="mecer" data-mecer="1.4"><svg class="bot bot-rama" viewBox="0 0 340 600" aria-hidden="true" focusable="false"><path d="M40.0 580.0C130.0 440.0 90.0 260.0 300.0 50.0"/><path d="M67.4 527.9Q108.4 538.0 133.7 505.4Q91.4 500.6 67.4 527.9"/><path d="M72.7 526.1Q98.4 521.0 121.8 509.5"/><path d="M78.2 500.6Q85.1 466.7 46.1 440.6Q48.2 481.9 78.2 500.6"/><path d="M75.6 495.8Q66.6 472.0 51.8 451.4"/><path d="M87.6 472.4Q127.2 477.8 147.6 444.9Q107.4 444.5 87.6 472.4"/><path d="M92.4 470.2Q115.9 462.9 136.8 449.8"/><path d="M96.2 443.5Q100.5 411.4 62.1 389.3Q66.8 427.9 96.2 443.5"/><path d="M93.4 439.1Q83.5 417.4 68.2 399.0"/><path d="M104.4 413.7Q141.9 417.3 159.8 385.8Q122.1 386.8 104.4 413.7"/><path d="M108.8 411.5Q130.7 403.8 149.8 390.8"/><path d="M112.8 383.2Q116.8 353.3 80.6 332.5Q85.1 368.7 112.8 383.2"/><path d="M110.2 379.1Q100.7 358.8 86.4 341.6"/><path d="M121.8 351.9Q157.0 356.0 174.2 327.0Q138.9 327.1 121.8 351.9"/><path d="M126.0 349.9Q146.6 343.2 164.8 331.5"/><path d="M131.9 319.8Q137.3 292.4 104.3 271.0Q106.9 305.0 131.9 319.8"/><path d="M129.7 315.9Q121.9 296.5 109.3 279.8"/><path d="M143.7 287.0Q176.4 293.2 194.1 267.6Q161.4 265.2 143.7 287.0"/><path d="M147.7 285.4Q167.3 280.7 185.0 271.1"/><path d="M157.6 253.4Q165.1 228.8 136.4 205.9Q135.7 237.5 157.6 253.4"/><path d="M155.9 249.6Q150.4 231.0 140.2 214.4"/><path d="M174.1 219.1Q203.8 228.1 222.5 206.5Q192.6 200.9 174.1 219.1"/><path d="M177.9 218.1Q196.5 215.8 213.8 208.8"/><path d="M193.7 184.1Q203.4 162.8 179.7 138.2Q175.4 167.1 193.7 184.1"/><path d="M192.5 180.5Q189.6 162.8 182.2 146.5"/><path d="M216.8 148.5Q243.2 160.2 262.5 142.8Q235.9 134.1 216.8 148.5"/><path d="M220.5 148.0Q237.7 148.1 254.3 143.8"/><path d="M244.1 112.1Q255.7 94.2 237.1 68.6Q229.7 94.4 244.1 112.1"/><path d="M243.6 108.6Q243.1 92.2 238.3 76.5"/><path d="M276.0 75.1Q298.8 88.9 318.0 75.5Q295.0 64.3 276.0 75.1"/><path d="M279.3 75.1Q294.9 77.3 310.4 75.4"/><path d="M300.0 50.0Q320.3 46.7 326.2 23.8Q305.0 31.4 300.0 50.0"/><path d="M302.1 47.9Q313.0 39.5 321.5 28.5"/></svg></span></span>
+      <span class="lectura-bot lb2" aria-hidden="true"><span class="mecer" data-mecer="-1"><svg class="bot bot-flor" viewBox="0 0 120 240" aria-hidden="true" focusable="false"><path d="M60 230C58 190 66 150 60 70"/><path d="M60.0 182.0Q79.6 178.1 87.9 162.5Q68.9 168.0 60.0 182.0"/><path d="M62.2 180.4Q73.2 174.2 82.8 166.0"/><path d="M60.0 142.0Q54.5 128.4 32.1 122.5Q43.8 138.5 60.0 142.0"/><path d="M57.8 140.4Q48.2 132.2 37.2 126.0"/><path d="M60.0 52.0C53.4 32.1 60.0 32.0 60.0 32.0C60.0 32.0 66.6 32.1 60.0 52.0"/><path d="M60.0 52.0C76.9 39.6 79.0 45.8 79.0 45.8C79.0 45.8 81.0 52.1 60.0 52.0"/><path d="M60.0 52.0C77.1 64.2 71.8 68.2 71.8 68.2C71.8 68.2 66.4 72.0 60.0 52.0"/><path d="M60.0 52.0C53.6 72.0 48.2 68.2 48.2 68.2C48.2 68.2 42.9 64.2 60.0 52.0"/><path d="M60.0 52.0C39.0 52.1 41.0 45.8 41.0 45.8C41.0 45.8 43.1 39.6 60.0 52.0"/><path d="M57.4 52.0a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0 -5.2 0"/></svg></span></span>
+      <div class="lectura-hoja">
+        <header class="lectura-cab">
+          <div class="lectura-meta"><span>Carta I</span><span data-fecha></span></div>
+          <h2 tabindex="-1">De vuelta al jardín, <em>al lugar de origen</em></h2>
+          <p class="lectura-tiempo" data-tiempo></p>
+        </header>
+
+        <figure class="lectura-verso">
+          <blockquote>Dios el Señor plantó un jardín al oriente del Edén.</blockquote>
+          <figcaption>Génesis 2:8 · NVI</figcaption>
+        </figure>
+
+        <section class="lectura-parte">
+          <h3><span>I</span>En el principio</h3>
+          <div class="lectura-prosa">
+            <p>Nuestra colección Edén nace del anhelo de volver al deleite y el placer de la comunión con Dios. Cuando comprendemos que el jardín fue Su diseño original, entendemos cuál fue y es la intención de Dios con Su creación.</p>
+            <p>En el principio, el hombre no corría; caminaba con Dios. Adán y Eva disfrutaban de una relación con Dios sin ningún tipo de limitación. Génesis describe cómo la voz de Dios se paseaba por el huerto.</p>
+            <p>Todo les había sido entregado: autoridad sobre la creación, intimidad, comunión. Vivían contemplando y conociendo el esplendor de Dios. El Jardín era más que un lugar; era la belleza de Su corazón expresada en la creación y el aliento de Su boca hecho tangible.</p>
+          </div>
+          <aside class="nota lectura-nota rv-nota" aria-label="Nota">
+            <ul>
+              <li>Volver al origen también es una forma de avanzar.</li>
+              <li>Lo esencial no se pierde, se recuerda.</li>
+            </ul>
+          </aside>
+        </section>
+
+        <div class="lectura-adorno" aria-hidden="true"><span></span></div>
+
+        <section class="lectura-parte">
+          <h3><span>II</span>Abierto nuevamente por amor</h3>
+          <div class="lectura-prosa">
+            <p>Hasta que el pecado susurró, y lo que era comunión se volvió distancia. El disfrute se volvió esfuerzo. La tierra, antes generosa, ahora exigía sudor. El alma, antes libre, comenzó a esconderse. Y el eco de la vergüenza reemplazó la voz de Dios. Ya no bastaba simplemente existir; ahora había que cubrirse, justificarse, huir.</p>
+            <p class="resalte">El jardín no desapareció; pero el acceso sí.</p>
+            <p>Pero lo que el pecado cerró fue abierto nuevamente por amor. Jesús vino a rasgar el velo, a romper la distancia, a restaurar el camino y a devolvernos el acceso. El Jardín dejó de ser memoria y volvió a ser invitación. Ya no desde la “perfección” humana, sino desde la gracia de Dios.</p>
+            <p>Hay un llamado a regresar al Jardín, al lugar de origen. Edén significa deleite, placer, disfrute, y esa nunca dejó de ser la intención de Dios. Fuimos creados no solo para existir, sino para disfrutar de Su presencia.</p>
+            <p>En medio de un mundo que corre, exige y distrae, este llamado se vuelve urgente: volver al Jardín. No para escapar de la realidad, sino para reencontrar lo esencial. Un lugar donde no gobiernan demandas ni distracciones, sino la presencia. Donde el alma descansa y vuelve a recordar quién es.</p>
+          </div>
+          <aside class="nota lectura-nota rv-nota" aria-label="Nota">
+            <p>“Con el sudor de tu rostro comerás el pan…”</p>
+            <p style="margin-top:.8rem">Génesis 3:19</p>
+          </aside>
+        </section>
+
+        <footer class="lectura-firma">
+          <span class="mono" aria-hidden="true"></span>
+          <p>De regreso al jardín.<br>Al lugar de origen.</p>
+        </footer>
+      </div>
+    </div>
+  </article>
+
+  <nav class="lectura-nav" id="lecturaNav" aria-label="Otras cartas" hidden></nav>
+</div>
+
+
+<div class="historia" id="producto" role="dialog" aria-modal="true" aria-labelledby="prodNombre" aria-hidden="true">
+  <div class="historia-barra">
+    <span class="mono" aria-hidden="true"></span>
+    <button class="cerrar volver-jardin" type="button" id="cerrarProducto"><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 9.5c-4.5 0-6-6-12-6S6 8 1.5 8"/><path d="M5.5 4.2 1.5 8l4.3 3.3"/></svg>Volver a la colección</button>
+  </div>
+  <div class="prod">
+    <div class="prod-galeria">
+      <figure class="prod-principal"><img id="prodImg" alt=""></figure>
+      <div class="prod-minis" id="prodMinis" role="group" aria-label="Fotos del producto"></div>
+    </div>
+    <div class="prod-info">
+      <p class="num" id="prodVerbo"></p>
+      <h2 id="prodNombre"></h2>
+      <p class="prod-desc" id="prodDesc"></p>
+      <p class="precio" id="prodPrecio"></p>
+      <button class="boton lleno" type="button" id="prodAgregar">Agregar</button>
+      <button class="regalar" type="button" id="prodRegalar">Regalar esta Biblia</button>
+      <div class="espera" id="prodEspera" hidden></div>
+      <dl class="prod-datos">
+        <div><dt>Idioma</dt><dd>Español</dd></div>
+        <div><dt>Tapa</dt><dd>Cuero</dd></div>
+        <div><dt>Versión</dt><dd>NVI</dd></div>
+        <div><dt>Hecha en</dt><dd>Argentina</dd></div>
+        <div><dt>Primera edición</dt><dd>30 ejemplares</dd></div>
+        <div><dt>Envíos</dt><dd>Dentro de Argentina</dd></div>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<div class="velo" id="velo"></div>
+
+
+<script>
+/* ====== Configuración: editar aquí ====== */
+const EDEN = {
+  moneda: "ARS",
+  productos: [
+    { id:"ventana", tipo:"biblia", verbo:"Volver", nombre:"Origen", descripcion:"Una ventana abierta: la invitación a asomarse otra vez al jardín.", imagen:"/img/54891cba382d.jpg" },
+    { id:"florecer", tipo:"biblia", verbo:"Florecer", nombre:"Anaj", descripcion:"Lo que crece despacio, cuando tiene raíz.", imagen:"/img/4cfd5f11059c.jpg" },
+    { id:"roca", tipo:"biblia", verbo:"Permanecer", nombre:"Habitación", descripcion:"Como la casa edificada sobre la roca.", imagen:"/img/df00104fe040.jpg" },
+    { id:"biblia-4", tipo:"biblia", verbo:"", nombre:"Prajim", descripcion:"Diseño por confirmar.", foto:0 },
+    { id:"biblia-5", tipo:"biblia", verbo:"", nombre:"Havilah", descripcion:"Diseño por confirmar.", foto:1 },
+    { id:"journal-1", tipo:"journal", verbo:"", nombre:"Origen", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:0 },
+    { id:"journal-2", tipo:"journal", verbo:"", nombre:"Anaj", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:1 },
+    { id:"journal-3", tipo:"journal", verbo:"", nombre:"Habitación", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:2 },
+    { id:"journal-4", tipo:"journal", verbo:"", nombre:"Prajim", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:0 },
+    { id:"journal-5", tipo:"journal", verbo:"", nombre:"Havilah", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:1 }
+  ],
+  /* Fotos extra de la ficha de cada Biblia */
+  galerias: {
+    ventana: ["/img/3be9c4b3d0fc.jpg","/img/bd9b6120da57.jpg"],
+    florecer: ["/img/81211c13f25d.jpg","/img/7b4db8f4ac9a.jpg"],
+    roca: ["/img/07a3b08275ce.jpg","/img/4c54a30f9b80.jpg"]
+  },
+  instagram: "https://www.instagram.com/casa_edenn_/"
+};
+/* ======================================== */
+
+const $ = s => document.querySelector(s);
+const PROD = Object.fromEntries(EDEN.productos.map(p=>[p.id,p]));
+const fmt = n => new Intl.NumberFormat("es-AR",{style:"currency",currency:EDEN.moneda,maximumFractionDigits:0}).format(n);
+const guardar = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)) }catch(e){} };
+const leer = (k,d) => { try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? d }catch(e){ return d } };
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+/* Origen de la visita (links con ?utm_source=instagram, anuncios, etc.) para medir de dónde vienen las ventas */
+try{
+  const q = new URLSearchParams(location.search), src = (q.get("utm_source") || "").toLowerCase(), med = (q.get("utm_medium") || "").toLowerCase();
+  const origen = /paid|cpc|ads|anuncio/.test(med) ? "anuncio" : ["instagram","ig","facebook","fb"].includes(src) ? "instagram" : src === "tiktok" ? "tiktok" : src === "google" ? "google" : "";
+  if(origen) localStorage.setItem("eden-origen", origen);
+}catch(e){}
+
+/* Catálogo vivo: precios, stock, productos nuevos y sets salen del back office (/api/catalogo).
+   Los precios nunca están en esta página: sin catálogo se ve "Precio por confirmar" y no se puede hacer el pedido. */
+const tienda = $("#tienda");
+tienda.classList.add("cargando");
+/* Sets (packs) activos. En el carrito se guardan como "pack:<slug>" */
+const PACK = {};
+const esPack = k => k.startsWith("pack:");
+let CATALOGO = false, FALLO_CATALOGO = false, PRECIO_SET = 0, pidiendoCatalogo = false;
+const normal = t => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+const visibles = tipo => EDEN.productos.filter(p => p.tipo === tipo && !p.fuera);
+const porSlug = s => EDEN.productos.find(p => p.slug === s && !p.fuera);
+const nombreLargo = p => p.largo || (p.tipo === "biblia" ? "Biblia " : "Journal ") + p.nombre;
+/* En la tarjeta va el nombre del back office sin el tipo adelante: "Biblia Havilah" → "Havilah" */
+const sinTipo = t => String(t || "").replace(/^(biblia|journal)\s+/i, "").trim();
+function sinCatalogo(){
+  if(CATALOGO) return;
+  FALLO_CATALOGO = true; tienda.classList.remove("cargando"); carritoTienda.pintar();
+}
+function aplicarCatalogo(c){
+  PRECIO_SET = c.precio_set || 0;
+  const vistos = new Set(), orden = new Map();
+  c.productos.forEach((x, i) => {
+    let p = EDEN.productos.find(q => q.tipo === x.tipo && !vistos.has(q) && normal(q.nombre) === normal(x.diseno));
+    if(!p){
+      // Producto nuevo creado en el back office: entra en su sección con sus datos
+      if(!x.activo) return;
+      p = { id: "n-" + x.slug, tipo: x.tipo, verbo: "", nombre: x.diseno, descripcion: "" };
+      EDEN.productos.push(p); PROD[p.id] = p;
+    }
+    vistos.add(p); orden.set(p, i);
+    p.nombre = sinTipo(x.nombre) || x.diseno; p.largo = x.nombre; p.diseno = x.diseno; p.precio = x.precio; p.stock = x.stock; p.slug = x.slug; p.activo = x.activo; p.etiqueta = x.etiqueta; p.precio_anterior = x.precio_anterior;
+    // En la tarjeta, verbo y descripción aparecen solo si los cargó el back office
+    p.catVerbo = x.verbo || ""; p.catDescripcion = x.descripcion || "";
+    if(x.foto_url) p.imagen = x.foto_url;
+  });
+  // Lo que esta página traía y el back office no: no se vende
+  for(const p of EDEN.productos) p.fuera = !vistos.has(p);
+  EDEN.productos.sort((a,b) => (orden.get(a) ?? 1e9) - (orden.get(b) ?? 1e9));
+  for(const k of c.packs || []) if(k.activo && Array.isArray(k.items) && k.items.length && k.items.every(i => porSlug(i.slug))) PACK[k.slug] = k;
+  CATALOGO = true; FALLO_CATALOGO = false;
+  tienda.classList.remove("cargando");
+  carritoTienda.alCatalogo();
+  pintarProductos(); pintarSets(); pintarMenu();
+}
+/* Si falla, reintenta unas veces: un corte de conexión no puede dejar la tienda sin precios hasta recargar */
+function cargarCatalogo(intento = 0){
+  if(CATALOGO || pidiendoCatalogo) return;
+  pidiendoCatalogo = true;
+  const fallo = () => { sinCatalogo(); if(intento < 4) setTimeout(() => cargarCatalogo(intento + 1), 2000 * (intento + 1)); };
+  fetch("/api/catalogo", { cache: "no-cache" }).then(r => r.ok ? r.json() : null)
+    .then(c => { if(c && Array.isArray(c.productos)) aplicarCatalogo(c); else fallo(); })
+    .catch(fallo)
+    .finally(() => { pidiendoCatalogo = false; });
+}
+/* Precio con oferta: tachado + % de descuento cuando hay precio anterior */
+const precioHTML = p => (p.precio_anterior > p.precio ? `<s class="antes">${fmt(p.precio_anterior)}</s> ` : "") + fmt(p.precio)
+  + (p.precio_anterior > p.precio ? ` <span class="off">−${Math.round((1 - p.precio / p.precio_anterior) * 100)}%</span>` : "");
+
+/* Umbral */
+const umbral = $("#umbral");
+function abrirPuerta(inmediato){
+  document.body.classList.remove("cerrado");
+  if(inmediato){ umbral.classList.add("oculto"); return }
+  umbral.classList.add("abriendo");
+  setTimeout(()=>{ umbral.classList.add("oculto"); $("#inicio").focus({preventScroll:true}) }, 1700);
+  try{ sessionStorage.setItem("eden-entro","1") }catch(e){}
+}
+let yaEntro = false; try{ yaEntro = sessionStorage.getItem("eden-entro")==="1" }catch(e){}
+if(yaEntro) abrirPuerta(true); else { document.body.classList.add("cerrado"); $("#entrar").focus(); }
+$("#entrar").addEventListener("click",()=>abrirPuerta(false));
+
+/* Nav */
+const nav = $("#nav");
+const barra = $("#barraCafe");
+const medirBarra = () => document.documentElement.style.setProperty("--barra-h", barra.offsetHeight + "px");
+medirBarra(); addEventListener("resize", medirBarra);
+const alScroll = () => nav.classList.toggle("solida", window.scrollY > window.innerHeight*0.6);
+addEventListener("scroll",alScroll,{passive:true}); alScroll();
+
+/* Instagram */
+const ig = $("#ig");
+if(EDEN.instagram){ ig.href = EDEN.instagram; ig.target="_blank"; ig.rel="noopener" }
+else { ig.textContent = "Instagram, muy pronto"; ig.removeAttribute("href"); ig.setAttribute("aria-disabled","true"); ig.style.opacity=.6; ig.style.cursor="default" }
+
+/* Productos: cada tarjeta tiene siempre las mismas 6 partes para que la fila quede alineada */
+/* Foto propia o la subida desde el back office. Sin foto queda el espacio vacío: no se repiten fotos de otros diseños */
+const fotoDe = p => p.imagen || "";
+const fotoHTML = (src, alt) => src ? `<img src="${esc(src)}" alt="${alt}" loading="lazy">` : `<span class="sin-foto"${alt ? ` role="img" aria-label="${alt}"` : ` aria-hidden="true"`}></span>`;
+const agotado = p => p.stock === 0 || p.activo === false;
+const quedanHTML = n => n > 0 && n <= 3 ? `<p class="quedan">Quedan ${n}</p>` : "";
+const SIN_PRECIO = `<p class="precio pend">Precio por confirmar</p>`;
+const agregarHTML = (id, etq) => `<button class="boton agregar" type="button" data-agregar="${esc(id)}" aria-label="Agregar ${etq} al carrito">Agregar</button>`;
+const comprarHTML = (id, etq) => agregarHTML(id, etq) + `<button class="regalar" type="button" data-regalar="${esc(id)}" aria-label="Regalar ${etq}">Regalar</button>`;
+/* Agotado: "Avisame cuando vuelva" abre un mini formulario (lista de espera del back office) */
+const esperaHTML = p => `<p class="agotado-txt">Agotado</p>${!p.slug ? "" : leer("eden-espera", []).includes(p.slug) ? `<p class="espera-ok">Te avisamos por mail apenas vuelva.</p>` : `<button class="regalar" type="button" data-espera="${esc(p.id)}" aria-label="Avisame cuando vuelva ${esc(nombreLargo(p))}">Avisame cuando vuelva</button>`}`;
+function tarjeta({ id, etiqueta, foto, nombre, titulo, verbo, descripcion, precio, acciones }){
+  const art = document.createElement("article"); art.className = "pieza"; art.id = id;
+  art.innerHTML = `<div class="pieza-foto">${etiqueta ? `<span class="distintivo">${esc(etiqueta)}</span>` : ""}${foto}</div><p class="verbo" title="${esc(titulo)}">${nombre}</p><p class="pieza-verbo">${esc(verbo)}</p><p class="variante">${esc(descripcion)}</p><div class="pieza-precio">${precio}</div><div class="pieza-acciones">${acciones}</div>`;
+  return art;
+}
+function pintarProductos(){
+  for(const [tipo,cont] of [["biblia","#biblias"],["journal","#journals"]]){
+    const box = $(cont); box.innerHTML = "";
+    visibles(tipo).forEach(p => {
+      const esB = tipo === "biblia", nom = esc(p.nombre), largo = esc(nombreLargo(p)), ver = esB ? ` data-ver-producto="${esc(p.id)}"` : "";
+      const img = fotoHTML(fotoDe(p), largo);
+      box.appendChild(tarjeta({
+        id: "p-" + p.id, etiqueta: CATALOGO && p.etiqueta, titulo: p.nombre,
+        foto: esB ? `<button type="button" class="ver-producto"${ver} aria-label="Ver la ${largo}">${img}</button>` : img,
+        nombre: esB ? `<button type="button" class="ver-producto nombre"${ver}>${nom}</button>` : nom,
+        verbo: p.catVerbo, descripcion: p.catDescripcion,
+        precio: CATALOGO && p.precio > 0 ? `<p class="precio">${precioHTML(p)}</p>${quedanHTML(p.stock)}` : SIN_PRECIO,
+        acciones: !CATALOGO ? agregarHTML(p.id, largo) : agotado(p) ? `<div class="espera">${esperaHTML(p)}</div>` : p.precio > 0 ? comprarHTML(p.id, largo) : ""
+      }));
+    });
+  }
+}
+
+/* Sets: precio propio; su stock es el de sus piezas */
+const piezasDe = k => k.items.map(i => ({ p: porSlug(i.slug), q: i.cantidad })).filter(x => x.p);
+const incluyeDe = k => piezasDe(k).map(x => (x.q > 1 ? x.q + " × " : "") + nombreLargo(x.p)).join(" + ");
+const fotoSet = k => k.foto_url || fotoDe((piezasDe(k).find(x => x.p.tipo === "biblia") || piezasDe(k)[0] || { p: {} }).p);
+function precioSet(k){
+  const lista = piezasDe(k).reduce((a,x) => a + (x.p.precio || 0) * x.q, 0);
+  return { ...k, precio_anterior: k.precio_anterior > k.precio ? k.precio_anterior : lista > k.precio ? lista : null };
+}
+function pintarSets(){
+  const sets = Object.values(PACK), box = $("#sets");
+  $("#filaSets").hidden = !sets.length; box.innerHTML = "";
+  sets.forEach(k => {
+    const id = "pack:" + k.slug, nom = esc(k.nombre), incluye = incluyeDe(k);
+    box.appendChild(tarjeta({
+      id: "set-" + k.slug, etiqueta: k.etiqueta, titulo: k.nombre,
+      foto: fotoHTML(fotoSet(k), `${nom}: ${esc(incluye)}`),
+      nombre: nom, verbo: "", descripcion: incluye + "." + (k.descripcion ? " " + k.descripcion : ""),
+      precio: `<p class="precio">${precioHTML(precioSet(k))}</p>${quedanHTML(k.stock)}`,
+      acciones: !k.stock ? `<p class="agotado-txt">Agotado</p>` : comprarHTML(id, nom)
+    }));
+  });
+}
+
+/* ====== Cartas del jardín: editar aquí ======
+   Todas las cartas están disponibles para abrir.
+   Si una carta tiene su <article id="carta-N"> en el HTML, se abre completa;
+   si no, se abre mostrando su versículo. */
+const CARTAS = [
+  { n:1, numero:"I", abierta:true, fecha:"Noviembre 2026",
+    titulo:"De vuelta al jardín, <em>al lugar de origen</em>",
+    intro:"En el principio, el hombre no corría; caminaba con Dios. El jardín dejó de ser memoria y volvió a ser invitación.",
+    verso:"Dios el Señor plantó un jardín al oriente del Edén.", cita:"Génesis 2:8 · NVI" },
+  { n:2, numero:"II", abierta:false, verso:"Serás como jardín bien regado, como manantial cuyas aguas no se agotan.", cita:"Isaías 58:11" },
+  { n:3, numero:"III", abierta:false, verso:"Permanezcan en mí, y yo permaneceré en ustedes.", cita:"Juan 15:4" },
+  { n:4, numero:"IV", abierta:false, verso:"Vengan a mí todos ustedes que están cansados y agobiados…", cita:"Mateo 11:28" },
+  { n:5, numero:"V", abierta:false, verso:"Me llenarás de alegría en tu presencia.", cita:"Salmo 16:11" }
+];
+/* ============================================ */
+
+const BOT = {"rama": "<svg class=\"bot bot-rama\" viewBox=\"0 0 340 600\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M40.0 580.0C130.0 440.0 90.0 260.0 300.0 50.0\"/><path d=\"M67.4 527.9Q108.4 538.0 133.7 505.4Q91.4 500.6 67.4 527.9\"/><path d=\"M72.7 526.1Q98.4 521.0 121.8 509.5\"/><path d=\"M78.2 500.6Q85.1 466.7 46.1 440.6Q48.2 481.9 78.2 500.6\"/><path d=\"M75.6 495.8Q66.6 472.0 51.8 451.4\"/><path d=\"M87.6 472.4Q127.2 477.8 147.6 444.9Q107.4 444.5 87.6 472.4\"/><path d=\"M92.4 470.2Q115.9 462.9 136.8 449.8\"/><path d=\"M96.2 443.5Q100.5 411.4 62.1 389.3Q66.8 427.9 96.2 443.5\"/><path d=\"M93.4 439.1Q83.5 417.4 68.2 399.0\"/><path d=\"M104.4 413.7Q141.9 417.3 159.8 385.8Q122.1 386.8 104.4 413.7\"/><path d=\"M108.8 411.5Q130.7 403.8 149.8 390.8\"/><path d=\"M112.8 383.2Q116.8 353.3 80.6 332.5Q85.1 368.7 112.8 383.2\"/><path d=\"M110.2 379.1Q100.7 358.8 86.4 341.6\"/><path d=\"M121.8 351.9Q157.0 356.0 174.2 327.0Q138.9 327.1 121.8 351.9\"/><path d=\"M126.0 349.9Q146.6 343.2 164.8 331.5\"/><path d=\"M131.9 319.8Q137.3 292.4 104.3 271.0Q106.9 305.0 131.9 319.8\"/><path d=\"M129.7 315.9Q121.9 296.5 109.3 279.8\"/><path d=\"M143.7 287.0Q176.4 293.2 194.1 267.6Q161.4 265.2 143.7 287.0\"/><path d=\"M147.7 285.4Q167.3 280.7 185.0 271.1\"/><path d=\"M157.6 253.4Q165.1 228.8 136.4 205.9Q135.7 237.5 157.6 253.4\"/><path d=\"M155.9 249.6Q150.4 231.0 140.2 214.4\"/><path d=\"M174.1 219.1Q203.8 228.1 222.5 206.5Q192.6 200.9 174.1 219.1\"/><path d=\"M177.9 218.1Q196.5 215.8 213.8 208.8\"/><path d=\"M193.7 184.1Q203.4 162.8 179.7 138.2Q175.4 167.1 193.7 184.1\"/><path d=\"M192.5 180.5Q189.6 162.8 182.2 146.5\"/><path d=\"M216.8 148.5Q243.2 160.2 262.5 142.8Q235.9 134.1 216.8 148.5\"/><path d=\"M220.5 148.0Q237.7 148.1 254.3 143.8\"/><path d=\"M244.1 112.1Q255.7 94.2 237.1 68.6Q229.7 94.4 244.1 112.1\"/><path d=\"M243.6 108.6Q243.1 92.2 238.3 76.5\"/><path d=\"M276.0 75.1Q298.8 88.9 318.0 75.5Q295.0 64.3 276.0 75.1\"/><path d=\"M279.3 75.1Q294.9 77.3 310.4 75.4\"/><path d=\"M300.0 50.0Q320.3 46.7 326.2 23.8Q305.0 31.4 300.0 50.0\"/><path d=\"M302.1 47.9Q313.0 39.5 321.5 28.5\"/></svg>", "ramita": "<svg class=\"bot bot-ramita\" viewBox=\"0 0 240 250\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M10.0 230.0C60.0 190.0 110.0 120.0 200.0 40.0\"/><path d=\"M28.1 214.3Q48.9 231.2 69.4 219.5Q48.1 205.4 28.1 214.3\"/><path d=\"M31.4 214.8Q46.4 218.8 61.9 218.6\"/><path d=\"M46.6 196.3Q58.6 181.4 42.8 157.2Q34.2 179.7 46.6 196.3\"/><path d=\"M46.3 193.2Q46.9 178.5 43.5 164.3\"/><path d=\"M65.9 176.1Q85.8 189.7 102.7 178.1Q83.0 166.9 65.9 176.1\"/><path d=\"M68.8 176.2Q82.3 178.8 96.1 177.7\"/><path d=\"M86.4 153.9Q96.6 141.0 82.0 119.7Q75.1 139.7 86.4 153.9\"/><path d=\"M86.1 151.1Q86.2 138.3 82.8 125.8\"/><path d=\"M108.6 129.9Q126.5 141.9 140.7 131.7Q123.5 122.0 108.6 129.9\"/><path d=\"M111.2 130.1Q123.0 132.3 134.9 131.3\"/><path d=\"M132.9 104.4Q142.1 94.0 129.9 74.8Q123.5 91.9 132.9 104.4\"/><path d=\"M132.7 102.0Q133.1 90.9 130.4 80.1\"/><path d=\"M159.7 77.6Q175.0 88.5 186.9 80.3Q172.7 71.4 159.7 77.6\"/><path d=\"M161.9 77.8Q171.8 80.2 182.0 79.8\"/><path d=\"M189.4 49.6Q197.6 42.0 188.4 24.6Q182.1 38.6 189.4 49.6\"/><path d=\"M189.3 47.6Q190.2 38.3 188.6 29.1\"/><path d=\"M200.0 40.0Q212.4 39.0 216.4 25.4Q203.4 28.9 200.0 40.0\"/><path d=\"M201.3 38.8Q208.1 34.3 213.5 28.0\"/><path d=\"M206.0 34.0C229.1 15.8 232.3 24.4 232.3 24.4C232.3 24.4 235.4 33.1 206.0 34.0\"/><path d=\"M206.0 34.0C230.5 50.3 223.2 56.1 223.2 56.1C223.2 56.1 215.9 61.7 206.0 34.0\"/><path d=\"M206.0 34.0C198.1 62.3 190.3 57.2 190.3 57.2C190.3 57.2 182.7 52.0 206.0 34.0\"/><path d=\"M206.0 34.0C176.6 35.2 179.1 26.3 179.1 26.3C179.1 26.3 181.7 17.4 206.0 34.0\"/><path d=\"M206.0 34.0C195.8 6.4 205.0 6.0 205.0 6.0C205.0 6.0 214.3 5.8 206.0 34.0\"/><path d=\"M202.4 34.0a3.6 3.6 0 1 0 7.3 0a3.6 3.6 0 1 0 -7.3 0\"/></svg>", "flor": "<svg class=\"bot bot-flor\" viewBox=\"0 0 120 240\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M60 230C58 190 66 150 60 70\"/><path d=\"M60.0 182.0Q79.6 178.1 87.9 162.5Q68.9 168.0 60.0 182.0\"/><path d=\"M62.2 180.4Q73.2 174.2 82.8 166.0\"/><path d=\"M60.0 142.0Q54.5 128.4 32.1 122.5Q43.8 138.5 60.0 142.0\"/><path d=\"M57.8 140.4Q48.2 132.2 37.2 126.0\"/><path d=\"M60.0 52.0C53.4 32.1 60.0 32.0 60.0 32.0C60.0 32.0 66.6 32.1 60.0 52.0\"/><path d=\"M60.0 52.0C76.9 39.6 79.0 45.8 79.0 45.8C79.0 45.8 81.0 52.1 60.0 52.0\"/><path d=\"M60.0 52.0C77.1 64.2 71.8 68.2 71.8 68.2C71.8 68.2 66.4 72.0 60.0 52.0\"/><path d=\"M60.0 52.0C53.6 72.0 48.2 68.2 48.2 68.2C48.2 68.2 42.9 64.2 60.0 52.0\"/><path d=\"M60.0 52.0C39.0 52.1 41.0 45.8 41.0 45.8C41.0 45.8 43.1 39.6 60.0 52.0\"/><path d=\"M57.4 52.0a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0 -5.2 0\"/></svg>", "hoja": "<svg class=\"bot bot-hoja\" viewBox=\"0 0 140 160\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M20.0 130.0Q74.9 91.2 83.6 28.2Q31.0 73.2 20.0 130.0\"/><path d=\"M25.1 121.9Q51.9 86.3 72.1 46.6\"/><path d=\"M20 130C14 140 10 148 4 152\"/></svg>", "brote": "<svg class=\"bot bot-brote\" viewBox=\"0 0 110 160\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M50.0 150.0C52.0 110.0 40.0 70.0 56.0 20.0\"/><path d=\"M50.2 135.6Q70.6 133.6 74.7 117.8Q56.3 120.8 50.2 135.6\"/><path d=\"M52.1 134.2Q62.1 128.8 70.3 121.0\"/><path d=\"M48.4 101.4Q46.4 89.6 26.0 87.6Q34.5 101.3 48.4 101.4\"/><path d=\"M46.6 100.3Q39.0 94.0 30.0 90.1\"/><path d=\"M47.9 65.3Q63.8 64.3 66.7 53.5Q53.1 54.8 47.9 65.3\"/><path d=\"M49.4 64.3Q57.0 60.9 63.3 55.6\"/><path d=\"M54.2 26.0Q56.4 18.8 42.7 11.9Q45.2 22.8 54.2 26.0\"/><path d=\"M53.3 24.8Q49.8 19.0 44.8 14.4\"/><path d=\"M56.0 20.0Q63.4 14.8 60.9 4.8Q54.0 11.8 56.0 20.0\"/><path d=\"M56.4 18.8Q59.0 13.4 60.0 7.5\"/></svg>"};
+const LINEAS = `<svg class="cj-lineas" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0 50 57 100 0"/><path d="M0 100 44 52M100 100 56 52"/></svg>`, LINEAS_ABIERTO = `<svg class="cj-lineas" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100 45 50M100 100 55 50"/></svg>`;
+const FLECHA = `<svg viewBox="0 0 28 14" aria-hidden="true"><path d="M1 7.5c4.5 0 6 3 12 3s8.5-4.5 13.5-4.5"/><path d="M22.6 2.6 26.5 6l-4.2 3.6"/></svg>`;
+const quieto = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const devo = $("#devocionales"), indice = $("#cartasIndice"), apertura = $("#apertura"), lnav = $("#lecturaNav"), barraDevo = devo.querySelector(".historia-barra");
+let focoDevo = null, actual = 0, ocupado = false;
+const espera = ms => new Promise(r => setTimeout(r, ms));
+const abiertas = () => CARTAS.filter(c => c.abierta && document.getElementById("carta-" + c.n)).sort((a,b) => a.n - b.n);
+const sinEtiquetas = s => s.replace(/<[^>]+>/g, "");
+function minutos(n){
+  const art = document.getElementById("carta-" + n); if(!art) return "";
+  const palabras = (art.querySelector(".lectura-hoja") || art).textContent.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(palabras / 200)) + " min de lectura";
+}
+
+/* Cartas que solo tienen versículo: se abren como una hoja breve */
+function crearBreves(){
+  CARTAS.forEach(c => {
+    if(document.getElementById("carta-" + c.n)) return;
+    const art = document.createElement("article");
+    art.className = "carta-vista carta-breve"; art.id = "carta-" + c.n; art.hidden = true;
+    art.innerHTML = `<div class="lectura"><div class="lectura-hoja">
+      <header class="lectura-cab"><div class="lectura-meta"><span>Carta ${c.numero}</span><span>${c.fecha || ""}</span></div></header>
+      <figure class="lectura-verso"><blockquote tabindex="-1">${c.verso || ""}</blockquote><figcaption>${c.cita || ""}</figcaption></figure>
+      <footer class="lectura-firma"><span class="mono" aria-hidden="true"></span><p>De regreso al jardín.<br>Al lugar de origen.</p></footer>
+    </div></div>`;
+    lnav.before(art);
+  });
+}
+
+/* Pintar la colección */
+function pintarCartas(){
+  crearBreves();
+  const giros = [-1.6, 1.2, -.6, 1.8, -1.1];
+  $("#coleccionCartas").innerHTML = CARTAS.map((c,k) => `
+    <li class="aparece"><button type="button" class="cj-carta" style="--giro:${giros[k % 5]}deg" data-abrir-carta="${c.n}" aria-label="Abrir la carta ${c.numero}${c.cita ? ", " + c.cita : ""}">
+      <span class="cj-carta-dentro" aria-hidden="true">${c.verso ? `<q>${c.verso}</q><small>${c.cita || ""}</small>` : ""}</span>
+      <span class="cj-carta-tapa" aria-hidden="true">
+        <span class="cj-cara reverso"></span>
+        <span class="cj-cara frente"><span class="cj-carta-etq">Carta</span><span class="cj-carta-num">${c.numero}</span><span class="cj-carta-cita">${c.cita || ""}</span></span>
+      </span>
+    </button></li>`).join("");
+  CARTAS.forEach(c => {
+    const art = document.getElementById("carta-" + c.n);
+    art.querySelectorAll("[data-fecha]").forEach(e => e.textContent = c.fecha || "");
+    art.querySelectorAll("[data-tiempo]").forEach(e => e.textContent = minutos(c.n));
+  });
+  observar();
+}
+
+/* Navegación al pie de cada carta */
+function pintarNav(n){
+  const i = CARTAS.findIndex(c => c.n === n);
+  const ant = CARTAS[i - 1], sig = CARTAS[i + 1];
+  const salto = (c, txt, emp) => !c ? `<span></span>` :
+    `<button type="button" class="cj-salto" style="--empuje:${emp}px" data-abrir-carta="${c.n}"><small>${txt} · Carta ${c.numero}</small><span>${c.titulo ? sinEtiquetas(c.titulo) : (c.cita || "")}</span></button>`;
+  lnav.innerHTML = salto(ant, "Anterior", -4) + `<button type="button" class="cerrar" data-volver-cartas>Todas las cartas</button>` + salto(sig, "Siguiente", 4);
+}
+
+/* El gesto de abrir: la carta elegida viene al centro, se abre y revela lo que tiene dentro */
+async function abrirCarta(btn){
+  const r = btn.getBoundingClientRect(), giro = parseFloat(btn.style.getPropertyValue("--giro")) || 0;
+  const clon = btn.cloneNode(true); clon.removeAttribute("data-abrir-carta"); clon.tabIndex = -1;
+  Object.assign(clon.style, { left:r.left + "px", top:r.top + "px", width:r.width + "px", height:r.height + "px" });
+  const velo = apertura.querySelector(".ap-velo");
+  apertura.appendChild(clon); apertura.classList.add("activa"); btn.style.visibility = "hidden";
+  const s = Math.min(1.7, (innerHeight * .62) / r.height, (innerWidth * .78) / r.width);
+  const dx = innerWidth / 2 - (r.left + r.width / 2), dy = innerHeight / 2 - (r.top + r.height / 2);
+  const suave = "cubic-bezier(.3,.6,.2,1)";
+  velo.animate([{opacity:0},{opacity:1}], {duration:700, easing:"ease", fill:"forwards"});
+  clon.animate([{transform:`rotate(${giro}deg)`},{transform:`translate(${dx}px,${dy}px) scale(${s})`}], {duration:900, easing:suave, fill:"forwards"});
+  await espera(650);
+  clon.querySelector(".cj-carta-tapa").animate([{transform:"rotateX(0)"},{transform:"rotateX(-180deg)"}], {duration:1000, easing:"cubic-bezier(.45,0,.2,1)", fill:"forwards"});
+  clon.querySelector(".cj-cara.reverso").animate([{opacity:1},{opacity:1, offset:.55},{opacity:0}], {duration:1300, easing:"ease", fill:"forwards"});
+  clon.querySelector(".cj-carta-dentro").animate([{boxShadow:"inset 0 14px 18px -16px rgba(44,34,28,.35)"},{boxShadow:"inset 0 0 0 0 rgba(44,34,28,0)"}], {duration:1000, delay:200, fill:"forwards"});
+  clon.querySelector(".cj-carta-dentro").classList.add("revelando");
+  await espera(1650);
+  return () => {
+    clon.animate([{opacity:1},{opacity:0, transform:`translate(${dx}px,${dy - 10}px) scale(${s * 1.04})`}], {duration:650, easing:"ease", fill:"forwards"});
+    velo.animate([{opacity:1},{opacity:0}], {duration:800, easing:"ease", fill:"forwards"}).finished.then(() => {
+      clon.remove(); velo.getAnimations().forEach(a => a.cancel()); apertura.classList.remove("activa"); btn.style.visibility = "";
+    });
+  };
+}
+
+/* Cambiar de vista con transiciones suaves */
+function mostrar(n){
+  indice.hidden = !!n;
+  devo.querySelectorAll(".carta-vista").forEach(c => c.hidden = c.id !== "carta-" + n);
+  lnav.hidden = !n; $("#barraCartas").hidden = !n;
+}
+function trazar(){
+  const intro = $("#cjIntro"); if(quieto) return;
+  intro.querySelectorAll(".cj-rama path").forEach((p,k) => p.style.animationDelay = (k * 70) + "ms");
+  intro.classList.remove("trazando"); void intro.offsetWidth; intro.classList.add("trazando");
+}
+async function irA(n, animar = true, desde = null){
+  n = +n || 0; if(ocupado || (n && !document.getElementById("carta-" + n))) return;
+  ocupado = true;
+  const anim = animar && !quieto && devo.classList.contains("abierta");
+  const sale = actual ? document.getElementById("carta-" + actual) : indice;
+  let revelar = null;
+  if(anim && n && desde && !actual){ revelar = await abrirCarta(desde); }
+  else if(anim && sale && !sale.hidden){ sale.classList.add("saliendo"); if(actual) lnav.classList.add("saliendo"); await espera(480); }
+  if(sale) sale.classList.remove("saliendo"); lnav.classList.remove("saliendo");
+  mostrar(n); actual = n; devo.scrollTop = 0;
+  if(n){
+    pintarNav(n);
+    const art = document.getElementById("carta-" + n);
+    if(anim){ art.classList.remove("abriendo"); void art.offsetWidth; art.classList.add("abriendo"); }
+    art.querySelector("h2, blockquote[tabindex]").focus({ preventScroll:true });
+    if(revelar) revelar();
+  } else {
+    if(anim){ indice.classList.remove("entrando"); void indice.offsetWidth; indice.classList.add("entrando"); }
+    trazar();
+    if(devo.classList.contains("abierta")) $(".cj-titulo").focus({ preventScroll:true });
+  }
+  observar(); mecer(); progreso();
+  ocupado = false;
+}
+devo.addEventListener("click", e => {
+  const a = e.target.closest("[data-abrir-carta]"); if(a){ irA(a.dataset.abrirCarta, true, a.classList.contains("cj-carta") ? a : null); return; }
+  if(e.target.closest("[data-volver-cartas]")) irA(0);
+});
+
+/* Elementos botánicos que se mecen al hacer scroll */
+function mecer(){
+  if(quieto) return;
+  const h = innerHeight;
+  devo.querySelectorAll("[data-mecer]").forEach(el => {
+    const r = el.getBoundingClientRect(); if(!r.height || r.bottom < -150 || r.top > h + 150) return;
+    const p = (r.top + r.height / 2 - h / 2) / h, k = +el.dataset.mecer || 1;
+    el.style.transform = `translate3d(0,${(p * -26 * k).toFixed(1)}px,0) rotate(${(p * 5 * k).toFixed(2)}deg)`;
+  });
+}
+function progreso(){
+  const max = devo.scrollHeight - devo.clientHeight;
+  barraDevo.style.setProperty("--progreso", actual && max > 0 ? Math.min(1, devo.scrollTop / max).toFixed(4) : 0);
+}
+let pendiente = false;
+devo.addEventListener("scroll", () => { if(pendiente) return; pendiente = true; requestAnimationFrame(() => { mecer(); progreso(); pendiente = false; }); }, { passive:true });
+
+/* Aparecer despacio al llegar */
+let ioCartas = null;
+function observar(){
+  const els = devo.querySelectorAll(".aparece:not(.visto), .rv-nota:not(.visto)");
+  if(quieto || !("IntersectionObserver" in window)){ els.forEach(e => e.classList.add("visto")); return; }
+  if(!ioCartas) ioCartas = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add("visto"); ioCartas.unobserve(e.target); } }), { rootMargin:"0px 0px -8% 0px", threshold:.08 });
+  els.forEach(e => ioCartas.observe(e));
+}
+
+function abrirDevo(e){ if(e) e.preventDefault(); focoDevo = document.activeElement;
+  const t = e && e.currentTarget && e.currentTarget.dataset ? e.currentTarget.dataset.carta : null;
+  mostrar(0); actual = 0;
+  devo.classList.add("abierta"); devo.setAttribute("aria-hidden","false"); devo.scrollTop = 0;
+  document.body.style.overflow = "hidden";
+  if(t){ indice.hidden = true; irA(t); } else { trazar(); indice.classList.remove("entrando"); void indice.offsetWidth; indice.classList.add("entrando"); setTimeout(() => $("#cerrarDevocionales").focus(), 60); }
+  requestAnimationFrame(() => { observar(); mecer(); progreso(); });
+}
+function cerrarDevo(){ devo.classList.remove("abierta"); devo.setAttribute("aria-hidden","true"); apertura.classList.remove("activa");
+  apertura.querySelectorAll(".cj-carta").forEach(c => c.remove()); devo.querySelectorAll(".cj-carta").forEach(c => c.style.visibility = "");
+  document.body.style.overflow = ""; if(focoDevo) focoDevo.focus() }
+pintarCartas();
+document.querySelectorAll("[data-devocionales]").forEach(a=>{ if(!a.closest("#menu")) a.addEventListener("click",abrirDevo) });
+$("#cerrarDevocionales").onclick = cerrarDevo;
+addEventListener("keydown",e=>{ if(e.key==="Escape" && devo.classList.contains("abierta")) cerrarDevo() });
+
+const velo = $("#velo");
+velo.onclick = () => cerrarMenu();
+
+/* Menú lateral */
+const menu = $("#menu"); let focoMenu = null;
+function abrirMenu(){ focoMenu=document.activeElement; menu.classList.add("abierto"); velo.classList.add("abierto"); menu.setAttribute("aria-hidden","false"); setTimeout(()=>$("#cerrarMenu").focus(),50) }
+function cerrarMenu(volver=true){ if(!menu.classList.contains("abierto")) return; menu.classList.remove("abierto"); velo.classList.remove("abierto"); menu.setAttribute("aria-hidden","true"); if(volver && focoMenu) focoMenu.focus() }
+$("#cerrarMenu").onclick = () => cerrarMenu();
+addEventListener("keydown",e=>{ if(e.key==="Escape") cerrarMenu() });
+function pintarMenu(){
+  const biblias = visibles("biblia");
+  $("#pieColeccion").innerHTML = biblias.map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("");
+  $("#faqDisenos").textContent = new Intl.ListFormat("es",{type:"disjunction"}).format(biblias.map(p=>p.nombre));
+  $("#menuBiblias").innerHTML = visibles("biblia").map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("") + `<li class="todo"><a href="#grupo-biblias">Todas las Biblias</a></li>`;
+  $("#menuJournals").innerHTML = visibles("journal").map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("") + `<li class="todo"><a href="#grupo-journals">Todos los journals</a></li>`;
+  $("#abrirMenu").onclick = abrirMenu;
+}
+pintarMenu();
+menu.addEventListener("click",e=>{ const a=e.target.closest("a"); if(!a) return;
+  if(a.hasAttribute("data-devocionales")){ e.preventDefault(); cerrarMenu(false); abrirDevo(); return }
+  if(a.getAttribute("href").startsWith("#")) cerrarMenu(false);
+});
+pintarProductos();
+
+const reducir = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* Versículos: cambian despacio */
+(() => {
+  const vs = [...document.querySelectorAll("#versos .verso")]; let i = 0;
+  if(reducir || vs.length < 2) return;
+  setInterval(() => { vs[i].classList.remove("activo"); i = (i + 1) % vs.length; vs[i].classList.add("activo"); }, 7000);
+})();
+
+/* Fotos: al tocar se amplían, y se puede pasar entre todas */
+(() => {
+  const btns = [...document.querySelectorAll("[data-foto]")], visor = $("#visor"), img = $("#visorImg");
+  let i = 0;
+  const mostrar = n => { i = (n + btns.length) % btns.length; const f = btns[i].querySelector("img"); img.src = f.src; img.alt = f.alt; };
+  btns.forEach((b,k) => b.addEventListener("click", () => { mostrar(k); visor.showModal ? visor.showModal() : visor.setAttribute("open",""); }));
+  $("#visorAnt").addEventListener("click", () => mostrar(i - 1));
+  $("#visorSig").addEventListener("click", () => mostrar(i + 1));
+  $("#visorCerrar").addEventListener("click", () => visor.close());
+  visor.addEventListener("click", e => { if(e.target === visor) visor.close(); });
+  visor.addEventListener("keydown", e => { if(e.key === "ArrowRight") mostrar(i + 1); if(e.key === "ArrowLeft") mostrar(i - 1); });
+  let tx = 0; visor.addEventListener("touchstart", e => tx = e.touches[0].clientX, { passive:true });
+  visor.addEventListener("touchend", e => { const dx = e.changedTouches[0].clientX - tx; if(Math.abs(dx) > 50) mostrar(i + (dx < 0 ? 1 : -1)); });
+})();
+
+/* Las fotos aparecen suavemente al llegar a ellas */
+if(!reducir && "IntersectionObserver" in window){
+  document.documentElement.classList.add("anim");
+  const io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ e.target.classList.add("visto"); io.unobserve(e.target); } }), { rootMargin:"0px 0px -10% 0px", threshold:.1 });
+  document.querySelectorAll(".rv").forEach(el => io.observe(el));
+}
+
+/* Lista de espera: "Avisame cuando vuelva" (en la tarjeta y en la ficha de la Biblia) */
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-espera]"); if(!b) return;
+  const p = PROD[b.dataset.espera]; if(!p || !p.slug) return;
+  const f = document.createElement("form"); f.className = "espera-form"; f.noValidate = true; f.dataset.producto = p.id;
+  f.innerHTML = `<input type="email" name="email" autocomplete="email" inputmode="email" placeholder="Tu mail" aria-label="Tu mail para avisarte cuando vuelva ${esc(nombreLargo(p))}" required>
+    <input class="hp" type="text" name="sitio" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <button class="boton" type="submit">Avisame</button><p class="mensaje" aria-live="polite"></p>`;
+  b.replaceWith(f); f.elements.email.focus();
+});
+document.addEventListener("submit", async e => {
+  const f = e.target.closest(".espera-form"); if(!f) return;
+  e.preventDefault();
+  const p = PROD[f.dataset.producto], msg = f.querySelector(".mensaje"), btn = f.querySelector("button"), mail = f.elements.email.value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){ msg.textContent = "Revisá el mail, por ejemplo nombre@gmail.com."; f.elements.email.setAttribute("aria-invalid","true"); f.elements.email.focus(); return; }
+  btn.disabled = true; msg.textContent = "Enviando…";
+  try{
+    const r = await fetch("/api/lista-espera", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ producto: p.slug, email: mail, sitio: f.elements.sitio.value }) });
+    const d = await r.json().catch(() => ({}));
+    if(!r.ok) throw new Error(d.error || "");
+    guardar("eden-espera", [...new Set([...leer("eden-espera", []), p.slug])]);
+    const ok = document.createElement("p"); ok.className = "espera-ok"; ok.setAttribute("role","status"); ok.textContent = "Listo, te avisamos por mail apenas vuelva.";
+    f.replaceWith(ok);
+  }catch(err){ msg.textContent = err.message || "No pudimos anotarte. Probá de nuevo en un rato."; btn.disabled = false; }
+});
+
+/* Ficha de cada Biblia (se abre tocando la foto o el nombre) */
+const prodPag = $("#producto"); let prodActual = null, focoProd = null;
+const fotoPorAlt = a => { const i = document.querySelector(`main img[alt^="${a}"]`); return i ? i.getAttribute("src") : null; };
+function fotosDe(p){
+  const lista = [fotoDe(p), ...((EDEN.galerias || {})[p.id] || [])].filter(Boolean);
+  if(p.id === "ventana") lista.push(...["Manos sosteniendo la Biblia Origen","La Biblia Origen sostenida","Dos amigas sonríen sosteniendo"].map(fotoPorAlt).filter(Boolean));
+  return lista;
+}
+function mostrarFoto(src, k){ $("#prodImg").src = src; $("#prodImg").alt = nombreLargo(prodActual); prodPag.querySelectorAll(".prod-minis button").forEach((b,i) => b.setAttribute("aria-pressed", String(i === k))); }
+function abrirProducto(id){
+  const p = PROD[id]; if(!p) return; prodActual = p; focoProd = document.activeElement;
+  const fotos = fotosDe(p), conPrecio = CATALOGO && p.precio > 0, sinStock = CATALOGO && agotado(p);
+  $("#prodVerbo").textContent = p.catVerbo || "Biblia";
+  $("#prodNombre").textContent = p.nombre;
+  $("#prodDesc").textContent = p.catDescripcion || ""; $("#prodDesc").hidden = !p.catDescripcion;
+  $("#prodPrecio").innerHTML = conPrecio ? precioHTML(p) : "Precio por confirmar";
+  $("#prodPrecio").classList.toggle("pend", !conPrecio);
+  $("#prodAgregar").hidden = $("#prodRegalar").hidden = !conPrecio || sinStock;
+  $("#prodEspera").hidden = !sinStock; $("#prodEspera").innerHTML = sinStock ? esperaHTML(p) : "";
+  $("#prodMinis").innerHTML = fotos.map((f,k) => `<button type="button" aria-label="Foto ${k+1}"><img src="${esc(f)}" alt=""></button>`).join("");
+  $("#prodMinis").querySelectorAll("button").forEach((b,k) => b.onclick = () => mostrarFoto(fotos[k], k));
+  $("#prodImg").hidden = !fotos.length;
+  if(fotos.length) mostrarFoto(fotos[0], 0); else $("#prodImg").removeAttribute("src");
+  prodPag.classList.add("abierta"); prodPag.setAttribute("aria-hidden","false"); prodPag.scrollTop = 0;
+  document.body.style.overflow = "hidden"; setTimeout(() => $("#cerrarProducto").focus(), 60);
+}
+function cerrarProducto(){ if(!prodPag.classList.contains("abierta")) return; prodPag.classList.remove("abierta"); prodPag.setAttribute("aria-hidden","true"); document.body.style.overflow = ""; if(focoProd) focoProd.focus(); }
+$("#cerrarProducto").onclick = cerrarProducto;
+// Escape cierra de a una capa: con el carrito abierto, cierra solo el carrito
+addEventListener("keydown", e => { if(e.key === "Escape" && !$("#carrito").classList.contains("abierto")) cerrarProducto(); });
+$("#prodAgregar").onclick = () => { carritoTienda.abrir(carritoTienda.agregar(prodActual.id)); };
+$("#prodRegalar").onclick = () => { const falta = carritoTienda.agregar(prodActual.id); if(!falta) guardar("eden-regalo", true); carritoTienda.abrir(falta); };
+tienda.addEventListener("click", e => { const v = e.target.closest("[data-ver-producto]"); if(v) abrirProducto(v.dataset.verProducto); });
+
+/* ====== Carrito ======
+   Se guarda en el navegador de cada persona, así no se pierde si recarga la página.
+   «Hacer mi pedido» guarda el pedido y lleva al checkout, que vuelve a validar precios y stock. */
+/* Lo guardado puede venir en otro formato: [{id,cant}] o el viejo {"ventana|NVI":1,"pack:set":2}. Lo que no se entienda, se ignora. */
+function carritoGuardado(){
+  const crudo = leer("eden-carrito", []), suma = new Map();
+  const pares = Array.isArray(crudo) ? crudo.map(it => [it && it.id, it && it.cant]) : crudo && typeof crudo === "object" ? Object.entries(crudo) : [];
+  for(const [clave, cant] of pares){
+    const id = String(clave || "").split("|")[0], n = Math.floor(Number(cant));
+    if(id && n > 0) suma.set(id, Math.min(99, (suma.get(id) || 0) + n));
+  }
+  return [...suma].map(([id, cant]) => ({ id, cant }));
+}
+/* Una línea del carrito: un producto suelto o un set ("pack:<slug>") */
+function lineaDe(id){
+  if(esPack(id)){ const s = PACK[id.slice(5)]; return s ? { set: s } : null; }
+  const p = PROD[id]; return p && !p.fuera ? { p } : null;
+}
+const carritoTienda = (() => {
+  const cajon = $("#carrito"), lista = $("#carritoItems"), pie = $("#carritoPie"), msg = $("#carritoMsg"), boton = $("#abrirCarrito"), pedir = $("#hacerPedido");
+  // Los sets y productos nuevos recién se conocen con el catálogo: hasta entonces no se descarta nada de lo guardado
+  let carrito = carritoGuardado();
+  let focoCarrito = null, avisoAjuste = "";
+  const lineas = () => carrito.map(it => ({ ...it, ...lineaDe(it.id) })).filter(x => x.p || x.set);
+  const precioDe = x => x.set ? x.set.precio : x.p.precio;
+  /* Unidades de un producto que ya ocupa el carrito, sueltas o dentro de sets */
+  function usoDe(p){
+    let n = 0;
+    for(const x of lineas()){
+      if(x.set){ const i = x.set.items.find(i => i.slug === p.slug); if(p.slug && i) n += x.cant * i.cantidad; }
+      else if(x.p === p) n += x.cant;
+    }
+    return n;
+  }
+  function sinLugar(id, d){
+    const l = lineaDe(id); if(!l) return "Este producto ya no está disponible.";
+    if(l.set){
+      for(const x of piezasDe(l.set)) if(x.p.stock != null && usoDe(x.p) + x.q * d > x.p.stock)
+        return l.set.stock ? `No alcanzan las piezas para otro ${l.set.nombre}.` : `${l.set.nombre} está agotado.`;
+      return "";
+    }
+    const p = l.p;
+    return p.stock != null && usoDe(p) + d > p.stock ? (p.stock ? `Quedan ${p.stock} de ${p.nombre}.` : `${p.nombre} está agotado.`) : "";
+  }
+  /* Set: cada Biblia + Journal sueltos (fuera de los sets armados) sale al precio del Set */
+  function ahorroSet(ls){
+    const items = ls.filter(x => x.p), cuenta = t => items.filter(x => x.p.tipo === t).reduce((a,x) => a + x.cant, 0);
+    const minimo = t => Math.min(...items.filter(x => x.p.tipo === t).map(x => x.p.precio));
+    const pares = Math.min(cuenta("biblia"), cuenta("journal"));
+    return PRECIO_SET && pares ? Math.max(0, pares * (minimo("biblia") + minimo("journal") - PRECIO_SET)) : 0;
+  }
+  /* Sugerencia: si hay una Biblia sin Journal, ofrecer el del mismo diseño */
+  function sugerenciaHTML(ls){
+    const items = ls.filter(x => x.p), biblias = items.filter(x => x.p.tipo === "biblia"), journals = items.filter(x => x.p.tipo === "journal");
+    if(!PRECIO_SET || biblias.reduce((a,x) => a + x.cant, 0) <= journals.reduce((a,x) => a + x.cant, 0)) return "";
+    const sola = (biblias.find(b => !journals.some(j => j.p.diseno === b.p.diseno)) || biblias[0]).p;
+    const sirve = x => x.tipo === "journal" && !x.fuera && x.precio > 0 && !agotado(x) && !sinLugar(x.id, 1);
+    const journal = EDEN.productos.find(x => sirve(x) && x.diseno === sola.diseno) || EDEN.productos.find(sirve);
+    return journal ? `<div class="sugerencia"><p>Sumá el Journal ${esc(journal.nombre)} y llevate el Set por ${fmt(PRECIO_SET)}.</p><button class="boton" type="button" data-cant="1" data-id="${esc(journal.id)}">Sumar Journal</button></div>` : "";
+  }
+  function pintar(aviso = ""){
+    guardar("eden-carrito", carrito);
+    const ls = lineas(), n = ls.reduce((a,x) => a + x.cant, 0);
+    $("#carritoCuenta").textContent = `(${n})`;
+    boton.setAttribute("aria-label", `Carrito, ${n} ${n === 1 ? "producto" : "productos"}`);
+    if(!ls.length){
+      lista.innerHTML = `<p class="vacio">Tu carrito está vacío.<br><a href="#tienda" data-cerrar-carrito>Ver la colección</a></p>`;
+      pie.hidden = true; return;
+    }
+    pie.hidden = false;
+    const conPrecios = CATALOGO && ls.every(x => precioDe(x) > 0);
+    lista.innerHTML = ls.map(x => {
+      const nom = esc(x.set ? x.set.nombre : x.p.nombre), largo = esc(x.set ? x.set.nombre : nombreLargo(x.p)), id = esc(x.id);
+      const tipo = x.set ? "Set · " + esc(incluyeDe(x.set)) : x.p.tipo === "biblia" ? "Biblia" : "Journal";
+      const precio = CATALOGO && precioDe(x) > 0 ? `<span class="precio-item">${fmt(precioDe(x) * x.cant)}</span>` : `<span class="precio-item pend">Por confirmar</span>`;
+      return `
+      <div class="item">
+        ${fotoHTML(x.set ? fotoSet(x.set) : fotoDe(x.p), "")}
+        <div class="item-texto">
+          <h3>${nom}</h3>
+          <small>${tipo}</small>
+          <div class="item-cant">
+            <button type="button" data-cant="-1" data-id="${id}" aria-label="Quitar uno de ${largo}">−</button>
+            <span aria-label="Cantidad">${x.cant}</span>
+            <button type="button" data-cant="1" data-id="${id}" aria-label="Agregar uno de ${largo}">+</button>
+          </div>
+        </div>
+        <div class="item-der">
+          ${precio}
+          <button type="button" class="quitar" data-quitar="${id}">Quitar</button>
+        </div>
+      </div>`; }).join("") + (conPrecios ? sugerenciaHTML(ls) : "");
+    const ahorro = conPrecios ? ahorroSet(ls) : 0, linea = $("#setLinea");
+    linea.hidden = !ahorro;
+    if(ahorro) linea.lastElementChild.textContent = "−" + fmt(ahorro);
+    $("#esRegalo").checked = !!leer("eden-regalo", false);
+    $("#carritoTotal").textContent = conPrecios ? fmt(ls.reduce((a,x) => a + precioDe(x) * x.cant, 0) - ahorro) : "Por confirmar";
+    pedir.disabled = !conPrecios;
+    msg.textContent = conPrecios ? aviso
+      : FALLO_CATALOGO ? "No pudimos confirmar los precios, así que por ahora no se puede hacer el pedido. Tu carrito queda guardado: probá de nuevo en un rato."
+      : !CATALOGO ? "Estamos consultando los precios…"
+      : "Hay un producto que todavía no tiene precio. Quitalo para poder hacer tu pedido.";
+  }
+  function abrir(aviso = ""){ focoCarrito = document.activeElement; pintar(aviso || avisoAjuste); avisoAjuste = ""; cajon.classList.add("abierto"); velo.classList.add("abierto"); cajon.setAttribute("aria-hidden","false"); setTimeout(() => $("#cerrarCarrito").focus(), 50); cargarCatalogo(); }
+  function cerrar(volver = true){ if(!cajon.classList.contains("abierto")) return; cajon.classList.remove("abierto"); velo.classList.remove("abierto"); cajon.setAttribute("aria-hidden","true"); if(volver && focoCarrito) focoCarrito.focus(); }
+  /* Devuelve el motivo si no se pudo agregar */
+  function agregar(id){
+    const falta = sinLugar(id, 1); if(falta) return falta;
+    const it = carrito.find(x => x.id === id);
+    if(it) it.cant++; else carrito.push({ id, cant:1 });
+    pintar();
+    boton.classList.add("pulso"); setTimeout(() => boton.classList.remove("pulso"), 900);
+    return "";
+  }
+  function cambiar(id, d){
+    const falta = d > 0 ? sinLugar(id, d) : "";
+    if(falta){ pintar(falta); return; }
+    const it = carrito.find(x => x.id === id);
+    if(it){ it.cant += d; if(it.cant < 1) carrito = carrito.filter(x => x !== it); }
+    else if(d > 0) carrito.push({ id, cant:d });
+    pintar();
+  }
+  /* Llegó el catálogo: se limpia lo que ya no existe y se ajusta lo que supera el stock */
+  function alCatalogo(){
+    const antes = carrito; carrito = []; let cambio = false;
+    for(const it of antes){
+      if(!lineaDe(it.id)){ cambio = true; continue; }
+      const nuevo = { id: it.id, cant: 0 }; carrito.push(nuevo);
+      while(nuevo.cant < it.cant && !sinLugar(it.id, 1)) nuevo.cant++;
+      if(nuevo.cant < it.cant) cambio = true;
+      if(!nuevo.cant) carrito.pop();
+    }
+    const aviso = cambio ? "Actualizamos tu carrito según lo que hay disponible." : "";
+    if(cajon.classList.contains("abierto")) pintar(aviso); else { avisoAjuste = aviso; pintar(); }
+  }
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-agregar]");
+    if(a){
+      const falta = agregar(a.dataset.agregar);
+      if(!falta){ a.textContent = "Agregado"; a.classList.add("hecho"); setTimeout(() => { a.textContent = "Agregar"; a.classList.remove("hecho"); }, 1600); }
+      abrir(falta); return;
+    }
+    const r = e.target.closest("[data-regalar]");
+    if(r){ const falta = agregar(r.dataset.regalar); if(!falta) guardar("eden-regalo", true); abrir(falta); }
+  });
+  lista.addEventListener("click", e => {
+    const c = e.target.closest("[data-cant]"); if(c){ cambiar(c.dataset.id, +c.dataset.cant); return; }
+    const q = e.target.closest("[data-quitar]"); if(q){ cambiar(q.dataset.quitar, -Infinity); return; }
+    if(e.target.closest("[data-cerrar-carrito]")) cerrar(false);
+  });
+  $("#esRegalo").addEventListener("change", e => guardar("eden-regalo", e.target.checked));
+  boton.addEventListener("click", () => abrir());
+  $("#cerrarCarrito").addEventListener("click", () => cerrar());
+  velo.addEventListener("click", () => cerrar(false));
+  addEventListener("keydown", e => { if(e.key === "Escape") cerrar(); });
+  pedir.addEventListener("click", () => {
+    const ls = lineas(), items = ls.map(x => ({ slug: x.set ? x.id : x.p.slug, cantidad: x.cant }));
+    if(!CATALOGO || !items.length || items.some(i => !i.slug) || ls.some(x => !(precioDe(x) > 0))){ pintar(); return; }
+    guardar("eden-checkout", items);
+    location.href = "/checkout";
+  });
+  pintar();
+  return { pintar, abrir, agregar, alCatalogo };
+})();
+if(location.hash === "#carrito"){ history.replaceState(null, "", location.pathname + location.search); carritoTienda.abrir(); }
+cargarCatalogo();
+setTimeout(sinCatalogo, 6000);
+
+/* ====== Suscripción · Cartas del jardín: editar aquí ======
+   1) Al publicar la web en Netlify, cada correo queda guardado automáticamente
+      en Netlify → Forms → "cartas-del-jardin" (con fecha y consentimiento).
+      Desde ahí se puede exportar la lista en CSV.
+   2) Para conectar una plataforma de email marketing, crea allí un formulario
+      incrustado (embedded form), copia la URL de su "action" y complétala abajo:
+        plataforma: "mailerlite" | "brevo" | "kit"
+        url: la dirección de acción del formulario de esa plataforma
+      Los correos se enviarán a la plataforma y también quedarán en Netlify como respaldo. */
+const SUSCRIPCION = {
+  netlify: true,
+  plataforma: "",
+  url: ""
+};
+/* ============================================ */
+(() => {
+  const form = $("#formUnete"), msg = $("#u-msg"), gracias = $("#u-gracias");
+  const CAMPO = { mailerlite:"fields[email]", brevo:"EMAIL", kit:"email_address" };
+  const publicada = /^https?:$/.test(location.protocol) && !/^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname);
+  async function enviar(correo){
+    const tareas = [];
+    if(SUSCRIPCION.netlify && publicada){
+      tareas.push(fetch("/", { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body:new URLSearchParams(new FormData(form)).toString() })
+        .then(r => { if(!r.ok) throw new Error(r.status); }));
+    }
+    const campo = CAMPO[SUSCRIPCION.plataforma];
+    if(campo && SUSCRIPCION.url){
+      const datos = new FormData(); datos.append(campo, correo);
+      if(SUSCRIPCION.plataforma === "brevo") datos.append("OPT_IN", "1");
+      tareas.push(fetch(SUSCRIPCION.url, { method:"POST", mode:"no-cors", body:datos }));
+    }
+    if(!tareas.length){ console.info("Edén · vista previa: la suscripción se guarda al publicar la web."); return; }
+    const res = await Promise.allSettled(tareas);
+    if(res.every(r => r.status === "rejected")) throw new Error("sin envío");
+  }
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const correo = $("#u-correo"), valor = correo.value.trim(), ok = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(valor);
+    correo.setAttribute("aria-invalid", String(!ok));
+    if(!ok){ msg.textContent = "Escribe un correo válido, por ejemplo nombre@gmail.com."; correo.focus(); return; }
+    if(!$("#u-acepto").checked){ msg.textContent = "Marca la casilla para que podamos escribirte."; $("#u-acepto").focus(); return; }
+    $("#u-fecha").value = new Date().toISOString();
+    const b = $("#u-enviar"); b.disabled = true; msg.textContent = "Enviando…";
+    try {
+      await enviar(valor);
+      msg.textContent = "";
+      $("#u-dir").textContent = valor;
+      form.classList.add("saliendo");
+      setTimeout(() => {
+        form.hidden = true; form.classList.remove("saliendo"); form.reset();
+        gracias.hidden = false; gracias.classList.add("aparece-g"); gracias.focus({ preventScroll:true });
+      }, reducir ? 0 : 500);
+    } catch(err){ msg.textContent = "No pudimos registrar tu correo. Inténtalo de nuevo o escríbenos por Instagram."; }
+    finally { b.disabled = false; }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,300 @@
+@import "tailwindcss";
+
+/* Paleta de la web de Edén (repo Casaeden/EDEN). Siempre en crema, también con el celular en modo oscuro. */
+:root {
+  --papel: #f3ebe0;
+  --papel-2: #eadfd0;
+  --tinta: #4e4540;
+  --raiz: #2c221c;
+  --musgo: #39432a;
+  --hierba: #8a9a5e;
+  --oro: #b28f3c;
+  --flor: #c4908a;
+  --linea: rgba(84, 69, 65, 0.2);
+  --nota: #fbf7f0;
+  --texto-suave: #76665e;
+  --error: #9b3b32;
+  --fondo-input: #fbf7f0;
+  --chip-oro: rgba(178, 143, 60, 0.2);
+  --chip-hierba: rgba(138, 154, 94, 0.25);
+  --chip-flor: rgba(196, 144, 138, 0.25);
+  --fuente-texto: var(--font-cormorant), "Cormorant Garamond", Garamond, serif;
+  --fuente-titulo: var(--font-italiana), "Italiana", serif;
+  --fuente-maquina: var(--font-courier), "Courier Prime", monospace;
+  color-scheme: light;
+}
+
+/* Back office: paleta y tipografías del diseño de Stitch (más claro y legible para trabajar). */
+.tema-admin {
+  --papel: #fff8f1;
+  --papel-2: #f5ede2;
+  --nota: #fbf2e7;
+  --fondo-input: #ffffff;
+  --tinta: #372f2a;
+  --raiz: #1e1b15;
+  --texto-suave: #7f7570;
+  --linea: rgba(55, 47, 42, 0.12);
+  --oro: #775a06;
+  --musgo: #2a331c;
+  --hierba: #8a9a5e;
+  --flor: #ffb4ab;
+  --error: #ba1a1a;
+  --chip-oro: #ffdf9c;
+  --chip-hierba: #dbe7c4;
+  --chip-flor: #ffdad6;
+  --fuente-texto: var(--font-literata), "Literata", Georgia, serif;
+  --fuente-titulo: var(--font-garamond), "EB Garamond", Garamond, serif;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--fuente-texto);
+  font-size: 15px;
+}
+
+@theme inline {
+  --color-papel: var(--papel);
+  --color-papel-2: var(--papel-2);
+  --color-tinta: var(--tinta);
+  --color-raiz: var(--raiz);
+  --color-musgo: var(--musgo);
+  --color-hierba: var(--hierba);
+  --color-oro: var(--oro);
+  --color-flor: var(--flor);
+  --color-nota: var(--nota);
+  --color-error: var(--error);
+  --color-fondo-input: var(--fondo-input);
+  --color-chip-oro: var(--chip-oro);
+  --color-chip-hierba: var(--chip-hierba);
+  --color-chip-flor: var(--chip-flor);
+  /* Alias semánticos que usan los componentes */
+  --color-fondo: var(--papel);
+  --color-superficie: var(--nota);
+  --color-borde: var(--linea);
+  --color-texto: var(--tinta);
+  --color-tenue: var(--texto-suave);
+  --font-serif: var(--fuente-texto);
+  --font-maquina: var(--fuente-maquina);
+  --font-titulo: var(--fuente-titulo);
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--fuente-texto);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Grano de papel, igual que la web */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 90;
+  opacity: 0.06;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:focus-visible {
+  outline: 2px solid var(--oro);
+  outline-offset: 3px;
+}
+
+.tabular-nums {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Números siempre parejos (la Cormorant usa números antiguos por defecto) */
+body {
+  font-variant-numeric: lining-nums;
+}
+
+/* ───────── Tokens del diseño de Stitch (mismos nombres que su configuración) ───────── */
+@theme {
+  --color-surface: #fff8f1;
+  --color-surface-bright: #fff8f1;
+  --color-surface-dim: #e1d9ce;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #fbf2e7;
+  --color-surface-container: #f5ede2;
+  --color-surface-container-high: #efe7dc;
+  --color-surface-container-highest: #e9e1d7;
+  --color-surface-variant: #e9e1d7;
+  --color-on-surface: #1e1b15;
+  --color-on-surface-variant: #4e4540;
+  --color-outline: #7f7570;
+  --color-outline-variant: #d1c4be;
+  --color-primary: #372f2a;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #4e4540;
+  --color-on-primary-container: #c0b3ac;
+  --color-primary-fixed: #eee0d9;
+  --color-secondary: #775a06;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #fed57a;
+  --color-on-secondary-container: #785b07;
+  --color-secondary-fixed: #ffdf9c;
+  --color-secondary-fixed-dim: #e9c169;
+  --color-on-secondary-fixed: #251a00;
+  --color-tertiary: #2a331c;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #404a30;
+  --color-tertiary-fixed: #dbe7c4;
+  --color-tertiary-fixed-dim: #bfcba9;
+  --color-on-tertiary-fixed: #151e09;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+  --color-inverse-surface: #343029;
+  --color-inverse-on-surface: #f8f0e5;
+
+  --font-headline-xl: var(--font-garamond), "EB Garamond", serif;
+  --font-headline-lg: var(--font-garamond), "EB Garamond", serif;
+  --font-headline-md: var(--font-garamond), "EB Garamond", serif;
+  --font-body-lg: var(--font-literata), "Literata", serif;
+  --font-body-md: var(--font-literata), "Literata", serif;
+  --font-body-sm: var(--font-literata), "Literata", serif;
+  --font-caption-italic: var(--font-literata), "Literata", serif;
+  --font-label-lg: var(--font-courier), "Courier Prime", monospace;
+  --font-label-md: var(--font-courier), "Courier Prime", monospace;
+  --font-label-sm: var(--font-courier), "Courier Prime", monospace;
+  --font-code-num: var(--font-courier), "Courier Prime", monospace;
+
+  --text-headline-xl: 36px;
+  --text-headline-xl--line-height: 44px;
+  --text-headline-xl--letter-spacing: 0.08em;
+  --text-headline-lg: 26px;
+  --text-headline-lg--line-height: 32px;
+  --text-headline-lg--letter-spacing: 0.06em;
+  --text-headline-lg--font-weight: 500;
+  --text-headline-md: 20px;
+  --text-headline-md--line-height: 26px;
+  --text-headline-md--letter-spacing: 0.04em;
+  --text-headline-md--font-weight: 500;
+  --text-body-lg: 17px;
+  --text-body-lg--line-height: 26px;
+  --text-body-md: 15px;
+  --text-body-md--line-height: 22px;
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 18px;
+  --text-caption-italic: 14px;
+  --text-caption-italic--line-height: 20px;
+  --text-label-lg: 13px;
+  --text-label-lg--line-height: 16px;
+  --text-label-lg--letter-spacing: 0.1em;
+  --text-label-lg--font-weight: 700;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.08em;
+  --text-label-sm: 10px;
+  --text-label-sm--line-height: 12px;
+  --text-label-sm--letter-spacing: 0.12em;
+  --text-code-num: 14px;
+  --text-code-num--line-height: 18px;
+  --text-code-num--letter-spacing: 0.04em;
+  --text-code-num--font-weight: 700;
+
+  --spacing-space-xs: 0.25rem;
+  --spacing-space-sm: 0.5rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2.5rem;
+  --spacing-gutter: 1.5rem;
+  --spacing-margin: 2.5rem;
+}
+
+/* Íconos de Material Symbols (los mismos del diseño). Clase propia "ms" en una capa,
+   así los tamaños de Tailwind (text-[16px]) mandan sobre el estilo por defecto de Google. */
+@layer components {
+  .ms {
+    font-family: "Material Symbols Outlined";
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
+  }
+}
+
+/* ───────── Barra lateral colapsable del back office ─────────
+   Arranca compacta (solo íconos); al pasar el mouse o enfocar se despliega encima del contenido.
+   data-barra="ancha" en <html> (fijada abierta, aplicado antes de pintar) la deja en 220px. */
+html {
+  --barra: 72px;
+}
+html[data-barra="ancha"] {
+  --barra: 220px;
+}
+.barra-lateral {
+  width: var(--barra);
+  transition: width 200ms ease, box-shadow 200ms ease;
+}
+html:not([data-barra="ancha"]) .barra-lateral:not([data-cerrando]):hover,
+html:not([data-barra="ancha"]) .barra-lateral:has(:focus-visible) {
+  width: 220px;
+  transition-delay: 120ms;
+  box-shadow: 8px 0 28px -8px rgba(55, 47, 42, 0.22);
+}
+.barra-lateral .barra-txt {
+  transition: opacity 150ms ease;
+}
+html:not([data-barra="ancha"]) .barra-lateral:not(:hover):not(:has(:focus-visible)) .barra-txt,
+html:not([data-barra="ancha"]) .barra-lateral[data-cerrando]:not(:has(:focus-visible)) .barra-txt {
+  opacity: 0;
+}
+html:not([data-barra="ancha"]) .barra-lateral:not([data-cerrando]):hover .barra-txt,
+html:not([data-barra="ancha"]) .barra-lateral:has(:focus-visible) .barra-txt {
+  transition-delay: 150ms;
+}
+html:not([data-barra="ancha"]) .barra-lateral:not(:hover):not(:has(:focus-visible)) .barra-marca,
+html:not([data-barra="ancha"]) .barra-lateral[data-cerrando]:not(:has(:focus-visible)) .barra-marca {
+  display: none;
+}
+html:not([data-barra="ancha"]) .barra-lateral:not(:hover):not(:has(:focus-visible)) .barra-fila,
+html:not([data-barra="ancha"]) .barra-lateral[data-cerrando]:not(:has(:focus-visible)) .barra-fila {
+  justify-content: center;
+}
+.barra-lateral .barra-ico-abrir {
+  display: none;
+}
+html:not([data-barra="ancha"]) .barra-lateral .barra-ico-abrir {
+  display: inline-block;
+}
+html:not([data-barra="ancha"]) .barra-lateral .barra-ico-cerrar {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .barra-lateral,
+  .barra-lateral .barra-txt {
+    transition: none;
+  }
+}
+
+@keyframes toast-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.toast-entra {
+  animation: toast-entra 200ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .toast-entra {
+    animation: none;
+  }
+}
