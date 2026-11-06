@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PagoTarjeta } from "@/components/pago-tarjeta/pago-tarjeta";
-import { ars, fecha, fechaHora, linkWhatsApp, numeroPedido } from "@/lib/format";
+import { ars, fechaHora, linkWhatsApp, numeroPedido } from "@/lib/format";
 import { modoPago, tarjetaHabilitada } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
+import { Camino } from "./camino";
 
 export const metadata: Metadata = { title: "Tu pedido · Edén", robots: { index: false } };
 
@@ -63,7 +64,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
   const pasos = [
     { titulo: "Recibido", fecha: p.created_at },
     { titulo: "Pagado", fecha: p.pagado_at },
-    { titulo: "Preparando", fecha: p.preparacion_at, texto: "Lo armamos a mano, con tiempo." },
+    { titulo: "Preparando", fecha: p.preparacion_at },
     { titulo: "Enviado", fecha: p.despachado_at },
     { titulo: "Entregado", fecha: p.entregado_at },
   ];
@@ -188,39 +189,20 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
         )}
 
         {p.estado !== "cancelado" && (
-          <ol className="mt-10 flex flex-col">
-            {pasos.map((s, i) => {
-              const hecho = i <= paso;
-              const actual = i === paso;
-              return (
-                <li key={s.titulo} className="relative flex gap-5 pb-8 last:pb-0">
-                  {i < pasos.length - 1 && (
-                    <span className={`absolute left-[0.6rem] top-6 h-full w-px ${i < paso ? "bg-tinta" : "bg-borde"}`} aria-hidden />
-                  )}
-                  <span
-                    className={`relative z-10 mt-1 h-5 w-5 shrink-0 rounded-full border ${
-                      hecho ? "border-tinta bg-tinta" : "border-borde bg-papel"
-                    } ${actual ? "ring-4 ring-oro/30" : ""}`}
-                    aria-hidden
-                  />
-                  <div>
-                    <p className={hecho ? "" : "text-tenue"}>
-                      {s.titulo}
-                      {actual && <span className="sr-only"> (paso actual)</span>}
-                    </p>
-                    {hecho && s.fecha && <p className="text-base italic text-tenue">{fecha(s.fecha)}</p>}
-                    {actual && s.texto && <p className="text-base italic text-tenue">{s.texto}</p>}
-                    {s.titulo === "Enviado" && hecho && p.envio && (
-                      <p className="text-base text-tenue">
-                        {p.envio.empresa}
-                        {p.envio.seguimiento && <> · seguimiento <span className="font-maquina">{p.envio.seguimiento}</span></>}
-                      </p>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
+          <Camino
+            pasos={pasos}
+            actual={paso}
+            detalle={
+              p.estado === "en_preparacion" ? (
+                "Lo armamos a mano, con tiempo."
+              ) : paso >= ORDEN.indexOf("despachado") && p.envio ? (
+                <>
+                  {p.envio.empresa}
+                  {p.envio.seguimiento && <> · seguimiento <span className="font-maquina not-italic">{p.envio.seguimiento}</span></>}
+                </>
+              ) : undefined
+            }
+          />
         )}
       </div>
 

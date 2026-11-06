@@ -16,6 +16,7 @@ export const fechaHora = (d: string | Date | null | undefined) =>
         month: "short",
         hour: "2-digit",
         minute: "2-digit",
+        hourCycle: "h23",
         timeZone: zona,
       })
     : "—";

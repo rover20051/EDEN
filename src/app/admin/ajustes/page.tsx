@@ -5,7 +5,7 @@ import { ars } from "@/lib/format";
 import { configMensajeria } from "@/lib/mails/envio";
 import { PROVINCIAS } from "@/lib/provincias";
 import { SOCIOS } from "@/lib/textos";
-import { FormAdmin, FormAjustes } from "./forms";
+import { EditarAdmin, FormAdmin, FormAjustes } from "./forms";
 
 const PREVIA = "/admin/ajustes/mensajes?plantilla=";
 const MAILS = [
@@ -74,17 +74,20 @@ export default async function Ajustes() {
             {cabecera("Permisos", "Quiénes entran", "group", "Acceso solo para el equipo de Edén.")}
             <div className="flex flex-col gap-1.5">
               {(admins ?? []).map((a) => (
-                <div key={a.email} className="flex items-center justify-between rounded-2xl bg-surface-container-lowest p-2.5 shadow-sm transition-colors hover:bg-surface-container-high/40">
-                  <div className="flex items-center gap-space-sm">
-                    <div className={`flex h-8 w-8 items-center justify-center rounded-full font-headline-md text-[16px] ${avatar[a.socio] ?? avatar.fede}`}>{a.nombre[0]}</div>
-                    <div>
+                <div key={a.email} className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-surface-container-lowest p-2.5 shadow-sm transition-colors hover:bg-surface-container-high/40">
+                  <div className="flex min-w-0 items-center gap-space-sm">
+                    <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-headline-md text-[16px] ${avatar[a.socio] ?? avatar.fede}`}>{a.nombre[0]}</div>
+                    <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-body-md text-body-sm font-bold text-primary">{a.nombre}</span>
                         <span className="font-code-num text-label-sm text-outline">{a.email}</span>
                       </div>
-                      <div className="font-caption-italic text-caption-italic text-body-sm italic text-on-surface-variant">Socio: {SOCIOS[a.socio as keyof typeof SOCIOS]}</div>
+                      <div className="font-caption-italic text-caption-italic text-body-sm italic text-on-surface-variant">
+                        {a.socio === "fede" ? "Socio" : "Socia"}: {SOCIOS[a.socio as keyof typeof SOCIOS]}
+                      </div>
                     </div>
                   </div>
+                  <EditarAdmin a={a} />
                 </div>
               ))}
             </div>

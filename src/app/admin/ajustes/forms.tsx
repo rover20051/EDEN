@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useState } from "react";
-import { agregarAdmin, guardarAjustes, type Resultado } from "@/app/admin/actions";
+import { agregarAdmin, editarAdmin, guardarAjustes, type Resultado } from "@/app/admin/actions";
 import { Mensaje } from "@/components/accion";
 import { ars } from "@/lib/format";
 
@@ -119,20 +119,68 @@ export function FormAjustes({ a, precioSueltos }: { a: DatosCliente; precioSuelt
   );
 }
 
+const chico = "rounded-full bg-surface-container-lowest px-3 py-1.5 font-body-sm text-body-sm text-on-surface shadow-sm placeholder:italic placeholder:text-outline focus:outline-none";
+
+function OpcionesSocio() {
+  return (
+    <>
+      <option value="nari">Nari</option>
+      <option value="mich">Mich</option>
+      <option value="fede">Fede</option>
+    </>
+  );
+}
+
+/** Corregir el nombre o a quién corresponde un acceso, desde su fila en "Quiénes entran". */
+export function EditarAdmin({ a }: { a: { email: string; nombre: string; socio: string } }) {
+  const [abierto, setAbierto] = useState(false);
+  const { estado, onSubmit, pendiente } = useForm(editarAdmin);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAbierto(!abierto)}
+        aria-expanded={abierto}
+        className="font-label-sm text-label-sm text-on-surface-variant underline decoration-primary/30 underline-offset-4 transition-colors hover:text-primary hover:decoration-primary"
+      >
+        {abierto ? "Cerrar" : "Editar"}
+      </button>
+      {abierto && (
+        <form onSubmit={onSubmit} className="flex w-full flex-col gap-1.5 rounded-2xl bg-surface-container p-space-sm">
+          <input type="hidden" name="email" value={a.email} />
+          <div className="flex flex-wrap gap-space-sm">
+            <input name="nombre" required defaultValue={a.nombre} aria-label="Nombre" placeholder="Nombre" className={`${chico} min-w-0 flex-1`} />
+            <select name="socio" defaultValue={a.socio} aria-label="Socia o socio" className={chico}>
+              <OpcionesSocio />
+            </select>
+            <button
+              disabled={pendiente}
+              className="whitespace-nowrap rounded-full bg-primary px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-surface transition-all hover:bg-primary-container disabled:opacity-50"
+            >
+              {pendiente ? "…" : "Guardar"}
+            </button>
+          </div>
+          <Mensaje estado={estado} />
+        </form>
+      )}
+    </>
+  );
+}
+
 /** Autorizar a otra persona (diseño de Stitch, con nombre y socio porque el sistema los necesita). */
 export function FormAdmin() {
   const { estado, onSubmit, pendiente } = useForm(agregarAdmin);
-  const chico = "rounded-full bg-surface-container-lowest px-3 py-1.5 font-body-sm text-body-sm text-on-surface shadow-sm placeholder:italic placeholder:text-outline focus:outline-none";
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-1.5 rounded-2xl bg-surface-container p-space-sm">
       <span className={rotulo}>Autorizar a otra persona</span>
       <div className="flex flex-wrap gap-space-sm">
         <input name="nombre" required placeholder="Nombre" className={`${chico} w-28 min-w-0`} />
         <input name="email" type="email" required placeholder="mail@…" className={`${chico} min-w-0 flex-1`} />
-        <select name="socio" defaultValue="nari" aria-label="Socio" className={chico}>
-          <option value="nari">Nari</option>
-          <option value="mich">Mich</option>
-          <option value="fede">Fede</option>
+        <select name="socio" required defaultValue="" aria-label="Socia o socio" className={chico}>
+          <option value="" disabled>
+            ¿Quién es?
+          </option>
+          <OpcionesSocio />
         </select>
         <button
           disabled={pendiente}
