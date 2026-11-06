@@ -29,14 +29,37 @@ export type PedidoMail = {
 
 export type ContactoMail = { alias: string; email: string; whatsapp: string; horas: number };
 
-export type Mail = { asunto: string; html: string };
+export type Mail = { asunto: string; html: string; titulo: string; bajada: string };
+
+/** Lo que se puede cambiar desde el back office. Los datos del pedido (montos, alias, seguimiento) no se tocan. */
+export type TextosMail = { asunto?: string | null; titulo?: string | null; bajada?: string | null; nota?: string | null };
+
+/** Qué se puede escribir entre llaves en cada mail. */
+export const VARIABLES: Record<Plantilla, string[]> = {
+  pedido_recibido: ["nombre", "pedido"],
+  pago_confirmado: ["nombre", "pedido"],
+  en_camino: ["nombre", "pedido"],
+  lista_espera: ["nombre", "producto"],
+  reserva_vencida: ["nombre", "pedido"],
+};
+
+const rellenar = (texto: string, vars: Record<string, string>) => texto.replace(/\{(\w+)\}/g, (todo, k: string) => vars[k] ?? todo);
+
+/** Arma el mail aplicando sobre sus textos originales lo que se haya cambiado en el back office. */
+function armar(t: TextosMail | undefined, vars: Record<string, string>, m: Parameters<typeof marco>[0]): Mail {
+  const asunto = rellenar(t?.asunto?.trim() || m.asunto, vars);
+  const titulo = rellenar(t?.titulo?.trim() || m.titulo, vars);
+  const bajada = rellenar(t?.bajada?.trim() || m.bajada || "", vars);
+  const nota = t?.nota?.trim() ? parrafo(escapar(rellenar(t.nota.trim(), vars)).replace(/\n/g, "<br>")) + espacio(8) : "";
+  return { asunto, titulo, bajada, html: marco({ ...m, asunto, titulo, bajada, cuerpo: nota + m.cuerpo }) };
+}
 
 export const PLANTILLAS = {
   pedido_recibido: "Recibimos tu pedido (transferencia)",
-  pedido_tarjeta: "Terminá el pago (tarjeta pendiente)",
   pago_confirmado: "Confirmamos tu pago",
   en_camino: "Tu pedido está en camino",
   lista_espera: "Volvió un producto",
+  reserva_vencida: "Venció la reserva (transferencia)",
 } as const;
 export type Plantilla = keyof typeof PLANTILLAS;
 
@@ -104,7 +127,7 @@ const regalo = (p: PedidoMail) =>
 
 // ───────────── Pedido recibido: transferencia ─────────────
 
-export function mailPedidoRecibido(p: PedidoMail, c: ContactoMail): Mail {
+export function mailPedidoRecibido(p: PedidoMail, c: ContactoMail, t?: TextosMail): Mail {
   const nombre = primerNombre(p.nombre);
   const num = numeroPedido(p.numero);
   const asunto = `Recibimos tu pedido ${num} · Edén`;
@@ -141,9 +164,7 @@ export function mailPedidoRecibido(p: PedidoMail, c: ContactoMail): Mail {
     espacio(8),
   ].join("");
 
-  return {
-    asunto,
-    html: marco({
+  return armar(t, { nombre, pedido: num }, {
       asunto,
       preheader: `Transferí ${ars(p.total)} al alias ${c.alias || "de Edén"} y mandanos el comprobante.`,
       ceja: "Pedido recibido",
@@ -152,48 +173,12 @@ export function mailPedidoRecibido(p: PedidoMail, c: ContactoMail): Mail {
       cuerpo,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
       motivo: "Recibiste este mail porque hiciste un pedido en Edén.",
-    }),
-  };
-}
-
-// ───────────── Pedido recibido: tarjeta sin terminar ─────────────
-
-export function mailPedidoTarjeta(p: PedidoMail, c: ContactoMail): Mail {
-  const nombre = primerNombre(p.nombre);
-  const num = numeroPedido(p.numero);
-  const asunto = `Tu pedido ${num} está esperando el pago · Edén`;
-  const cuerpo = [
-    caja(
-      `${rotulo("Pago con tarjeta")}
-       <div style="margin:8px 0 10px;font-family:${SERIF};font-size:34px;line-height:1;color:${COLOR.raiz};">${escapar(ars(p.total))}</div>
-       ${parrafo("Si el pago no se completó, podés terminarlo desde el link de tu pedido. Si ya pagaste, no hagas nada: en unos minutos te llega la confirmación.", "margin:0;")}`,
-    ),
-    espacio(24),
-    boton(linkSeguimiento(p.token), "Terminar el pago"),
-    espacio(28),
-    regalo(p),
-    resumen(p),
-    espacio(8),
-  ].join("");
-
-  return {
-    asunto,
-    html: marco({
-      asunto,
-      preheader: "Guardamos tu pedido. Terminá el pago desde este link.",
-      ceja: "Pedido recibido",
-      titulo: `Te falta un paso, ${nombre}.`,
-      bajada: "Guardamos tu pedido mientras terminás el pago.",
-      cuerpo,
-      contacto: contactoDe(c, `Hola! Tengo una consulta por el pago del pedido ${num}.`),
-      motivo: "Recibiste este mail porque empezaste una compra en Edén.",
-    }),
-  };
+    });
 }
 
 // ───────────── Pago confirmado ─────────────
 
-export function mailPagoConfirmado(p: PedidoMail, c: ContactoMail): Mail {
+export function mailPagoConfirmado(p: PedidoMail, c: ContactoMail, t?: TextosMail): Mail {
   const nombre = primerNombre(p.nombre);
   const num = numeroPedido(p.numero);
   const asunto = `Confirmamos tu pago · Pedido ${num}`;
@@ -214,9 +199,7 @@ export function mailPagoConfirmado(p: PedidoMail, c: ContactoMail): Mail {
     espacio(8),
   ].join("");
 
-  return {
-    asunto,
-    html: marco({
+  return armar(t, { nombre, pedido: num }, {
       asunto,
       preheader: "Recibimos tu pago. Ya empezamos a preparar tu pedido.",
       ceja: "Pago confirmado",
@@ -228,13 +211,12 @@ export function mailPagoConfirmado(p: PedidoMail, c: ContactoMail): Mail {
       automatico: true,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
       motivo: "Recibiste este mail porque hiciste una compra en Edén.",
-    }),
-  };
+    });
 }
 
 // ───────────── En camino ─────────────
 
-export function mailEnCamino(p: PedidoMail, c: ContactoMail): Mail {
+export function mailEnCamino(p: PedidoMail, c: ContactoMail, t?: TextosMail): Mail {
   const nombre = primerNombre(p.nombre);
   const num = numeroPedido(p.numero);
   const asunto = `Tu pedido ${num} está en camino · Edén`;
@@ -260,9 +242,7 @@ export function mailEnCamino(p: PedidoMail, c: ContactoMail): Mail {
   );
   const cuerpo = [envio, espacio(24), boton(linkSeguimiento(p.token), "Seguir mi pedido"), espacio(28), resumen(p, false), espacio(24), cuidados, espacio(8)].join("");
 
-  return {
-    asunto,
-    html: marco({
+  return armar(t, { nombre, pedido: num }, {
       asunto,
       preheader: p.envio?.seguimiento ? `Salió por ${p.envio.empresa}. Seguimiento: ${p.envio.seguimiento}` : "Tu pedido ya salió hacia vos.",
       ceja: "Pedido despachado",
@@ -272,15 +252,14 @@ export function mailEnCamino(p: PedidoMail, c: ContactoMail): Mail {
       automatico: true,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el envío del pedido ${num}.`),
       motivo: "Recibiste este mail porque hiciste una compra en Edén.",
-    }),
-  };
+    });
 }
 
 // ───────────── Lista de espera ─────────────
 
 export type ListaEsperaMail = { nombre: string | null; producto: string; tipo: string; precio: number };
 
-export function mailListaEspera(d: ListaEsperaMail, c: ContactoMail): Mail {
+export function mailListaEspera(d: ListaEsperaMail, c: ContactoMail, t?: TextosMail): Mail {
   const asunto = `Volvió ${d.producto} · Edén`;
   const ancla = d.tipo === "journal" ? "#journals" : d.tipo === "biblia" ? "#biblias" : "#tienda";
   const cuerpo = [
@@ -298,9 +277,7 @@ export function mailListaEspera(d: ListaEsperaMail, c: ContactoMail): Mail {
     espacio(16),
   ].join("");
 
-  return {
-    asunto,
-    html: marco({
+  return armar(t, { nombre: d.nombre ? primerNombre(d.nombre) : "", producto: d.producto }, {
       asunto,
       preheader: `${d.producto} ya está disponible otra vez.`,
       ceja: "Te avisamos",
@@ -310,8 +287,7 @@ export function mailListaEspera(d: ListaEsperaMail, c: ContactoMail): Mail {
       automatico: true,
       contacto: contactoDe(c, `Hola! Quería consultar por ${d.producto}.`),
       motivo: "Recibiste este mail porque te anotaste para que te avisemos cuando volviera. Es un aviso por única vez.",
-    }),
-  };
+    });
 }
 
 // ───────────── Datos de ejemplo para la vista previa ─────────────
@@ -340,18 +316,76 @@ export const PEDIDO_EJEMPLO: PedidoMail = {
 };
 
 /** Arma una plantilla con datos de ejemplo (para ver cómo queda sin necesitar pedidos reales). */
-export function vistaPrevia(plantilla: Plantilla, c: ContactoMail): Mail {
+// ───────────── Venció la reserva ─────────────
+
+export function mailReservaVencida(p: PedidoMail, c: ContactoMail, t?: TextosMail): Mail {
+  const nombre = primerNombre(p.nombre);
+  const num = numeroPedido(p.numero);
+  const asunto = `Venció la reserva de tu pedido ${num} · Edén`;
+  const cuerpo = [
+    parrafo(`Pasaron ${c.horas} horas sin que nos llegue el comprobante, así que cancelamos el pedido y volvimos a poner las piezas a disposición.`),
+    parrafo("<b>Si ya hiciste la transferencia,</b> respondé este mail con el comprobante y lo resolvemos enseguida."),
+    espacio(8),
+    boton(`${sitio()}/#tienda`, "Volver a la tienda"),
+    espacio(16),
+  ].join("");
+  return armar(t, { nombre, pedido: num }, {
+    asunto,
+    preheader: "Cancelamos el pedido porque no nos llegó el comprobante. Si ya transferiste, respondé este mail.",
+    ceja: `Pedido ${num}`,
+    titulo: `Venció tu reserva, ${nombre}.`,
+    bajada: "Si todavía la querés, podés volver a pedirla cuando quieras.",
+    cuerpo,
+    contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
+    motivo: "Recibiste este mail porque hiciste un pedido en Edén.",
+  });
+}
+
+// ───────────── Cartas del jardín ─────────────
+
+/** Texto de una carta: párrafos separados por una línea en blanco, y los links quedan clickeables. */
+function parrafosCarta(texto: string) {
+  return texto
+    .trim()
+    .split(/\n\s*\n/)
+    .map((b) =>
+      parrafo(
+        escapar(b.trim())
+          .replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}" style="color:${COLOR.tinta};">${u}</a>`)
+          .replace(/\n/g, "<br>"),
+        "font-size:16px;",
+      ),
+    )
+    .join("");
+}
+
+/** `baja`: el link lo reemplaza Resend al enviar; en las pruebas se pasa otro. */
+export function mailCarta(d: { asunto: string; titulo: string; cuerpo: string }, baja = "{{{RESEND_UNSUBSCRIBE_URL}}}"): Mail {
+  const html = marco({
+    asunto: d.asunto,
+    preheader: d.cuerpo.trim().split("\n")[0].slice(0, 120),
+    ceja: "Cartas del jardín",
+    titulo: d.titulo,
+    cuerpo: parrafosCarta(d.cuerpo),
+    contacto: { email: "", whatsapp: "", whatsappHref: null },
+    baja,
+    motivo: "Recibís esta carta porque te suscribiste en casaeden.com.ar.",
+  });
+  return { asunto: d.asunto, html, titulo: d.titulo, bajada: "" };
+}
+
+export function vistaPrevia(plantilla: Plantilla, c: ContactoMail, t?: TextosMail): Mail {
   const p = PEDIDO_EJEMPLO;
   switch (plantilla) {
     case "pedido_recibido":
-      return mailPedidoRecibido({ ...p, es_regalo: false }, c);
-    case "pedido_tarjeta":
-      return mailPedidoTarjeta({ ...p, medio_pago: "nave", es_regalo: false, vence_at: null }, c);
+      return mailPedidoRecibido({ ...p, es_regalo: false }, c, t);
     case "pago_confirmado":
-      return mailPagoConfirmado(p, c);
+      return mailPagoConfirmado(p, c, t);
     case "en_camino":
-      return mailEnCamino({ ...p, es_regalo: false }, c);
+      return mailEnCamino({ ...p, es_regalo: false }, c, t);
     case "lista_espera":
-      return mailListaEspera({ nombre: "Lucía", producto: "Biblia Origen", tipo: "biblia", precio: 75000 }, c);
+      return mailListaEspera({ nombre: "Lucía", producto: "Biblia Origen", tipo: "biblia", precio: 75000 }, c, t);
+    case "reserva_vencida":
+      return mailReservaVencida(p, c, t);
   }
 }

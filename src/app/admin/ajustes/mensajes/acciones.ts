@@ -6,6 +6,7 @@ import { requireAdmin } from "@/lib/auth";
 import { htmlAviso, mandarPrueba } from "@/lib/mails/envio";
 import { PLANTILLAS, vistaPrevia, type Plantilla } from "@/lib/mails/plantillas";
 import { casillasPrueba } from "@/lib/mails/remitentes";
+import { textosDeMail } from "@/lib/mails/textos";
 import { ejemplosAvisos } from "@/lib/mensajes";
 
 /** Manda a las casillas de prueba los mails de ejemplo, cada uno desde su remitente. Nunca le llega nada a un cliente. */
@@ -21,7 +22,7 @@ export async function mandarPruebas(cual: string): Promise<Resultado> {
     whatsapp: aj?.whatsapp_contacto ?? "",
     horas: aj?.horas_vencimiento_transferencia ?? 48,
   };
-  const mails = (Object.keys(PLANTILLAS) as Plantilla[]).map((tipo) => ({ tipo, ...vistaPrevia(tipo, contacto) }));
+  const mails = await Promise.all((Object.keys(PLANTILLAS) as Plantilla[]).map(async (tipo) => ({ tipo, ...vistaPrevia(tipo, contacto, await textosDeMail(tipo)) })));
   const avisos = (await ejemplosAvisos()).map((a) => ({ tipo: a.tipo, asunto: a.titulo, html: htmlAviso(a.texto) }));
   const lista = [...mails, ...avisos].filter((m) => cual === "todas" || m.tipo === cual);
   if (!lista.length) return { ok: false, error: "No encontramos ese mail" };

@@ -5,10 +5,11 @@ type Firma = { nombre: string; usuario: string };
 
 export const REMITENTES = {
   pedido_recibido: { nombre: "Edén Pagos", usuario: "pagos" },
-  pedido_tarjeta: { nombre: "Edén Pagos", usuario: "pagos" },
+  reserva_vencida: { nombre: "Edén Pagos", usuario: "pagos" },
   pago_confirmado: { nombre: "Edén Pedidos", usuario: "pedidos" },
   en_camino: { nombre: "Edén Envíos", usuario: "envios" },
   lista_espera: { nombre: "Edén", usuario: "hola" },
+  carta: { nombre: "Edén", usuario: "hola" },
   aviso: { nombre: "Edén Ventas", usuario: "ventas" },
 } satisfies Record<string, Firma>;
 

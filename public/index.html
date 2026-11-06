@@ -1861,40 +1861,12 @@ if(location.hash === "#carrito"){ history.replaceState(null, "", location.pathna
 cargarCatalogo();
 setTimeout(sinCatalogo, 6000);
 
-/* ====== Suscripción · Cartas del jardín: editar aquí ======
-   1) Al publicar la web en Netlify, cada correo queda guardado automáticamente
-      en Netlify → Forms → "cartas-del-jardin" (con fecha y consentimiento).
-      Desde ahí se puede exportar la lista en CSV.
-   2) Para conectar una plataforma de email marketing, crea allí un formulario
-      incrustado (embedded form), copia la URL de su "action" y complétala abajo:
-        plataforma: "mailerlite" | "brevo" | "kit"
-        url: la dirección de acción del formulario de esa plataforma
-      Los correos se enviarán a la plataforma y también quedarán en Netlify como respaldo. */
-const SUSCRIPCION = {
-  netlify: true,
-  plataforma: "",
-  url: ""
-};
-/* ============================================ */
+/* ====== Suscripción · Cartas del jardín: los correos se guardan en el back office, sección Cartas ====== */
 (() => {
   const form = $("#formUnete"), msg = $("#u-msg"), gracias = $("#u-gracias");
-  const CAMPO = { mailerlite:"fields[email]", brevo:"EMAIL", kit:"email_address" };
-  const publicada = /^https?:$/.test(location.protocol) && !/^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname);
   async function enviar(correo){
-    const tareas = [];
-    if(SUSCRIPCION.netlify && publicada){
-      tareas.push(fetch("/", { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body:new URLSearchParams(new FormData(form)).toString() })
-        .then(r => { if(!r.ok) throw new Error(r.status); }));
-    }
-    const campo = CAMPO[SUSCRIPCION.plataforma];
-    if(campo && SUSCRIPCION.url){
-      const datos = new FormData(); datos.append(campo, correo);
-      if(SUSCRIPCION.plataforma === "brevo") datos.append("OPT_IN", "1");
-      tareas.push(fetch(SUSCRIPCION.url, { method:"POST", mode:"no-cors", body:datos }));
-    }
-    if(!tareas.length){ console.info("Edén · vista previa: la suscripción se guarda al publicar la web."); return; }
-    const res = await Promise.allSettled(tareas);
-    if(res.every(r => r.status === "rejected")) throw new Error("sin envío");
+    const r = await fetch("/api/suscribir", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ email:correo, acepto:$("#u-acepto").checked, sitio:form.elements["bot-field"].value }) });
+    if(!r.ok) throw new Error(r.status);
   }
   form.addEventListener("submit", async e => {
     e.preventDefault();

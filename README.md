@@ -37,7 +37,7 @@ Si un aviso no le llega a una cuenta, le llega por mail.
 
 ## Base nueva desde cero
 
-Solo si se instala otra base. En Supabase → SQL Editor, correr en orden `supabase/migrations/0001` a `0009` y `supabase/seed.sql`. El primer admin va a mano, porque el repo es público:
+Solo si se instala otra base. En Supabase → SQL Editor, correr en orden `supabase/migrations/0001` a `0010` y `supabase/seed.sql`. El primer admin va a mano, porque el repo es público:
 
     insert into admins (email, nombre, socio) values ('tu@mail.com', 'Tu nombre', 'fede');
 

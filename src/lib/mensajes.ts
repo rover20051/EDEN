@@ -1,10 +1,11 @@
 import "server-only";
 import { ars, numeroPedido } from "@/lib/format";
 import { avisoYaSalio, mandarAviso, mandarMail, yaRegistrado } from "@/lib/mails/envio";
+import { textosDeMail } from "@/lib/mails/textos";
 import { escapar } from "@/lib/mails/html";
 import {
   mailEnCamino,
-  mailListaEspera,
+  mailListaEspera, mailReservaVencida,
   mailPagoConfirmado,
   mailPedidoRecibido,
   PEDIDO_EJEMPLO,
@@ -114,7 +115,7 @@ function textoAvisoSalida(p: Pedido) {
 
 function textoAvisoPedido(p: Pedido, cargo: string | null) {
   const pendiente = p.estado === "pendiente_pago";
-  const estadoPago = pendiente ? (p.medio_pago === "nave" ? "pago en curso" : "esperando pago") : "pagado";
+  const estadoPago = pendiente ? "esperando pago" : "pagado";
   const cabeza =
     p.canal === "web"
       ? `🛒 <b>Nuevo pedido web</b> ${linkAdmin(p)}`
@@ -180,10 +181,12 @@ export async function notificarPedidoNuevo(pedidoId: string): Promise<void> {
     // Mail al cliente solo para transferencia pendiente (web o manual). Con tarjeta el pago se hace en el momento:
     // el mail que llega es el de "pago confirmado" (mandar también "terminá el pago" serían dos mails en un minuto).
     if (p.email && pendiente && p.medio_pago === "transferencia" && !(await yaRegistrado(p.id, "pedido_recibido", "mail"))) {
-      const mail = mailPedidoRecibido(p, c);
+      const mail = mailPedidoRecibido(p, c, await textosDeMail("pedido_recibido"));
       await mandarMail({ pedidoId: p.id, tipo: "pedido_recibido", para: p.email, asunto: mail.asunto, html: mail.html });
     }
 
+    // Pedido con tarjeta sin pagar todavía: no es una venta. El aviso llega cuando se aprueba el pago.
+    if (pendiente && p.medio_pago === "nave") return;
     if (await avisoYaSalio(p.id, "aviso_pedido")) return;
     const cargo = web ? null : await quienCargo(p.created_by);
     await mandarAviso({ pedidoId: p.id, tipo: "aviso_pedido", texto: textoAvisoPedido(p, cargo) });
@@ -200,7 +203,7 @@ export async function notificarPagoConfirmado(pedidoId: string): Promise<void> {
     const { p, c } = d;
 
     if (p.email && !(await yaRegistrado(p.id, "pago_confirmado", "mail"))) {
-      const mail = mailPagoConfirmado(p, c);
+      const mail = mailPagoConfirmado(p, c, await textosDeMail("pago_confirmado"));
       await mandarMail({ pedidoId: p.id, tipo: "pago_confirmado", para: p.email, asunto: mail.asunto, html: mail.html });
     }
     if (!(await avisoYaSalio(p.id, "aviso_pago"))) {
@@ -218,11 +221,45 @@ export async function notificarDespacho(pedidoId: string): Promise<void> {
     if (!d || d.p.tipo === "salida" || !d.p.email) return;
     const { p, c } = d;
     if (await yaRegistrado(p.id, "en_camino", "mail")) return;
-    const mail = mailEnCamino(p, c);
+    const mail = mailEnCamino(p, c, await textosDeMail("en_camino"));
     await mandarMail({ pedidoId: p.id, tipo: "en_camino", para: d.p.email, asunto: mail.asunto, html: mail.html });
   } catch (e) {
     console.error("[mensajes] notificarDespacho", e);
   }
+}
+
+/**
+ * Reservas por transferencia que venció el sistema en los últimos 3 días: mail al cliente, una sola vez.
+ * Las identifica el evento de cancelación con actor "sistema"; una cancelación manual no manda este mail.
+ */
+export async function notificarReservasVencidas(): Promise<number> {
+  const desde = new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString();
+  const { data, error } = await supabaseServidor()
+    .from("eventos")
+    .select("pedido_id")
+    .eq("tipo", "estado")
+    .eq("actor", "sistema")
+    .eq("detalle->>a", "cancelado")
+    .gte("created_at", desde);
+  if (error) {
+    console.error("[mensajes] notificarReservasVencidas", error.message);
+    return 0;
+  }
+  const textos = await textosDeMail("reserva_vencida");
+  let enviados = 0;
+  for (const id of new Set((data ?? []).map((e) => e.pedido_id as string))) {
+    try {
+      const d = await cargar(id);
+      if (!d || d.p.tipo === "salida" || d.p.medio_pago !== "transferencia" || !d.p.email) continue;
+      if (await yaRegistrado(id, "reserva_vencida", "mail")) continue;
+      const mail = mailReservaVencida(d.p, d.c, textos);
+      await mandarMail({ pedidoId: id, tipo: "reserva_vencida", para: d.p.email, asunto: mail.asunto, html: mail.html });
+      enviados++;
+    } catch (e) {
+      console.error("[mensajes] reserva vencida", id, e);
+    }
+  }
+  return enviados;
 }
 
 /**
@@ -241,6 +278,7 @@ export async function avisarListaEspera(productoId: string): Promise<void> {
     const disponibles = Number(stock?.disponibles ?? 0);
     if (!prod?.activo || disponibles <= 0) return;
 
+    const textosEspera = await textosDeMail("lista_espera");
     const { data: filas, error } = await sb
       .from("lista_espera")
       .select("id, email, nombre")
@@ -254,7 +292,7 @@ export async function avisarListaEspera(productoId: string): Promise<void> {
     }
     const c = contactoDe(aj);
     for (const f of filas ?? []) {
-      const mail = mailListaEspera({ nombre: f.nombre as string | null, producto: prod.nombre as string, tipo: prod.tipo as string, precio: prod.precio as number }, c);
+      const mail = mailListaEspera({ nombre: f.nombre as string | null, producto: prod.nombre as string, tipo: prod.tipo as string, precio: prod.precio as number }, c, textosEspera);
       const estado = await mandarMail({ pedidoId: null, tipo: "lista_espera", para: f.email as string, asunto: mail.asunto, html: mail.html });
       if (estado === "enviado") await sb.from("lista_espera").update({ avisado_at: new Date().toISOString() }).eq("id", f.id);
     }

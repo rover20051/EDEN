@@ -13,7 +13,7 @@ export const metadata = { title: "Mails y avisos · Edén" };
 
 const TIPOS: Record<string, string> = {
   pedido_recibido: "Pedido recibido",
-  pedido_tarjeta: "Pago con tarjeta pendiente",
+  reserva_vencida: "Venció la reserva",
   pago_confirmado: "Pago confirmado",
   en_camino: "En camino",
   lista_espera: "Lista de espera",
@@ -180,7 +180,12 @@ export default async function Mensajes({ searchParams }: PageProps<"/admin/ajust
       <article className="flex flex-col gap-2 rounded-2xl bg-surface-container-low p-4 shadow-sm">
         <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
           <div>
-            <h2 className="font-label-sm text-label-sm uppercase tracking-wider text-outline">Remitentes y pruebas</h2>
+            <h2 className="font-label-sm text-label-sm uppercase tracking-wider text-outline">
+              Remitentes y pruebas ·{" "}
+              <Link href="/admin/ajustes/mensajes/editar" className="underline underline-offset-4 hover:text-primary">
+                Editar textos
+              </Link>
+            </h2>
             <p className="font-caption-italic text-caption-italic italic text-outline">
               {casillas.length ? `Las pruebas van a ${casillas.join(" y ")}. Nunca le llegan a un cliente.` : "Cargá MAIL_PRUEBA_A para mandar pruebas."}
             </p>
