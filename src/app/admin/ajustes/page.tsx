@@ -37,7 +37,7 @@ export default async function Ajustes() {
     supabase.from("ajustes").select("envio_tarifas, envio_gratis_desde").eq("id", 1).maybeSingle(),
   ]);
   const cfg = configMensajeria();
-  const mailsReales = cfg.mails.modo === "real" && cfg.mails.resend && cfg.mails.remitente;
+  const mailsReales = cfg.mails.modo === "real" && cfg.mails.resend && cfg.mails.dominio;
   const avisosOk = cfg.avisos.resend;
   const conTarifa = Object.keys((envios?.envio_tarifas as Record<string, number> | undefined) ?? {}).length;
   const gratisDesde = (envios?.envio_gratis_desde as number | null | undefined) ?? null;

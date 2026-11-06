@@ -225,6 +225,7 @@ export function mailPagoConfirmado(p: PedidoMail, c: ContactoMail): Mail {
         ? "Recibimos tu pago y ya empezamos a preparar tu regalo."
         : "Recibimos tu pago y ya empezamos a preparar tu pedido.",
       cuerpo,
+      automatico: true,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
       motivo: "Recibiste este mail porque hiciste una compra en Edén.",
     }),
@@ -268,6 +269,7 @@ export function mailEnCamino(p: PedidoMail, c: ContactoMail): Mail {
       titulo: `Tu pedido está en camino, ${nombre}.`,
       bajada: "Lo preparamos a mano y ya salió hacia vos. Con este número podés seguirlo hasta que llegue.",
       cuerpo,
+      automatico: true,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el envío del pedido ${num}.`),
       motivo: "Recibiste este mail porque hiciste una compra en Edén.",
     }),
@@ -305,6 +307,7 @@ export function mailListaEspera(d: ListaEsperaMail, c: ContactoMail): Mail {
       titulo: d.nombre ? `Volvió, ${primerNombre(d.nombre)}.` : `Volvió ${d.producto}.`,
       bajada: "Nos pediste que te avisáramos cuando hubiera de nuevo. Ya hay.",
       cuerpo,
+      automatico: true,
       contacto: contactoDe(c, `Hola! Quería consultar por ${d.producto}.`),
       motivo: "Recibiste este mail porque te anotaste para que te avisemos cuando volviera. Es un aviso por única vez.",
     }),

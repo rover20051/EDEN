@@ -70,6 +70,8 @@ type Marco = {
   bajada?: string;
   cuerpo: string;
   contacto: { email: string; whatsappHref: string | null; whatsapp: string };
+  /** Mail informativo: el pie aclara que no hace falta responderlo y deriva las consultas al contacto. */
+  automatico?: boolean;
   /** Por qué le llega este mail (pie). */
   motivo: string;
 };
@@ -128,6 +130,7 @@ export function marco(m: Marco) {
     <tr><td align="center" class="px" style="padding:12px 40px 32px;background:${COLOR.nota};border-radius:0 0 28px 28px;">
       <div style="width:100%;height:1px;background:${COLOR.linea};line-height:1px;font-size:1px;margin-bottom:22px;">&nbsp;</div>
       <div style="font-family:${SERIF};font-style:italic;font-size:21px;color:${COLOR.raiz};">“De regreso al Jardín.”</div>
+      ${m.automatico ? `<div style="margin-top:12px;font-family:${SANS};font-size:13px;line-height:1.6;color:${COLOR.tinta};">Este es un mail automático, no hace falta responderlo.${contacto ? " Si necesitás algo, escribinos a:" : ""}</div>` : ""}
       ${contacto ? `<div style="margin-top:12px;font-family:${SANS};font-size:13px;line-height:1.6;color:${COLOR.tinta};">${contacto}</div>` : ""}
       <div style="margin-top:14px;font-family:${SANS};font-size:11px;line-height:1.5;color:${COLOR.suave};">${escapar(m.motivo)}</div>
     </td></tr>

@@ -1,15 +1,19 @@
 import Link from "next/link";
+import { Accion } from "@/components/accion";
 import { Encabezado } from "@/components/stitch";
 import { requireAdmin } from "@/lib/auth";
 import { fechaHora } from "@/lib/format";
 import { configMensajeria, htmlAviso } from "@/lib/mails/envio";
 import { PLANTILLAS, vistaPrevia, type Plantilla } from "@/lib/mails/plantillas";
+import { casillasPrueba, direccionDe } from "@/lib/mails/remitentes";
 import { ejemplosAvisos } from "@/lib/mensajes";
+import { mandarPruebas } from "./acciones";
 
 export const metadata = { title: "Mails y avisos · Edén" };
 
 const TIPOS: Record<string, string> = {
   pedido_recibido: "Pedido recibido",
+  pedido_tarjeta: "Pago con tarjeta pendiente",
   pago_confirmado: "Pago confirmado",
   en_camino: "En camino",
   lista_espera: "Lista de espera",
@@ -68,16 +72,19 @@ export default async function Mensajes({ searchParams }: PageProps<"/admin/ajust
     .limit(100);
   if (canal === "aviso") consulta = consulta.like("tipo", "aviso_%");
   if (canal === "cliente") consulta = consulta.not("tipo", "like", "aviso_%");
-  const [{ data, error }, { data: aj }, avisos, { data: cuentas }] = await Promise.all([
+  const [{ data, error }, { data: aj }, avisos, { data: cuentas }, { data: dispositivos }] = await Promise.all([
     consulta,
     supabase.from("ajustes").select("alias_transferencia, email_contacto, whatsapp_contacto, horas_vencimiento_transferencia").eq("id", 1).maybeSingle(),
     ejemplosAvisos(),
     supabase.from("admins").select("email").order("nombre"),
+    supabase.from("suscripciones_push").select("admin_email"),
   ]);
   const filas = (data ?? []) as Fila[];
   const admins = (cuentas ?? []).map((a) => a.email as string);
   const sinTabla = Boolean(error);
   const cfg = configMensajeria();
+  const casillas = casillasPrueba();
+  const conPush = [...new Set((dispositivos ?? []).map((d) => d.admin_email as string))];
   const contacto = {
     alias: aj?.alias_transferencia ?? "",
     email: aj?.email_contacto ?? "",
@@ -116,7 +123,7 @@ export default async function Mensajes({ searchParams }: PageProps<"/admin/ajust
 
   const faltaMail = [
     !cfg.mails.resend && "RESEND_API_KEY (la clave de Resend)",
-    !cfg.mails.remitente && "MAIL_REMITENTE (ej. “Edén <hola@dominio>”, con el dominio verificado en Resend)",
+    !cfg.mails.dominio && "MAIL_DOMINIO (el dominio verificado en Resend)",
   ].filter(Boolean) as string[];
 
   return (
@@ -140,24 +147,26 @@ export default async function Mensajes({ searchParams }: PageProps<"/admin/ajust
               faltaMail.length ? (
                 <>Falta {faltaMail.join(" y ")}. Mientras tanto los mails quedan con error.</>
               ) : (
-                <>Los mails salen de verdad a cada cliente, desde el remitente configurado.</>
+                <>Los mails salen de verdad a cada cliente, cada uno desde su remitente.</>
               )
             ) : (
               <>
                 Se arman y quedan registrados como “simulado”.
-                {cfg.mails.copiaPrueba ? " Además llega una copia a la casilla de prueba (MAIL_PRUEBA_A)." : ""} Para activarlos: verificar el dominio en Resend y
+                {cfg.mails.copiaPrueba ? ` Además llega una copia a ${casillas.join(" y ")}.` : ""} Para activarlos: verificar el dominio en Resend y
                 poner MAILS_MODO=real{faltaMail.length ? `, ${faltaMail.join(" y ")}` : ""} en Vercel.
               </>
             )
           }
         />
         <Estado
-          ok={cfg.avisos.resend}
+          ok={cfg.avisos.resend || conPush.length > 0}
           icono="notifications_active"
-          titulo={cfg.avisos.resend ? "Avisos de venta: activos" : "Avisos de venta: modo prueba"}
+          titulo={conPush.length ? `Avisos de venta: push en ${conPush.length} de ${admins.length} cuentas` : cfg.avisos.resend ? "Avisos de venta: por mail" : "Avisos de venta: modo prueba"}
           detalle={
-            cfg.avisos.resend ? (
-              <>Cada venta, pago y salida sin cobro manda un mail a cada cuenta del back office ({admins.join(", ")}).</>
+            conPush.length ? (
+              <>Notificación en {conPush.join(", ")}. Si no le llega a una cuenta, va por mail. Se activa desde la campanita, en cada dispositivo.</>
+            ) : cfg.avisos.resend ? (
+              <>Cada venta, pago y salida sin cobro manda un mail a {(cfg.mails.modo === "prueba" && casillas.length ? casillas : admins).join(", ")}. Para recibirlos como notificación, activalos desde la campanita.</>
             ) : (
               <>
                 Se arman para {admins.join(", ") || "las cuentas del back office"} y quedan como “simulado”. Para que lleguen: cargar RESEND_API_KEY. Sin dominio
@@ -167,6 +176,38 @@ export default async function Mensajes({ searchParams }: PageProps<"/admin/ajust
           }
         />
       </div>
+
+      <article className="flex flex-col gap-2 rounded-2xl bg-surface-container-low p-4 shadow-sm">
+        <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+          <div>
+            <h2 className="font-label-sm text-label-sm uppercase tracking-wider text-outline">Remitentes y pruebas</h2>
+            <p className="font-caption-italic text-caption-italic italic text-outline">
+              {casillas.length ? `Las pruebas van a ${casillas.join(" y ")}. Nunca le llegan a un cliente.` : "Cargá MAIL_PRUEBA_A para mandar pruebas."}
+            </p>
+          </div>
+          {cfg.mails.copiaPrueba && (
+            <Accion accion={mandarPruebas.bind(null, "todas")} variante="secundaria" confirmar={`¿Mandar los ${(Object.keys(PLANTILLAS).length + avisos.length) * casillas.length} mails de prueba?`}>
+              <span className="ms text-[15px]">forward_to_inbox</span>
+              <span>Mandar todas las pruebas</span>
+            </Accion>
+          )}
+        </div>
+        <ul className="grid grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3">
+          {[...Object.entries(PLANTILLAS), ...avisos.map((a) => [a.tipo, a.titulo] as const)].map(([tipo, titulo]) => (
+            <li key={tipo} className="flex items-center justify-between gap-2 border-b border-surface-variant/50 py-1.5">
+              <span className="flex min-w-0 flex-col">
+                <span className="truncate font-body-sm text-[13px] text-primary">{titulo}</span>
+                <span className="truncate font-code-num text-[11px] text-outline">{direccionDe(tipo)}</span>
+              </span>
+              {cfg.mails.copiaPrueba && (
+                <Accion accion={mandarPruebas.bind(null, tipo)} variante="secundaria" className="!px-2 !py-0.5 !text-[10px]">
+                  Probar
+                </Accion>
+              )}
+            </li>
+          ))}
+        </ul>
+      </article>
 
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         <div className="flex min-w-0 flex-col gap-4 lg:col-span-5">

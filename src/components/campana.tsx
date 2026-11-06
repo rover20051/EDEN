@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { AvisosPush } from "@/components/avisos-push/avisos-push";
 import { useToast } from "@/components/toasts";
 import { ars, numeroPedido, relativo } from "@/lib/format";
 
@@ -194,6 +195,9 @@ export function Campana() {
               })}
             </ul>
           )}
+          <div className="border-t border-primary/10 px-4 py-2.5">
+            <AvisosPush />
+          </div>
         </div>
       )}
     </div>

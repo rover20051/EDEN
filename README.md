@@ -19,9 +19,17 @@ Con esas claves se trabaja sobre la base real: lo que se compre o cargue queda a
 
 Para entrar a `/admin`, el mail tiene que estar en **Ajustes → Cuentas** y tener usuario en Supabase → Authentication → Users → *Add user*, con *Auto Confirm User* tildado.
 
+## Avisos de venta en el celular
+
+Se activan desde la campanita del back office, en cada dispositivo. Requieren HTTPS: en un celular funcionan con la web ya publicada.
+
+En iPhone (iOS 16.4 o más nuevo): abrir el back office en Safari, tocar Compartir → **Agregar a inicio**, abrir Edén desde ese ícono, iniciar sesión y tocar **Activar avisos** en la campanita.
+
+Si un aviso no le llega a una cuenta, le llega por mail.
+
 ## Base nueva desde cero
 
-Solo si se instala otra base. En Supabase → SQL Editor, correr en orden `supabase/migrations/0001` a `0006` y `supabase/seed.sql`. El primer admin va a mano, porque el repo es público:
+Solo si se instala otra base. En Supabase → SQL Editor, correr en orden `supabase/migrations/0001` a `0008` y `supabase/seed.sql`. El primer admin va a mano, porque el repo es público:
 
     insert into admins (email, nombre, socio) values ('tu@mail.com', 'Tu nombre', 'fede');
 
@@ -36,7 +44,7 @@ Todo lo que depende del dominio sale de variables, así que el cambio es de conf
 | Vercel → Domains | Agregar el dominio y apuntar el DNS |
 | Vercel → Environment Variables | `NEXT_PUBLIC_SITE_URL=https://dominio` |
 | Supabase → Authentication → URL Configuration | Site URL y Redirect URLs con el dominio nuevo |
-| Resend | Verificar el dominio (registros DNS), usar `MAIL_REMITENTE=Edén <hola@dominio>` y `MAILS_MODO=real` |
+| Resend | Verificar el dominio (registros DNS), usar `MAIL_DOMINIO=dominio` y `MAILS_MODO=real`. Cada dirección de `src/lib/mails/remitentes.ts` tiene que existir como casilla |
 
 ## Reglas que no se rompen
 

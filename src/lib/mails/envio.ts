@@ -1,11 +1,13 @@
 import "server-only";
+import { casillasPrueba, dominioMails, remitenteDe } from "@/lib/mails/remitentes";
+import { mandarPush } from "@/lib/push";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 
 // Cómo sale cada mensaje (Resend: mails al cliente y avisos de venta a las socias) y su registro en la tabla "mensajes".
 // Nunca tira error: devuelve el estado con que quedó registrado.
 
 export type EstadoMensaje = "simulado" | "enviado" | "error";
-type Canal = "mail" | "telegram";
+type Canal = "mail" | "telegram" | "push";
 
 const ESPERA_MS = 8000;
 
@@ -16,8 +18,8 @@ export function configMensajeria() {
     mails: {
       modo: real ? ("real" as const) : ("prueba" as const),
       resend: Boolean(process.env.RESEND_API_KEY),
-      remitente: Boolean(process.env.MAIL_REMITENTE),
-      copiaPrueba: Boolean(process.env.MAIL_PRUEBA_A && process.env.RESEND_API_KEY),
+      dominio: Boolean(dominioMails()),
+      copiaPrueba: casillasPrueba().length > 0 && Boolean(process.env.RESEND_API_KEY),
     },
     // Los avisos de venta son internos: salen de verdad apenas hay RESEND_API_KEY, sin depender de MAILS_MODO.
     avisos: { resend: Boolean(process.env.RESEND_API_KEY) },
@@ -59,15 +61,28 @@ export async function yaRegistrado(pedidoId: string, tipo: string, canal: Canal)
   }
 }
 
-async function postResend(datos: { from: string; to: string; subject: string; html: string; reply_to?: string }): Promise<string | null> {
+/** ¿Ya salió este aviso interno para este pedido, por push o por mail? */
+export async function avisoYaSalio(pedidoId: string, tipo: string): Promise<boolean> {
+  return (await yaRegistrado(pedidoId, tipo, "push")) || (await yaRegistrado(pedidoId, tipo, "mail"));
+}
+
+/**
+ * `clave` evita el duplicado si un mismo envío se repite: durante 24 h, Resend manda una sola vez cada clave.
+ */
+async function postResend(datos: { from: string; to: string; subject: string; html: string }, clave?: string, reintento = false): Promise<string | null> {
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
-      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json", ...(clave ? { "Idempotency-Key": clave } : {}) },
       body: JSON.stringify({ ...datos, to: [datos.to] }),
       signal: AbortSignal.timeout(ESPERA_MS),
     });
     if (res.ok) return null;
+    // Demasiados envíos por segundo: se espera un momento y se reintenta una vez.
+    if (res.status === 429 && !reintento) {
+      await new Promise((r) => setTimeout(r, 1100));
+      return postResend(datos, clave, true);
+    }
     const cuerpo = (await res.json().catch(() => null)) as { message?: string } | null;
     return `Resend ${res.status}: ${cuerpo?.message ?? res.statusText}`;
   } catch (e) {
@@ -77,9 +92,9 @@ async function postResend(datos: { from: string; to: string; subject: string; ht
 
 /**
  * Manda un mail al cliente.
- * - MAILS_MODO=real + RESEND_API_KEY + MAIL_REMITENTE → sale de verdad.
+ * - MAILS_MODO=real + RESEND_API_KEY + MAIL_DOMINIO → sale de verdad, desde el remitente de su tipo. Las respuestas llegan a esa casilla.
  * - Cualquier otro caso (default) → modo prueba: no se le manda nada al cliente, queda "simulado".
- *   Si además hay MAIL_PRUEBA_A, se manda una copia a esa dirección para verlo en el celular.
+ *   Si además hay MAIL_PRUEBA_A, se manda una copia a esas casillas para verlo en el celular.
  */
 export async function mandarMail(m: {
   pedidoId: string | null;
@@ -87,31 +102,26 @@ export async function mandarMail(m: {
   para: string;
   asunto: string;
   html: string;
-  responderA?: string;
 }): Promise<EstadoMensaje> {
   const cfg = configMensajeria();
-  const responder = m.responderA && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m.responderA) ? m.responderA : undefined;
   let estado: EstadoMensaje;
   let error: string | null = null;
 
   if (cfg.mails.modo === "real") {
-    if (!cfg.mails.resend || !cfg.mails.remitente) {
+    if (!cfg.mails.resend || !cfg.mails.dominio) {
       estado = "error";
-      error = `Modo real sin ${!cfg.mails.resend ? "RESEND_API_KEY" : "MAIL_REMITENTE"}`;
+      error = `Modo real sin ${!cfg.mails.resend ? "RESEND_API_KEY" : "MAIL_DOMINIO"}`;
     } else {
-      error = await postResend({ from: process.env.MAIL_REMITENTE!, to: m.para, subject: m.asunto, html: m.html, reply_to: responder });
+      error = await postResend({ from: remitenteDe(m.tipo), to: m.para, subject: m.asunto, html: m.html }, m.pedidoId ? `${m.tipo}/${m.pedidoId}/${m.para}` : undefined);
       estado = error ? "error" : "enviado";
     }
   } else {
     estado = "simulado";
     if (cfg.mails.copiaPrueba) {
-      const fallo = await postResend({
-        from: process.env.MAIL_REMITENTE || "Edén (prueba) <onboarding@resend.dev>",
-        to: process.env.MAIL_PRUEBA_A!,
-        subject: `[Prueba] ${m.asunto}`,
-        html: m.html,
-      });
-      if (fallo) error = `No salió la copia de prueba · ${fallo}`;
+      for (const casilla of casillasPrueba()) {
+        const fallo = await postResend({ from: remitenteDe(m.tipo), to: casilla, subject: `[Prueba] ${m.asunto}`, html: m.html });
+        if (fallo) error = `No salió la copia de prueba a ${casilla} · ${fallo}`;
+      }
     }
   }
 
@@ -122,6 +132,18 @@ export async function mandarMail(m: {
 const ENTIDADES: Record<string, string> = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" };
 const aTexto = (html: string) => html.replace(/<[^>]+>/g, "").replace(/&(amp|lt|gt|quot|#39);/g, (e) => ENTIDADES[e]);
 
+/** Manda un ejemplo a cada casilla de prueba y lo registra. Devuelve cuántos fallaron. */
+export async function mandarPrueba(m: { tipo: string; asunto: string; html: string }): Promise<number> {
+  let fallos = 0;
+  for (const para of casillasPrueba()) {
+    const asunto = `[Prueba] ${m.asunto}`;
+    const error = process.env.RESEND_API_KEY ? await postResend({ from: remitenteDe(m.tipo), to: para, subject: asunto, html: m.html }) : "Falta RESEND_API_KEY";
+    if (error) fallos++;
+    await registrar({ pedido_id: null, canal: "mail", tipo: m.tipo, para, asunto, cuerpo: m.html, estado: error ? "error" : "enviado", error });
+  }
+  return fallos;
+}
+
 /** El aviso (texto con <b>, <a> y saltos de línea) armado como mail simple. */
 export const htmlAviso = (texto: string) =>
   `<div style="background:#f4ede4;padding:24px 12px;font-family:Georgia,'Times New Roman',serif;color:#2c221c">` +
@@ -130,22 +152,39 @@ export const htmlAviso = (texto: string) =>
   `<p style="margin:18px 0 0;font-size:13px;color:#7a6a5c;font-style:italic">Aviso automático del back office de Edén.</p></div></div>`;
 
 /**
- * Aviso de venta a las socias: un mail a cada cuenta del back office (tabla admins).
+ * Aviso de venta a las socias: primero por notificación push; a la cuenta que no le llegó, por mail.
+ * En modo prueba con MAIL_PRUEBA_A, esos mails van a esas casillas en lugar de a las cuentas.
  * Sin RESEND_API_KEY queda "simulado". Sin dominio verificado en Resend, solo le llega a la dueña de la cuenta de Resend.
  */
 export async function mandarAviso(m: { pedidoId: string | null; tipo: string; texto: string }): Promise<EstadoMensaje> {
   const cfg = configMensajeria();
   const { data } = await supabaseServidor().from("admins").select("email");
-  const destinos = (data ?? []).map((a) => a.email as string);
+  const cuentas = (data ?? []).map((a) => a.email as string);
   const asunto = aTexto(m.texto.split("\n")[0]);
   const html = htmlAviso(m.texto);
 
+  // "🛒 Nuevo pedido web EDN-0012 · Ana P. · $75.000" → título hasta el primer "·"; en el cuerpo, el resto y los productos.
+  const [titulo, ...detalle] = asunto.split(" · ");
+  const entregas = await mandarPush({
+    titulo,
+    cuerpo: [detalle.join(" · "), ...m.texto.split("\n").slice(1).map(aTexto)].filter(Boolean).join("\n").slice(0, 180),
+    url: m.pedidoId ? `/admin/pedidos/${m.pedidoId}` : "/admin",
+    tag: m.pedidoId ? `pedido-${m.pedidoId}` : undefined,
+  });
   let peor: EstadoMensaje = "simulado";
+  for (const e of entregas) {
+    if (!e.error) peor = "enviado";
+    await registrar({ pedido_id: m.pedidoId, canal: "push", tipo: m.tipo, para: e.email, asunto, cuerpo: m.texto, estado: e.error ? "error" : "enviado", error: e.error });
+  }
+  const llegaron = new Set(entregas.filter((e) => !e.error).map((e) => e.email));
+  const faltan = cuentas.filter((c) => !llegaron.has(c));
+  const destinos = !faltan.length ? [] : cfg.mails.modo === "prueba" && casillasPrueba().length ? casillasPrueba() : faltan;
+
   for (const para of destinos) {
     let estado: EstadoMensaje = "simulado";
     let error: string | null = null;
     if (cfg.avisos.resend) {
-      error = await postResend({ from: process.env.MAIL_REMITENTE || "Edén ventas <onboarding@resend.dev>", to: para, subject: asunto, html });
+      error = await postResend({ from: remitenteDe(m.tipo), to: para, subject: asunto, html }, m.pedidoId ? `${m.tipo}/${m.pedidoId}/${para}` : undefined);
       estado = error ? "error" : "enviado";
     }
     if (estado === "error" || (estado === "enviado" && peor === "simulado")) peor = estado;

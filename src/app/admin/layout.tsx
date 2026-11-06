@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { cerrarSesion } from "@/app/admin/actions";
 import { AdminProviders } from "@/components/admin-providers";
 import { Campana } from "@/components/campana";
@@ -5,7 +6,12 @@ import { Nav } from "@/components/nav";
 import { BotonPaleta } from "@/components/paleta";
 import { requireAdmin } from "@/lib/auth";
 
-export const metadata = { title: "Edén · Back office" };
+export const metadata: Metadata = {
+  title: "Edén · Back office",
+  // En el iPhone, "Agregar a inicio" instala esto como app: sin eso Safari no permite notificaciones.
+  appleWebApp: { capable: true, title: "Edén", statusBarStyle: "default" },
+  icons: { apple: "/marca/app-180.png" },
+};
 
 export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const { admin } = await requireAdmin();
