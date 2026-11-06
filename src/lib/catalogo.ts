@@ -1,11 +1,14 @@
 import "server-only";
+import { categoriasDeProductos, type Categoria, type TipoProducto } from "@/lib/categorias";
 import { urlFotoPublica } from "@/lib/fotos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 
 export type ProductoPublico = {
   slug: string;
   nombre: string;
-  tipo: "biblia" | "journal";
+  tipo: TipoProducto;
+  /** Solo en tipo "otro": la web arma una fila por categoría. */
+  categoria: Categoria | null;
   diseno: string;
   precio: number;
   precio_anterior: number | null;
@@ -49,7 +52,7 @@ type FilaProducto = {
   id: string;
   slug: string;
   nombre: string;
-  tipo: "biblia" | "journal";
+  tipo: TipoProducto;
   diseno: string;
   precio: number;
   precio_anterior: number | null;
@@ -86,7 +89,7 @@ const COLUMNAS_BASE = "id, slug, nombre, tipo, diseno, precio, precio_anterior, 
 /** Lo que la web pública puede saber del catálogo: precio, stock y si está a la venta. Nunca costos. */
 export async function catalogoPublico(): Promise<CatalogoPublico> {
   const sb = supabaseServidor();
-  const [completo, { data: stock }, { data: ajustes }, packsRes] = await Promise.all([
+  const [completo, { data: stock }, { data: ajustes }, packsRes, categorias] = await Promise.all([
     sb.from("productos").select(`${COLUMNAS_BASE}, descripcion, verbo, foto_path`).order("orden"),
     sb.from("v_stock").select("producto_id, disponibles"),
     sb.from("ajustes").select("*").eq("id", 1).single(),
@@ -94,6 +97,7 @@ export async function catalogoPublico(): Promise<CatalogoPublico> {
       .from("packs")
       .select("slug, nombre, descripcion, precio, precio_anterior, etiqueta, foto_path, activo, orden, pack_items(cantidad, producto_id)")
       .order("orden"),
+    categoriasDeProductos(sb),
   ]);
   let productos = completo.data as FilaProducto[] | null;
   if (completo.error) {
@@ -110,6 +114,7 @@ export async function catalogoPublico(): Promise<CatalogoPublico> {
     precio_set: (ajustes?.precio_set as number) ?? 0,
     productos: (productos ?? []).map(({ id, foto_path, descripcion, verbo, ...p }) => ({
       ...p,
+      categoria: categorias.dePorId.get(id) ?? null,
       descripcion: descripcion ?? null,
       verbo: verbo ?? null,
       foto_url: urlFoto(foto_path ?? null),

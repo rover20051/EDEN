@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
+import { categoriasDeProductos } from "@/lib/categorias";
 import { ars, fecha } from "@/lib/format";
 import { urlFotoPublica } from "@/lib/fotos";
 import { TablaCatalogo, type ProductoCatalogo } from "./catalogo";
@@ -9,7 +10,7 @@ import { FormTanda } from "./tanda";
 
 const tarjeta = "relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-lowest p-3 shadow-sm";
 
-type FilaProducto = Omit<ProductoCatalogo, "stock" | "espera" | "foto_url" | "verbo" | "descripcion" | "foto_path"> &
+type FilaProducto = Omit<ProductoCatalogo, "stock" | "espera" | "foto_url" | "verbo" | "descripcion" | "foto_path" | "categoria_nombre"> &
   Partial<Pick<ProductoCatalogo, "verbo" | "descripcion" | "foto_path">>;
 
 const BASE = "id, nombre, tipo, diseno, precio, precio_anterior, etiqueta, activo";
@@ -17,7 +18,7 @@ const BASE = "id, nombre, tipo, diseno, precio, precio_anterior, etiqueta, activ
 export default async function Productos({ searchParams }: PageProps<"/admin/productos">) {
   const { tanda } = await searchParams;
   const { supabase } = await requireAdmin();
-  const [completo, { data: stock }, { data: lotes }, packsRes, { data: espera }] = await Promise.all([
+  const [completo, { data: stock }, { data: lotes }, packsRes, { data: espera }, categorias] = await Promise.all([
     supabase.from("productos").select(`${BASE}, verbo, descripcion, foto_path`).order("orden"),
     supabase.from("v_stock").select("producto_id, disponibles"),
     supabase
@@ -27,6 +28,7 @@ export default async function Productos({ searchParams }: PageProps<"/admin/prod
       .order("created_at", { ascending: false }),
     supabase.from("packs").select("id, slug, nombre, descripcion, precio, precio_anterior, etiqueta, foto_path, activo, orden, pack_items(producto_id, cantidad)").order("orden"),
     supabase.from("lista_espera").select("producto_id, email, nombre, created_at, avisado_at").order("created_at", { ascending: false }).limit(2000),
+    categoriasDeProductos(supabase),
   ]);
   // Sin la migración 0006 (fotos, packs, lista de espera) la pantalla sigue andando con lo de siempre.
   const sinMigracion = !!completo.error || !!packsRes.error;
@@ -41,6 +43,7 @@ export default async function Productos({ searchParams }: PageProps<"/admin/prod
   }
   const catalogo: ProductoCatalogo[] = (productos ?? []).map((p) => ({
     ...p,
+    categoria_nombre: categorias.dePorId.get(p.id)?.nombre ?? null,
     verbo: p.verbo ?? null,
     descripcion: p.descripcion ?? null,
     foto_path: p.foto_path ?? null,
@@ -77,7 +80,7 @@ export default async function Productos({ searchParams }: PageProps<"/admin/prod
           <p className="font-caption-italic text-caption-italic text-on-surface-variant">Lo que cambies acá se ve en la tienda online.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 self-start md:self-auto">
-          {!sinMigracion && <NuevoProducto />}
+          {!sinMigracion && <NuevoProducto categorias={categorias.lista} puedeCrearCategoria={categorias.disponibles} />}
           <button
             form="catalogo"
             className="flex items-center gap-1.5 rounded-full bg-surface-container-high px-4 py-1.5 font-label-md text-label-md uppercase tracking-widest text-on-surface shadow-sm transition-all hover:bg-surface-dim"
@@ -118,10 +121,11 @@ export default async function Productos({ searchParams }: PageProps<"/admin/prod
           </div>
           <div className="mt-1">
             <div className="font-code-num text-headline-lg text-primary">
-              {total("biblia") + total("journal")} <span className="font-body-sm text-body-sm text-outline">piezas</span>
+              {total("biblia") + total("journal") + total("otro")} <span className="font-body-sm text-body-sm text-outline">piezas</span>
             </div>
             <div className="mt-0.5 font-label-md text-label-md text-on-surface-variant">
               {total("biblia")} Biblias · {total("journal")} Journals
+              {total("otro") > 0 && ` · ${total("otro")} otros`}
             </div>
           </div>
           <div className="mt-1 pt-1 font-caption-italic text-caption-italic text-outline">Descontados los pedidos sin entregar</div>

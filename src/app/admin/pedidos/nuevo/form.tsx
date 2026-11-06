@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { crearPedido, type NuevoPedido } from "@/app/admin/actions";
+import type { TipoProducto } from "@/lib/categorias";
 import { ars, hoyAR } from "@/lib/format";
 import { CANALES, MEDIOS, MOTIVOS_SALIDA, ORIGENES, QUIEN_SALIDA, type MotivoSalida, type QuienSalida } from "@/lib/textos";
 
@@ -9,7 +10,9 @@ export type ProductoVenta = {
   id: string;
   nombre: string;
   diseno: string;
-  tipo: "biblia" | "journal";
+  tipo: TipoProducto;
+  /** Nombre de la categoría (solo en tipo "otro"). */
+  categoria: string | null;
   precio: number;
   activo: boolean;
   stock: number;
@@ -240,15 +243,14 @@ export function FormNuevoPedido({
     });
   }
 
-  const bloque = (tipo: ProductoVenta["tipo"]) => {
-    const lista = visibles.filter((p) => p.tipo === tipo);
+  const bloque = (clave: string, titulo: string, lista: ProductoVenta[]) => {
     if (lista.length === 0) return null;
     return (
-      <div className="relative flex flex-col gap-1.5 overflow-hidden rounded-2xl bg-surface-container-low p-2.5 shadow-sm">
+      <div key={clave} className="relative flex flex-col gap-1.5 overflow-hidden rounded-2xl bg-surface-container-low p-2.5 shadow-sm">
         <div className="flex items-center justify-between pb-0.5">
           <div>
             <span className="block font-label-sm text-[10px] uppercase tracking-[0.14em] text-outline">Colección 1</span>
-            <h2 className="font-headline-md text-[17px] tracking-wide text-primary">{tipo === "biblia" ? "Biblias" : "Journals"}</h2>
+            <h2 className="font-headline-md text-[17px] tracking-wide text-primary">{titulo}</h2>
           </div>
           {!salida && lista[0] && <div className="rounded-full bg-surface-container px-2 py-0.5 font-code-num text-xs text-primary">{ars(lista[0].precio)}</div>}
         </div>
@@ -363,8 +365,11 @@ export function FormNuevoPedido({
 
       <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         <section className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:col-span-7">
-          {bloque("biblia")}
-          {bloque("journal")}
+          {bloque("biblia", "Biblias", visibles.filter((p) => p.tipo === "biblia"))}
+          {bloque("journal", "Journals", visibles.filter((p) => p.tipo === "journal"))}
+          {[...new Set(visibles.filter((p) => p.tipo === "otro").map((p) => p.categoria))].map((c) =>
+            bloque(c ?? "otros", c ?? "Otros", visibles.filter((p) => p.tipo === "otro" && p.categoria === c)),
+          )}
           {bloquePacks}
         </section>
 

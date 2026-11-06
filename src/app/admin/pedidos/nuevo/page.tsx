@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
+import { categoriasDeProductos } from "@/lib/categorias";
 import { FormNuevoPedido, type CuponVenta, type PackVenta, type ProductoVenta } from "./form";
 
 type Tanda = { producto_id: string; fecha: string; numero: number; disponibles: number; costo_vendible: number };
@@ -6,7 +7,7 @@ type Tanda = { producto_id: string; fecha: string; numero: number; disponibles: 
 export default async function NuevoPedido({ searchParams }: PageProps<"/admin/pedidos/nuevo">) {
   const { tipo } = await searchParams;
   const { supabase } = await requireAdmin();
-  const [{ data: productos }, { data: stock }, { data: ajustes }, { data: packs }, { data: tandas }, { data: cupones }, { data: usos }] = await Promise.all([
+  const [{ data: productos }, { data: stock }, { data: ajustes }, { data: packs }, { data: tandas }, { data: cupones }, { data: usos }, categorias] = await Promise.all([
     supabase.from("productos").select("id, nombre, diseno, tipo, precio, activo").order("orden"),
     supabase.from("v_stock").select("producto_id, disponibles"),
     supabase.from("ajustes").select("precio_set").eq("id", 1).single(),
@@ -14,6 +15,7 @@ export default async function NuevoPedido({ searchParams }: PageProps<"/admin/pe
     supabase.from("v_tandas").select("producto_id, fecha, numero, disponibles, costo_vendible"),
     supabase.from("cupones").select("codigo, tipo, valor, minimo, usos_max, vence, activo").eq("activo", true),
     supabase.from("pedidos").select("cupon").not("cupon", "is", null).neq("estado", "cancelado"),
+    categoriasDeProductos(supabase),
   ]);
 
   const disp = new Map((stock ?? []).map((s) => [s.producto_id as string, s.disponibles as number]));
@@ -32,6 +34,7 @@ export default async function NuevoPedido({ searchParams }: PageProps<"/admin/pe
     nombre: p.nombre,
     diseno: p.diseno,
     tipo: p.tipo,
+    categoria: categorias.dePorId.get(p.id)?.nombre ?? null,
     precio: p.precio,
     activo: p.activo,
     stock: disp.get(p.id) ?? 0,

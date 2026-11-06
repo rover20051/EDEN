@@ -3,6 +3,9 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Modal, Tecla } from "@/components/modal";
 import { useAnclaGasto, useIr } from "@/components/ir";
+import type { PedidoEncontrado } from "@/app/api/admin/buscar/route";
+import { numeroBuscado } from "@/lib/buscar-pedidos";
+import { ars, numeroPedido } from "@/lib/format";
 
 type Api = { abierta: boolean; abrir: () => void; cerrar: () => void; alternar: () => void };
 const Contexto = createContext<Api | null>(null);
@@ -35,27 +38,26 @@ const OPCIONES: Opcion[] = [
 
 const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-/** "EDN-0012", "edn 12" o "12" → número de pedido; si no, null. */
-function comoNumeroPedido(q: string): number | null {
-  const m = /^(?:edn)?[\s-]*0*(\d{1,6})$/i.exec(q.trim());
-  return m ? Number(m[1]) : null;
-}
-
-function armarOpciones(q: string): Opcion[] {
+function armarOpciones(q: string, encontrados: PedidoEncontrado[]): Opcion[] {
   const t = norm(q.trim());
   const base = t ? OPCIONES.filter((o) => norm(`${o.label} ${o.claves ?? ""}`).includes(t)) : OPCIONES;
   if (!q.trim()) return base;
-  const n = comoNumeroPedido(q);
-  const buscar: Opcion =
-    n && n > 0
-      ? {
-          id: "buscar",
-          grupo: "Pedidos",
-          label: `Ir al pedido EDN-${String(n).padStart(4, "0")}`,
-          icono: "search",
-          href: `/admin/pedidos?q=${encodeURIComponent(`EDN-${String(n).padStart(4, "0")}`)}`,
-        }
-      : { id: "buscar", grupo: "Pedidos", label: `Buscar pedidos de «${q.trim()}»`, icono: "person_search", href: `/admin/pedidos?q=${encodeURIComponent(q.trim())}` };
+  const n = numeroBuscado(q);
+  const buscar: Opcion = {
+    id: "buscar",
+    grupo: "Pedidos",
+    label: n ? `Buscar el pedido ${numeroPedido(n)}` : `Ver todos los pedidos de «${q.trim()}»`,
+    icono: "person_search",
+    href: `/admin/pedidos?q=${encodeURIComponent(q.trim())}`,
+  };
+  const pedidos: Opcion[] = encontrados.map((p) => ({
+    id: `pedido-${p.id}`,
+    grupo: "Pedidos",
+    label: `${numeroPedido(p.numero)} · ${p.nombre} · ${ars(p.total)}`,
+    icono: "inventory_2",
+    href: `/admin/pedidos/${p.id}`,
+  }));
+  if (pedidos.length) return [...pedidos, buscar, ...base];
   return n ? [buscar, ...base] : [...base, buscar];
 }
 
@@ -64,8 +66,28 @@ function Lista({ onCerrar }: { onCerrar: () => void }) {
   const [q, setQ] = useState("");
   const [activo, setActivo] = useState(0);
   const lista = useRef<HTMLUListElement>(null);
-  const opciones = useMemo(() => armarOpciones(q), [q]);
+  const [resultado, setResultado] = useState<{ q: string; lista: PedidoEncontrado[] }>({ q: "", lista: [] });
+  const consulta = q.trim();
+  const encontrados = useMemo(() => (resultado.q === consulta ? resultado.lista : []), [resultado, consulta]);
+  const opciones = useMemo(() => armarOpciones(q, encontrados), [q, encontrados]);
   const actual = Math.min(activo, Math.max(opciones.length - 1, 0));
+
+  useEffect(() => {
+    if (!consulta) return;
+    const corte = new AbortController();
+    const espera = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/admin/buscar?q=${encodeURIComponent(consulta)}`, { cache: "no-store", signal: corte.signal });
+        if (r.ok && r.headers.get("content-type")?.includes("json")) setResultado({ q: consulta, lista: await r.json() });
+      } catch {
+        // Sin conexión o búsqueda reemplazada por otra: queda la opción de ver la lista de pedidos.
+      }
+    }, 200);
+    return () => {
+      clearTimeout(espera);
+      corte.abort();
+    };
+  }, [consulta]);
 
   useEffect(() => {
     lista.current?.querySelector<HTMLElement>(`[data-i="${actual}"]`)?.scrollIntoView({ block: "nearest" });

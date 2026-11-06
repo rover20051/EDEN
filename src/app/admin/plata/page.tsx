@@ -4,7 +4,7 @@ import { Accion } from "@/components/accion";
 import { requireAdmin } from "@/lib/auth";
 import { ars, fecha, numeroPedido } from "@/lib/format";
 import { CATEGORIAS, MEDIOS, SOCIOS } from "@/lib/textos";
-import { FormGasto } from "./form-gasto";
+import { EditarGasto, FormGasto } from "./form-gasto";
 
 type Gasto = {
   id: string;
@@ -383,6 +383,7 @@ export default async function Plata() {
                     </div>
                     <div className="flex shrink-0 items-center gap-space-sm">
                       <span className="font-code-num text-[13px] font-bold text-primary">{ars(g.monto)}</span>
+                      <EditarGasto gasto={g} />
                       <Accion
                         accion={borrarGasto.bind(null, g.id)}
                         variante="secundaria"

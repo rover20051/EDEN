@@ -3,6 +3,7 @@
 import { startTransition, useActionState, useCallback, useState } from "react";
 import { guardarCatalogo } from "@/app/admin/actions";
 import { Mensaje } from "@/components/accion";
+import { nombreTipo, type TipoProducto } from "@/lib/categorias";
 import { fotoProducto } from "@/lib/fotos";
 import { ListaEspera, type Espera } from "./espera";
 import { EditarProducto } from "./producto";
@@ -10,7 +11,8 @@ import { EditarProducto } from "./producto";
 export type ProductoCatalogo = {
   id: string;
   nombre: string;
-  tipo: "biblia" | "journal";
+  tipo: TipoProducto;
+  categoria_nombre: string | null;
   diseno: string;
   precio: number;
   precio_anterior: number | null;
@@ -79,7 +81,7 @@ function Fila({ p, onEditar, onEspera }: { p: ProductoCatalogo; onEditar: () => 
           </div>
         </div>
       </td>
-      <td className="px-3 py-1.5 font-body-sm text-body-sm text-on-surface-variant">{p.tipo === "biblia" ? "Biblia" : "Journal"} · Colección 1</td>
+      <td className="px-3 py-1.5 font-body-sm text-body-sm text-on-surface-variant">{nombreTipo(p.tipo, p.categoria_nombre)}{p.tipo === "otro" ? "" : " · Colección 1"}</td>
       <td className="px-3 py-1.5">
         <div className="inline-flex items-center rounded-2xl bg-surface-container-lowest px-2 py-0.5 shadow-inner">
           <span className="font-code-num text-code-num text-primary">$</span>
@@ -231,7 +233,7 @@ export function TablaCatalogo({ productos }: { productos: ProductoCatalogo[] }) 
     </form>
     {editado && (
       <EditarProducto
-        p={{ id: editado.id, nombre: editado.nombre, tipo: editado.tipo, diseno: editado.diseno, verbo: editado.verbo, descripcion: editado.descripcion, foto_url: editado.foto_url }}
+        p={{ id: editado.id, nombre: editado.nombre, tipo: editado.tipo, categoria_nombre: editado.categoria_nombre, diseno: editado.diseno, verbo: editado.verbo, descripcion: editado.descripcion, foto_url: editado.foto_url }}
         onCerrar={cerrarEdicion}
       />
     )}

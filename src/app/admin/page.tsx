@@ -3,7 +3,7 @@ import { icono, sombraTarjeta } from "@/components/stitch";
 import { TarjetaPedido } from "@/components/tarjeta-pedido";
 import { requireAdmin } from "@/lib/auth";
 import { ars } from "@/lib/format";
-import { SELECT_PEDIDO, demorado, esSalida, tieneComprobante, vencido, type PedidoFila } from "@/lib/pedidos";
+import { SELECT_PEDIDO, esSalida, tieneComprobante, vencido, type PedidoFila } from "@/lib/pedidos";
 
 const HORA = 3600 * 1000;
 
@@ -15,6 +15,8 @@ function lunes(semanas = 0) {
   return ar.toISOString();
 }
 
+const haceUnaSemana = () => new Date(Date.now() - 7 * 24 * HORA).toISOString();
+
 const hoyLargo = () =>
   new Date().toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long", timeZone: "America/Argentina/Buenos_Aires" });
 
@@ -22,12 +24,18 @@ export default async function Hoy() {
   const { supabase, admin } = await requireAdmin();
   const hoy = new Date().toISOString().slice(0, 10);
 
-  const [{ data: pedidos }, { data: ajustes }, { data: ventas }, { data: acreditar }, { data: stock }] = await Promise.all([
+  const [{ data: pedidos }, { data: entregados }, { data: ajustes }, { data: ventas }, { data: acreditar }, { data: stock }] = await Promise.all([
     supabase
       .from("pedidos")
       .select(SELECT_PEDIDO)
       .in("estado", ["pendiente_pago", "pagado", "en_preparacion", "despachado"])
       .order("created_at"),
+    supabase
+      .from("pedidos")
+      .select(SELECT_PEDIDO)
+      .eq("estado", "entregado")
+      .gte("entregado_at", haceUnaSemana())
+      .order("entregado_at", { ascending: false }),
     supabase.from("ajustes").select("alias_transferencia, envio_estimado").eq("id", 1).single(),
     supabase.from("v_pedidos_validos").select("total, pagado_at, items:pedido_items(cantidad)").gte("pagado_at", lunes(1)),
     supabase.from("pagos").select("neto, acreditacion_esperada").eq("estado", "aprobado").gt("acreditacion_esperada", hoy).order("acreditacion_esperada"),
@@ -50,10 +58,20 @@ export default async function Hoy() {
     },
     { titulo: "Para preparar", ayuda: "Pagados y regalos: armar y empaquetar", punto: "bg-error-container", cuenta: "text-on-surface-variant", items: lista.filter((p) => p.estado === "pagado") },
     { titulo: "Para despachar", ayuda: "Listos para empaquetar y rotular", punto: "bg-tertiary-fixed", cuenta: "text-tertiary", items: lista.filter((p) => p.estado === "en_preparacion") },
+    {
+      titulo: "Despachados",
+      ayuda: "En camino: marcalos cuando lleguen",
+      punto: "bg-secondary",
+      cuenta: "text-secondary",
+      items: lista.filter((p) => p.estado === "despachado").sort((a, b) => (a.despachado_at ?? "").localeCompare(b.despachado_at ?? "")),
+    },
   ];
-  const demorados = lista.filter(demorado);
   const pendientes = columnas.reduce((n, c) => n + c.items.length, 0);
-  const enMarcha = columnas[1].items.length + columnas[2].items.length;
+  const enMarcha = columnas[1].items.length + columnas[2].items.length + columnas[3].items.length;
+  const tablero = [
+    ...columnas,
+    { titulo: "Entregados", ayuda: "Últimos 7 días", punto: "bg-tertiary", cuenta: "text-tertiary", items: (entregados ?? []) as unknown as PedidoFila[] },
+  ];
 
   type Venta = { total: number; pagado_at: string; items: { cantidad: number }[] };
   const v = (ventas ?? []) as unknown as Venta[];
@@ -142,14 +160,15 @@ export default async function Hoy() {
           <div className="mt-1">
             <span className="block font-headline-md text-[17px] font-medium leading-tight text-primary">
               {stockDe("biblia")} Biblias · {stockDe("journal")} Journals
+              {stockDe("otro") > 0 && ` · ${stockDe("otro")} otros`}
             </span>
             <span className="block font-caption-italic text-[13px] italic text-outline">Disponible para vender</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-3">
-        {columnas.map((c) => (
+      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-3 min-[1360px]:grid-cols-5">
+        {tablero.map((c) => (
           <div key={c.titulo} className={`flex flex-col gap-2 rounded-2xl bg-surface-container/60 p-2.5 ${c.items.length === 0 ? "hidden lg:flex" : ""}`}>
             <div className="flex flex-col gap-0.5 px-1 pt-0.5">
               <div className="flex items-center justify-between">
@@ -186,22 +205,6 @@ export default async function Hoy() {
       </div>
 
       {pendientes === 0 && <p className="mt-10 text-center font-caption-italic text-caption-italic italic text-outline lg:hidden">Todo al día.</p>}
-
-      {demorados.length > 0 && (
-        <div className="mt-3 flex flex-col gap-2 rounded-2xl bg-surface-container/60 p-2.5">
-          <div className="flex items-center gap-1.5 px-1 pt-0.5">
-            <span className="h-2 w-2 rounded-full bg-outline-variant" />
-            <h2 className="font-label-lg text-label-md uppercase tracking-wider text-primary">Despachados hace más de 7 días</h2>
-            <span className="font-code-num text-code-num text-on-surface-variant">({demorados.length})</span>
-            <span className="ml-2 font-caption-italic text-[13px] italic text-outline">¿Llegaron?</span>
-          </div>
-          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {demorados.map((p) => (
-              <TarjetaPedido key={p.id} pedido={p} alias={alias} envioEstimado={envioEstimado} />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

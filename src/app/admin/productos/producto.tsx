@@ -6,6 +6,7 @@ import { Mensaje } from "@/components/accion";
 import { claseBoton } from "@/components/estilos";
 import { Modal } from "@/components/modal";
 import { useToast } from "@/components/toasts";
+import { CATEGORIA_NUEVA, nombreTipo, type Categoria, type TipoProducto } from "@/lib/categorias";
 import { crearProducto, editarProducto } from "./acciones";
 import { area, ayuda, campo, campoNum, miles, numero, rotulo } from "./estilo";
 import { CampoFoto } from "./foto";
@@ -13,7 +14,8 @@ import { CampoFoto } from "./foto";
 export type ProductoEditable = {
   id: string;
   nombre: string;
-  tipo: "biblia" | "journal";
+  tipo: TipoProducto;
+  categoria_nombre: string | null;
   diseno: string;
   verbo: string | null;
   descripcion: string | null;
@@ -72,7 +74,9 @@ function enviarCon(enviar: (f: FormData) => void) {
 }
 
 /** Botón "Nuevo producto" del encabezado: abre el alta y, al terminar, ofrece cargar su primera tanda. */
-export function NuevoProducto() {
+export function NuevoProducto({ categorias, puedeCrearCategoria }: { categorias: Categoria[]; puedeCrearCategoria: boolean }) {
+  const [categoria, setCategoria] = useState("biblia");
+  const esParDelSet = categoria === "biblia" || categoria === "journal";
   const [abierto, setAbierto] = useState(false);
   const [estado, enviar, pendiente] = useActionState(crearProducto, null);
   const [precio, setPrecio] = useState("");
@@ -108,7 +112,7 @@ export function NuevoProducto() {
       </button>
       {abierto && (
         <Modal etiqueta="Nuevo producto" onCerrar={cerrar} alto="arriba" className="max-h-[84vh] max-w-2xl overflow-y-auto">
-          <Cabecera titulo={creado ? "Producto creado" : "Nuevo producto"} bajada="Aparece en la web en su sección (Biblias o Journals)" onCerrar={cerrar} />
+          <Cabecera titulo={creado ? "Producto creado" : "Nuevo producto"} bajada="Aparece en la web dentro de su categoría" onCerrar={cerrar} />
           {creado ? (
             <div className="flex flex-col gap-3 px-5 py-4">
               <div className="flex items-start gap-3">
@@ -143,18 +147,32 @@ export function NuevoProducto() {
                   <span className={rotulo}>Nombre</span>
                   <input name="nombre" required minLength={2} maxLength={60} placeholder="Biblia Jardín" className={campo} data-autofocus />
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className={`grid gap-2 ${esParDelSet ? "grid-cols-2" : "grid-cols-1"}`}>
                   <label className="flex flex-col gap-0.5">
-                    <span className={rotulo}>Tipo</span>
-                    <select name="tipo" required defaultValue="biblia" className={campo}>
+                    <span className={rotulo}>Categoría</span>
+                    <select name="categoria" required value={categoria} onChange={(e) => setCategoria(e.target.value)} className={campo}>
                       <option value="biblia">Biblia</option>
                       <option value="journal">Journal</option>
+                      {categorias.map((c) => (
+                        <option key={c.slug} value={c.slug}>
+                          {c.nombre}
+                        </option>
+                      ))}
+                      {puedeCrearCategoria && <option value={CATEGORIA_NUEVA}>+ Nueva categoría…</option>}
                     </select>
                   </label>
-                  <label className="flex flex-col gap-0.5">
-                    <span className={rotulo}>Diseño</span>
-                    <input name="diseno" required maxLength={40} placeholder="Jardín" className={campo} />
-                  </label>
+                  {esParDelSet && (
+                    <label className="flex flex-col gap-0.5">
+                      <span className={rotulo}>Diseño</span>
+                      <input name="diseno" required maxLength={40} placeholder="Jardín" className={campo} />
+                    </label>
+                  )}
+                  {categoria === CATEGORIA_NUEVA && (
+                    <label className="flex flex-col gap-0.5">
+                      <span className={rotulo}>Nombre de la categoría</span>
+                      <input name="categoria_nueva" required maxLength={40} placeholder="Ej. Separadores" className={campo} autoFocus />
+                    </label>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <label className="flex flex-col gap-0.5">
@@ -197,7 +215,7 @@ export function NuevoProducto() {
                 <label className="flex items-center gap-2 sm:col-span-2">
                   <input type="checkbox" name="activo" defaultChecked className="h-4 w-4 accent-primary" />
                   <span className="font-body-sm text-body-sm text-on-surface">Mostrar en la web</span>
-                  <span className={ayuda}>· con el diseño, la web lo une con su Biblia o Journal para el Set</span>
+                  {esParDelSet && <span className={ayuda}>· con el diseño, la web lo une con su Biblia o Journal para el Set</span>}
                 </label>
               </div>
               <div className="flex flex-col-reverse items-stretch justify-between gap-2 border-t border-surface-variant/60 pt-3 sm:flex-row sm:items-center">
@@ -243,7 +261,7 @@ export function EditarProducto({ p, onCerrar }: { p: ProductoEditable; onCerrar:
           <div className="flex flex-col gap-0.5">
             <span className={rotulo}>Tipo y diseño</span>
             <span className="flex h-9 items-center rounded-full bg-surface-container px-3 font-body-sm text-body-sm text-on-surface-variant">
-              {p.tipo === "biblia" ? "Biblia" : "Journal"} · {p.diseno}
+              {nombreTipo(p.tipo, p.categoria_nombre)} · {p.diseno}
             </span>
             <span className={ayuda}>No se cambia: la web y el Set usan el diseño para unir Biblia y Journal.</span>
           </div>

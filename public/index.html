@@ -833,6 +833,7 @@ body:has(#producto.abierta) .cajon{z-index:87}
 .sin-foto{box-sizing:border-box}
 #tienda .cinco .sin-foto{aspect-ratio:3/4}
 .item .sin-foto{width:64px;aspect-ratio:4/5;flex:none}
+#filasExtra{display:contents}
 </style>
 </head>
 <body>
@@ -932,6 +933,7 @@ body:has(#producto.abierta) .cajon{z-index:87}
       <div class="coleccion cinco" id="biblias"></div>
       <h3 class="grupo" id="grupo-journals">Journals</h3>
       <div class="coleccion cinco" id="journals"></div>
+      <div id="filasExtra"></div>
       <div id="filaSets" hidden>
         <h3 class="grupo" id="grupo-sets">Sets</h3>
         <div class="coleccion cinco" id="sets"></div>
@@ -1257,7 +1259,7 @@ function aplicarCatalogo(c){
       EDEN.productos.push(p); PROD[p.id] = p;
     }
     vistos.add(p); orden.set(p, i);
-    p.nombre = sinTipo(x.nombre) || x.diseno; p.largo = x.nombre; p.diseno = x.diseno; p.precio = x.precio; p.stock = x.stock; p.slug = x.slug; p.activo = x.activo; p.etiqueta = x.etiqueta; p.precio_anterior = x.precio_anterior;
+    p.nombre = sinTipo(x.nombre) || x.diseno; p.largo = x.nombre; p.diseno = x.diseno; p.categoria = x.categoria || null; p.precio = x.precio; p.stock = x.stock; p.slug = x.slug; p.activo = x.activo; p.etiqueta = x.etiqueta; p.precio_anterior = x.precio_anterior;
     // En la tarjeta, verbo y descripción aparecen solo si los cargó el back office
     p.catVerbo = x.verbo || ""; p.catDescripcion = x.descripcion || "";
     if(x.foto_url) p.imagen = x.foto_url;
@@ -1327,11 +1329,10 @@ function tarjeta({ id, etiqueta, foto, nombre, titulo, verbo, descripcion, preci
   art.innerHTML = `<div class="pieza-foto">${etiqueta ? `<span class="distintivo">${esc(etiqueta)}</span>` : ""}${foto}</div><p class="verbo" title="${esc(titulo)}">${nombre}</p><p class="pieza-verbo">${esc(verbo)}</p><p class="variante">${esc(descripcion)}</p><div class="pieza-precio">${precio}</div><div class="pieza-acciones">${acciones}</div>`;
   return art;
 }
-function pintarProductos(){
-  for(const [tipo,cont] of [["biblia","#biblias"],["journal","#journals"]]){
-    const box = $(cont); box.innerHTML = "";
-    visibles(tipo).forEach(p => {
-      const esB = tipo === "biblia", nom = esc(p.nombre), largo = esc(nombreLargo(p)), ver = esB ? ` data-ver-producto="${esc(p.id)}"` : "";
+function pintarFila(box, lista){
+    box.innerHTML = "";
+    lista.forEach(p => {
+      const esB = p.tipo === "biblia", nom = esc(p.nombre), largo = esc(nombreLargo(p)), ver = esB ? ` data-ver-producto="${esc(p.id)}"` : "";
       const img = fotoHTML(fotoDe(p), largo);
       box.appendChild(tarjeta({
         id: "p-" + p.id, etiqueta: CATALOGO && p.etiqueta, titulo: p.nombre,
@@ -1342,7 +1343,19 @@ function pintarProductos(){
         acciones: !CATALOGO ? agregarHTML(p.id, largo) : agotado(p) ? `<div class="espera">${esperaHTML(p)}</div>` : p.precio > 0 ? comprarHTML(p.id, largo) : ""
       }));
     });
-  }
+}
+function pintarProductos(){
+  pintarFila($("#biblias"), visibles("biblia"));
+  pintarFila($("#journals"), visibles("journal"));
+  // Categorías creadas en el back office: una fila por cada una, debajo de los Journals
+  const extra = $("#filasExtra"); extra.innerHTML = "";
+  const grupos = new Map();
+  visibles("otro").forEach(p => { const c = p.categoria || { slug: "otros", nombre: "Otros" }; if(!grupos.has(c.slug)) grupos.set(c.slug, { c, lista: [] }); grupos.get(c.slug).lista.push(p); });
+  grupos.forEach(({ c, lista }) => {
+    const h = document.createElement("h3"); h.className = "grupo"; h.id = "grupo-" + c.slug; h.textContent = c.nombre;
+    const box = document.createElement("div"); box.className = "coleccion cinco";
+    extra.append(h, box); pintarFila(box, lista);
+  });
 }
 
 /* Sets: precio propio; su stock es el de sus piezas */
@@ -1739,7 +1752,7 @@ const carritoTienda = (() => {
     const conPrecios = CATALOGO && ls.every(x => precioDe(x) > 0);
     lista.innerHTML = ls.map(x => {
       const nom = esc(x.set ? x.set.nombre : x.p.nombre), largo = esc(x.set ? x.set.nombre : nombreLargo(x.p)), id = esc(x.id);
-      const tipo = x.set ? "Set · " + esc(incluyeDe(x.set)) : x.p.tipo === "biblia" ? "Biblia" : "Journal";
+      const tipo = x.set ? "Set · " + esc(incluyeDe(x.set)) : x.p.tipo === "biblia" ? "Biblia" : x.p.tipo === "journal" ? "Journal" : esc(x.p.categoria ? x.p.categoria.nombre : "");
       const precio = CATALOGO && precioDe(x) > 0 ? `<span class="precio-item">${fmt(precioDe(x) * x.cant)}</span>` : `<span class="precio-item pend">Por confirmar</span>`;
       return `
       <div class="item">

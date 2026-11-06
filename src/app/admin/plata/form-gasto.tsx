@@ -1,24 +1,41 @@
 "use client";
 
 import { startTransition, useActionState, useEffect, useRef, useState } from "react";
-import { crearGasto } from "@/app/admin/actions";
+import { crearGasto, editarGasto } from "@/app/admin/actions";
 import { Mensaje } from "@/components/accion";
+import { Modal } from "@/components/modal";
+import { useToast } from "@/components/toasts";
 import { hoyAR } from "@/lib/format";
 import { CATEGORIAS, SOCIOS } from "@/lib/textos";
 
 const etiqueta = "mb-0.5 block font-label-sm text-[10px] uppercase tracking-wider text-outline";
 const campo = "w-full rounded-full bg-surface-container-lowest px-3 py-1.5 text-primary shadow-sm outline-none focus:ring-2 focus:ring-secondary/40";
 
-/** "Cargar un gasto" del diseño: monto, fecha, concepto, categoría y quién lo pagó. */
-export function FormGasto() {
-  const [estado, enviar, pendiente] = useActionState(crearGasto, null);
-  const [categoria, setCategoria] = useState<keyof typeof CATEGORIAS>("produccion");
-  const [pagadoPor, setPagadoPor] = useState<keyof typeof SOCIOS>("nari_mich");
+export type GastoEditable = {
+  id: string;
+  fecha: string | null;
+  categoria: keyof typeof CATEGORIAS;
+  descripcion: string;
+  proveedor: string | null;
+  monto: number;
+  pagado_por: keyof typeof SOCIOS;
+};
+
+/** "Cargar un gasto" del diseño: monto, fecha, concepto, categoría y quién lo pagó. Con `gasto`, corrige uno ya cargado. */
+export function FormGasto({ gasto, alGuardar }: { gasto?: GastoEditable; alGuardar?: () => void }) {
+  const [estado, enviar, pendiente] = useActionState(gasto ? editarGasto.bind(null, gasto.id) : crearGasto, null);
+  const [categoria, setCategoria] = useState<keyof typeof CATEGORIAS>(gasto?.categoria ?? "produccion");
+  const [pagadoPor, setPagadoPor] = useState<keyof typeof SOCIOS>(gasto?.pagado_por ?? "nari_mich");
   const form = useRef<HTMLFormElement>(null);
+  const editando = Boolean(gasto);
 
   useEffect(() => {
-    if (estado?.ok) form.current?.reset();
-  }, [estado]);
+    if (!estado?.ok) return;
+    if (editando) alGuardar?.();
+    else form.current?.reset();
+    // alGuardar cambia en cada render del padre: solo importa reaccionar al resultado.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estado, editando]);
 
   const pildoras = <T extends string>(opciones: [T, string][], valor: T, set: (v: T) => void) => (
     <div className="flex flex-wrap gap-1">
@@ -53,12 +70,12 @@ export function FormGasto() {
           <span className={etiqueta}>Monto ($ ARS)</span>
           <span className="relative block">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-code-num text-[13px] text-outline">$</span>
-            <input name="monto" inputMode="numeric" required placeholder="0" className={`${campo} pl-7 font-code-num text-[13px] placeholder:text-outline/60`} />
+            <input name="monto" inputMode="numeric" required placeholder="0" defaultValue={gasto?.monto.toLocaleString("es-AR")} data-autofocus={editando || undefined} className={`${campo} pl-7 font-code-num text-[13px] placeholder:text-outline/60`} />
           </span>
         </label>
         <label>
           <span className={etiqueta}>Fecha</span>
-          <input name="fecha" type="date" required defaultValue={hoyAR()} className={`${campo} font-code-num text-[12px]`} />
+          <input name="fecha" type="date" required={!gasto || Boolean(gasto.fecha)} defaultValue={gasto ? (gasto.fecha ?? "") : hoyAR()} className={`${campo} font-code-num text-[12px]`} />
         </label>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1.4fr_1fr]">
@@ -67,6 +84,7 @@ export function FormGasto() {
           <input
             name="descripcion"
             required
+            defaultValue={gasto?.descripcion}
             placeholder="ej. Cuero para la tanda 2"
             className={`${campo} font-body-sm text-[13px] placeholder:font-caption-italic placeholder:italic placeholder:text-outline/60`}
           />
@@ -76,6 +94,7 @@ export function FormGasto() {
           <input
             name="proveedor"
             placeholder="opcional"
+            defaultValue={gasto?.proveedor ?? undefined}
             className={`${campo} font-body-sm text-[13px] placeholder:font-caption-italic placeholder:italic placeholder:text-outline/60`}
           />
         </label>
@@ -104,10 +123,41 @@ export function FormGasto() {
         disabled={pendiente}
         className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-full bg-primary py-2.5 font-label-sm text-[11px] font-bold uppercase tracking-widest text-on-primary shadow-sm transition-all hover:bg-primary-container hover:shadow disabled:opacity-50"
       >
-        <span className="ms text-[15px]">draw</span>
-        <span>{pendiente ? "Cargando…" : "Cargar gasto"}</span>
+        <span className="ms text-[15px]">{editando ? "save" : "draw"}</span>
+        <span>{pendiente ? (editando ? "Guardando…" : "Cargando…") : editando ? "Guardar cambios" : "Cargar gasto"}</span>
       </button>
       <Mensaje estado={estado} />
     </form>
+  );
+}
+
+/** Lápiz de cada fila de "Últimos gastos": abre el mismo formulario con los datos cargados. */
+export function EditarGasto({ gasto }: { gasto: GastoEditable }) {
+  const [abierto, setAbierto] = useState(false);
+  const toast = useToast();
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setAbierto(true)}
+        aria-label={`Editar ${gasto.descripcion}`}
+        title="Editar"
+        className="rounded-full p-0.5 text-outline opacity-40 transition-all hover:bg-surface-dim hover:text-primary focus:opacity-100 group-hover:opacity-100"
+      >
+        <span className="ms text-[15px]">edit</span>
+      </button>
+      {abierto && (
+        <Modal etiqueta="Editar gasto" onCerrar={() => setAbierto(false)} alto="arriba" className="max-h-[84vh] max-w-lg overflow-y-auto bg-surface-container-low p-4">
+          <h2 className="mb-3 font-headline-md text-[17px] uppercase tracking-[0.05em] text-primary">Editar gasto</h2>
+          <FormGasto
+            gasto={gasto}
+            alGuardar={() => {
+              setAbierto(false);
+              toast.ok("Gasto actualizado");
+            }}
+          />
+        </Modal>
+      )}
+    </>
   );
 }

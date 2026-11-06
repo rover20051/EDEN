@@ -6,12 +6,13 @@ import { claseBoton } from "@/components/estilos";
 import { Modal } from "@/components/modal";
 import { useToast } from "@/components/toasts";
 import { ars } from "@/lib/format";
+import type { TipoProducto } from "@/lib/categorias";
 import { fotoProducto } from "@/lib/fotos";
 import { borrarPack, guardarPack } from "./acciones";
 import { area, ayuda, campo, campoNum, miles, numero, rotulo } from "./estilo";
 import { CampoFoto } from "./foto";
 
-export type ProductoPack = { id: string; nombre: string; tipo: "biblia" | "journal"; precio: number; stock: number; activo: boolean; foto_url: string | null };
+export type ProductoPack = { id: string; nombre: string; tipo: TipoProducto; precio: number; stock: number; activo: boolean; foto_url: string | null };
 export type PackAdmin = {
   id: string;
   slug: string;

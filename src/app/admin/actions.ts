@@ -144,6 +144,43 @@ export async function crearGasto(_prev: Resultado | null, form: FormData): Promi
   return ok("Gasto cargado");
 }
 
+const gastoEditadoSchema = gastoSchema.extend({
+  // Los gastos que vinieron de la planilla pueden no tener fecha.
+  fecha: z.union([z.iso.date(), z.literal("").transform(() => null)]),
+});
+
+/** Corrige un gasto ya cargado. Si cambia quién lo pagó, solo queda como devuelta la parte de quien sigue en el gasto. */
+export async function editarGasto(id: string, _prev: Resultado | null, form: FormData): Promise<Resultado> {
+  const parsed = gastoEditadoSchema.safeParse({
+    monto: aPesos(form.get("monto")) ?? 0,
+    categoria: form.get("categoria"),
+    descripcion: form.get("descripcion"),
+    proveedor: String(form.get("proveedor") ?? ""),
+    pagado_por: form.get("pagado_por"),
+    fecha: form.get("fecha") ?? "",
+  });
+  if (!parsed.success) return fallo(parsed.error.issues[0]?.message ?? "Datos inválidos");
+
+  const { supabase } = await requireAdmin();
+  const { data: actual, error: e1 } = await supabase.from("gastos").select("moneda, reintegrado_a").eq("id", id).single();
+  if (e1 || !actual) return fallo("No encontramos ese gasto");
+
+  const partes = partesDe(parsed.data.pagado_por);
+  const reintegrado_a = ((actual.reintegrado_a ?? []) as string[]).filter((s) => partes.includes(s));
+  const { error } = await supabase
+    .from("gastos")
+    .update({
+      ...parsed.data,
+      ...(actual.moneda === "ARS" ? { monto_original: parsed.data.monto } : {}),
+      reintegrado_a,
+      reintegrado: partes.length > 0 && partes.every((s) => reintegrado_a.includes(s)),
+    })
+    .eq("id", id);
+  if (error) return fallo(error.message);
+  revalidatePath("/admin", "layout");
+  return ok("Gasto actualizado");
+}
+
 export async function borrarGasto(id: string): Promise<Resultado> {
   const { supabase } = await requireAdmin();
   const { error } = await supabase.from("gastos").delete().eq("id", id);

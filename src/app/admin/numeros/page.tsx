@@ -33,7 +33,7 @@ export default async function PaginaNumeros({ searchParams }: PageProps<"/admin/
   const minimo = (t: Tipo) => Math.min(...activos.filter((p) => p.tipo === t).map((p) => p.precio));
   // Solo ventas: las salidas sin cobro no recuperan la inversión.
   const vendidas: Record<Tipo, number> = { biblia: 0, journal: 0 };
-  for (const v of (vendidos ?? []) as unknown as { cantidad: number; producto: { tipo: Tipo } }[]) vendidas[v.producto.tipo] += v.cantidad;
+  for (const v of (vendidos ?? []) as unknown as { cantidad: number; producto: { tipo: Tipo | "otro" } }[]) if (v.producto.tipo !== "otro") vendidas[v.producto.tipo] += v.cantidad;
 
   const num = (n: unknown) => Number(n ?? 0);
   const lista = cobros ?? [];

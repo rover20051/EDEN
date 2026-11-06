@@ -22,6 +22,7 @@ export type PedidoFila = {
   created_at: string;
   pagado_at: string | null;
   despachado_at: string | null;
+  entregado_at: string | null;
   cliente: { nombre: string; whatsapp: string | null; email: string | null };
   items: { cantidad: number; pack_id: string | null; producto: { nombre: string }; pack: { nombre: string } | null }[];
   pagos: { estado: string; medio: string; comprobante_path: string | null }[];
@@ -30,7 +31,7 @@ export type PedidoFila = {
 
 /** Select de Supabase que arma un PedidoFila. */
 export const SELECT_PEDIDO = `
-  id, numero, estado, tipo, salida_motivo, salida_por, canal, medio_pago, total, grabado, nota, es_regalo, regalo_para, regalo_mensaje, direccion_envio, vence_at, created_at, pagado_at, despachado_at,
+  id, numero, estado, tipo, salida_motivo, salida_por, canal, medio_pago, total, grabado, nota, es_regalo, regalo_para, regalo_mensaje, direccion_envio, vence_at, created_at, pagado_at, despachado_at, entregado_at,
   cliente:clientes!inner(nombre, whatsapp, email),
   items:pedido_items(cantidad, pack_id, producto:productos(nombre), pack:packs(nombre)),
   pagos(estado, medio, comprobante_path),

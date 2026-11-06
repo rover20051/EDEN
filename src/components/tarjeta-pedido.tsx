@@ -4,7 +4,7 @@ import { icono, sombraTarjeta } from "@/components/stitch";
 import { EstadoBadge } from "@/components/ui";
 import { ars, fechaHora, numeroPedido, relativo } from "@/lib/format";
 import { fotoDe } from "@/lib/fotos";
-import { chipSalida, esSalida, resumenItems, vencido, type PedidoFila } from "@/lib/pedidos";
+import { chipSalida, demorado, esSalida, resumenItems, vencido, type PedidoFila } from "@/lib/pedidos";
 import { CANALES, ICONO_CANAL, MEDIOS } from "@/lib/textos";
 
 /** Tarjeta de "Hoy" (diseño de Stitch): número, cliente, productos, canal, reserva y acciones. */
@@ -21,7 +21,7 @@ export function TarjetaPedido({ pedido, alias, envioEstimado }: { pedido: Pedido
         <Link href={`/admin/pedidos/${pedido.id}`} className="flex items-center gap-space-xs">
           <span className="font-label-sm text-label-sm font-bold tracking-widest text-primary">{numeroPedido(pedido.numero)}</span>
           <span className="text-outline/40">·</span>
-          <span className="font-label-sm text-label-sm text-outline">{relativo(pedido.despachado_at ?? pedido.pagado_at ?? pedido.created_at)}</span>
+          <span className="font-label-sm text-label-sm text-outline">{relativo(pedido.entregado_at ?? pedido.despachado_at ?? pedido.pagado_at ?? pedido.created_at)}</span>
         </Link>
         <EstadoBadge estado={pedido.estado} />
       </div>
@@ -64,6 +64,13 @@ export function TarjetaPedido({ pedido, alias, envioEstimado }: { pedido: Pedido
         >
           {icono("alarm", "text-[14px]")}
           <span>{vencido(pedido) ? "Venció la reserva" : `Reservado hasta ${fechaHora(pedido.vence_at)}`}</span>
+        </div>
+      )}
+
+      {demorado(pedido) && (
+        <div className="flex items-center gap-1.5 rounded-lg bg-secondary-fixed/20 px-2 py-1 font-label-sm text-[11px] text-on-secondary-container">
+          {icono("schedule", "text-[14px]")}
+          <span>Salió hace más de 7 días. ¿Ya llegó?</span>
         </div>
       )}
 

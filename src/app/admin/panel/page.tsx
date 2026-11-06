@@ -7,7 +7,7 @@ type Metricas = {
   recupero: { invertido: number; recuperado: number; pedidos: number; ventas_faltan: number | null };
   stock: {
     producto: string;
-    tipo: "biblia" | "journal";
+    tipo: "biblia" | "journal" | "otro";
     disponibles: number;
     vendidas_14d: number;
     dias_hasta_agotar: number | null;
@@ -95,12 +95,13 @@ export default async function Panel() {
           }
         >
           <div className="grid gap-4 text-sm sm:grid-cols-2">
-            {(["biblia", "journal"] as const).map((t) => {
+            {(["biblia", "journal", "otro"] as const).map((t) => {
               const filas = m.stock.filter((s) => s.tipo === t);
+              if (t === "otro" && filas.length === 0) return null;
               return (
                 <div key={t}>
                   <div className="mb-1 font-maquina text-xs uppercase tracking-wider text-tenue">
-                    {t === "biblia" ? "Biblias" : "Journals"} · {filas.reduce((n, s) => n + s.disponibles, 0)} en stock
+                    {t === "biblia" ? "Biblias" : t === "journal" ? "Journals" : "Otros"} · {filas.reduce((n, s) => n + s.disponibles, 0)} en stock
                   </div>
                   <ul className="flex flex-col gap-0.5">
                     {filas.map((s) => (

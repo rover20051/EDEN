@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Encabezado, Indicador, icono, sombraTarjeta } from "@/components/stitch";
+import { FilaPedido } from "@/components/fila-pedido";
 import { EstadoBadge } from "@/components/ui";
 import { requireAdmin } from "@/lib/auth";
+import { clientesBuscados, numeroBuscado } from "@/lib/buscar-pedidos";
 import { ars, fechaHora, numeroPedido } from "@/lib/format";
 import { SELECT_PEDIDO, chipSalida, esSalida, resumenItems, type PedidoFila } from "@/lib/pedidos";
 import { CANALES, ICONO_CANAL, MEDIOS, PUNTO_ESTADO, type Estado } from "@/lib/textos";
@@ -27,8 +29,9 @@ const inicioMes = () => {
 export default async function Pedidos({ searchParams }: PageProps<"/admin/pedidos">) {
   const { supabase } = await requireAdmin();
   const params = await searchParams;
-  const filtro = FILTROS.find((f) => f.clave === params.f) ?? FILTROS[0];
   const q = typeof params.q === "string" ? params.q.trim() : "";
+  // Una búsqueda mira todos los estados, salvo que después se elija un filtro: el pedido buscado puede estar entregado o cancelado.
+  const filtro = FILTROS.find((f) => f.clave === params.f) ?? (q ? FILTROS.find((f) => f.clave === "todos")! : FILTROS[0]);
   const pagina = Math.max(1, Number(params.p) || 1);
 
   let consulta = supabase
@@ -39,8 +42,8 @@ export default async function Pedidos({ searchParams }: PageProps<"/admin/pedido
   if (filtro.estados.length) consulta = consulta.in("estado", filtro.estados);
   if (filtro.tipo) consulta = consulta.eq("tipo", filtro.tipo);
   if (q) {
-    const n = Number(q.replace(/\D/g, ""));
-    consulta = /^\D*\d+$/.test(q) && n ? consulta.eq("numero", n) : consulta.ilike("cliente.nombre", `%${q}%`);
+    const n = numeroBuscado(q);
+    consulta = n ? consulta.eq("numero", n) : consulta.in("cliente_id", await clientesBuscados(supabase, q));
   }
 
   const [{ data, count }, { data: resumen }] = await Promise.all([
@@ -122,7 +125,6 @@ export default async function Pedidos({ searchParams }: PageProps<"/admin/pedido
         </div>
         <form className="relative min-w-[280px] md:w-[340px] md:self-end 2xl:self-auto">
           <span className="ms pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
-          <input type="hidden" name="f" value={filtro.clave} />
           <input
             name="q"
             type="search"
@@ -152,14 +154,18 @@ export default async function Pedidos({ searchParams }: PageProps<"/admin/pedido
               {pedidos.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-6 py-10 text-center font-caption-italic text-caption-italic italic text-outline">
-                    {filtro.tipo === "salida" ? "Todavía no hubo salidas sin cobro. Se cargan desde Nuevo pedido → Salida sin cobro." : "No hay pedidos acá."}
+                    {q
+                      ? `No encontramos pedidos de «${q}»${filtro.clave === "todos" ? "" : ` en ${filtro.label}`}.`
+                      : filtro.tipo === "salida"
+                        ? "Todavía no hubo salidas sin cobro. Se cargan desde Nuevo pedido → Salida sin cobro."
+                        : "No hay pedidos acá."}
                   </td>
                 </tr>
               )}
               {pedidos.map((p) => (
-                <tr key={p.id} className="group relative transition-colors duration-150 hover:bg-surface-container-high/60">
+                <FilaPedido key={p.id} href={`/admin/pedidos/${p.id}`}>
                   <td className="whitespace-nowrap px-4 py-2 pl-6 font-code-num text-code-num text-primary">
-                    <Link href={`/admin/pedidos/${p.id}`} className="flex items-center gap-2 after:absolute after:inset-0">
+                    <Link href={`/admin/pedidos/${p.id}`} className="flex items-center gap-2">
                       <span className={`h-1.5 w-1.5 rounded-full ${PUNTO_ESTADO[p.estado]}`} />
                       <span>{numeroPedido(p.numero)}</span>
                     </Link>
@@ -194,7 +200,7 @@ export default async function Pedidos({ searchParams }: PageProps<"/admin/pedido
                   <td className="whitespace-nowrap px-4 py-2 pr-6 text-right font-code-num text-code-num text-primary">
                     {esSalida(p) ? <span className="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Sin cobro</span> : ars(p.total)}
                   </td>
-                </tr>
+                </FilaPedido>
               ))}
             </tbody>
           </table>

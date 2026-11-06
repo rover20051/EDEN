@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { Resultado } from "@/app/admin/actions";
 import { requireAdmin } from "@/lib/auth";
+import { CATEGORIA_NUEVA, type TipoProducto } from "@/lib/categorias";
 import { aPesos } from "@/lib/format";
 import { MAX_FOTO_BYTES } from "@/lib/fotos";
 
@@ -98,19 +99,43 @@ const camposProducto = {
 
 const nuevoProductoSchema = z.object({
   ...camposProducto,
-  tipo: z.enum(["biblia", "journal"], "Elegí si es Biblia o Journal"),
-  diseno: z.string().trim().min(1, "Falta el diseño").max(40, "El diseño es muy largo"),
+  categoria: z.string().trim().min(1, "Elegí una categoría"),
+  categoria_nueva: opcional(40, "El nombre de la categoría es muy largo"),
+  diseno: opcional(40, "El diseño es muy largo"),
   precio: z.number().int().positive("Falta el precio"),
   precio_anterior: z.number().int().positive().nullable(),
   etiqueta: opcional(30, "La etiqueta puede tener hasta 30 letras"),
   activo: z.boolean(),
 });
 
+/** De lo elegido en "Categoría" salen el tipo y la categoría del producto. Una categoría nueva se crea acá; si ya existía, se reusa. */
+async function resolverCategoria(
+  supabase: Supa,
+  elegida: string,
+  nueva: string | null,
+): Promise<{ tipo: TipoProducto; categoria: string | null } | { error: string }> {
+  if (elegida === "biblia" || elegida === "journal") return { tipo: elegida, categoria: null };
+  if (elegida !== CATEGORIA_NUEVA) {
+    const { data } = await supabase.from("categorias").select("slug").eq("slug", elegida).maybeSingle();
+    return data ? { tipo: "otro", categoria: data.slug } : { error: "Esa categoría ya no existe" };
+  }
+  if (!nueva) return { error: "Escribí el nombre de la categoría nueva" };
+  const slug = aSlug(nueva);
+  if (/^biblias?$/.test(slug)) return { tipo: "biblia", categoria: null };
+  if (/^journals?$/.test(slug)) return { tipo: "journal", categoria: null };
+  const { data: existente } = await supabase.from("categorias").select("slug").eq("slug", slug).maybeSingle();
+  if (existente) return { tipo: "otro", categoria: slug };
+  const { data: ultima } = await supabase.from("categorias").select("orden").order("orden", { ascending: false }).limit(1).maybeSingle();
+  const { error } = await supabase.from("categorias").insert({ slug, nombre: nueva, orden: (ultima?.orden ?? 0) + 1 });
+  return error ? { error: error.message } : { tipo: "otro", categoria: slug };
+}
+
 /** Alta de un producto con su foto. Queda con stock 0 hasta que se cargue su primera tanda. */
 export async function crearProducto(_prev: ResultadoAlta, form: FormData): Promise<ResultadoAlta> {
   const parsed = nuevoProductoSchema.safeParse({
     nombre: texto(form, "nombre"),
-    tipo: texto(form, "tipo"),
+    categoria: texto(form, "categoria"),
+    categoria_nueva: texto(form, "categoria_nueva"),
     diseno: texto(form, "diseno"),
     precio: aPesos(form.get("precio")) ?? 0,
     precio_anterior: aPesos(form.get("precio_anterior")),
@@ -123,9 +148,16 @@ export async function crearProducto(_prev: ResultadoAlta, form: FormData): Promi
   const d = parsed.data;
 
   const { supabase } = await requireAdmin();
+  const destino = await resolverCategoria(supabase, d.categoria, d.categoria_nueva);
+  if ("error" in destino) return fallo(destino.error);
+  if (destino.tipo !== "otro" && !d.diseno) return fallo("Falta el diseño");
+  const diseno = d.diseno ?? d.nombre;
+
   // La web une cada producto con su par (Biblia ↔ Journal) y con sus fotos por tipo + diseño: no puede repetirse.
-  const { data: mismos } = await supabase.from("productos").select("nombre").eq("tipo", d.tipo).ilike("diseno", d.diseno.replace(/[\\%_]/g, "\\$&"));
-  if (mismos?.length) return fallo(`Ya existe ${mismos[0].nombre} con el diseño ${d.diseno}`);
+  let repetidos = supabase.from("productos").select("nombre").eq("tipo", destino.tipo).ilike("diseno", diseno.replace(/[\\%_]/g, "\\$&"));
+  if (destino.categoria) repetidos = repetidos.eq("categoria", destino.categoria);
+  const { data: mismos } = await repetidos;
+  if (mismos?.length) return fallo(`Ya existe ${mismos[0].nombre} con el diseño ${diseno}`);
 
   const slug = await slugLibre(supabase, "productos", d.nombre);
   const foto = await subirFoto(supabase, form, "productos", slug);
@@ -137,8 +169,9 @@ export async function crearProducto(_prev: ResultadoAlta, form: FormData): Promi
     .insert({
       slug,
       nombre: d.nombre,
-      tipo: d.tipo,
-      diseno: d.diseno,
+      tipo: destino.tipo,
+      ...(destino.categoria ? { categoria: destino.categoria } : {}),
+      diseno,
       precio: d.precio,
       precio_anterior: d.precio_anterior && d.precio_anterior > d.precio ? d.precio_anterior : null,
       etiqueta: d.etiqueta,
