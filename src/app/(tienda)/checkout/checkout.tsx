@@ -9,7 +9,7 @@ import { ars, numeroPedido } from "@/lib/format";
 import { PROVINCIAS } from "@/lib/provincias";
 import { confirmarPedido, validarCupon, type CuponPublico, type DatosCheckout } from "../acciones";
 import { PREFIJO_PACK } from "@/lib/pack";
-
+import { CAMPOS, OBLIGATORIOS, esObligatorio, type CampoObligatorio } from "./validar";
 
 type Linea = { slug: string; cantidad: number };
 type LineaProducto = Linea & { tipo: "producto"; p: ProductoPublico };
@@ -54,11 +54,49 @@ function origenGuardado() {
   }
 }
 
-const campo =
-  "w-full border-0 border-b border-tinta/70 bg-transparent px-0 py-2 text-[1.15rem] outline-none placeholder:italic placeholder:text-tenue focus:border-oro";
+// Todos los campos miden lo mismo, así las líneas de una misma fila quedan parejas (los select miden distinto si no).
+const campoBase =
+  "w-full rounded-none border-0 border-b border-tinta/70 bg-transparent px-0 text-[1.15rem] outline-none placeholder:italic placeholder:text-tenue focus:border-b-2 focus:border-oro focus-visible:outline-none! aria-[invalid=true]:border-error";
+const campo = `h-12 ${campoBase}`;
+const desplegable = `${campo} cursor-pointer appearance-none bg-[length:12px] bg-[right_2px_center] bg-no-repeat pr-6`;
+const FLECHA = {
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%234e4540' stroke-width='1.5'%3E%3Cpath d='m1 1.5 5 5 5-5'/%3E%3C/svg%3E")`,
+};
 const Etiqueta = ({ children }: { children: React.ReactNode }) => (
   <span className="font-maquina text-[0.7rem] uppercase tracking-[0.12em] text-tenue">{children}</span>
 );
+
+/** Rótulo, campo y su error. Los obligatorios llevan * y los demás dicen "(opcional)". */
+function Campo({
+  etiqueta,
+  error,
+  id,
+  opcional = false,
+  className = "",
+  children,
+}: {
+  etiqueta: string;
+  error?: string;
+  id?: string;
+  opcional?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className={`flex min-w-0 flex-col ${className}`}>
+      <Etiqueta>
+        {etiqueta}
+        {opcional ? " (opcional)" : <span aria-hidden className="text-error"> *</span>}
+      </Etiqueta>
+      {children}
+      {error && (
+        <span id={id} className="mt-1.5 text-base italic text-error">
+          {error}
+        </span>
+      )}
+    </label>
+  );
+}
 
 /** Dónde está la persona: Carrito → Datos y pago → Listo. */
 function Pasos({ volver = true }: { volver?: boolean }) {
@@ -115,6 +153,7 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
   const [medio, setMedio] = useState<"nave" | "transferencia">(modoTarjeta ? "nave" : "transferencia");
   const [provincia, setProvincia] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [errores, setErrores] = useState<Partial<Record<CampoObligatorio, string>>>({});
   const [pendiente, iniciar] = useTransition();
   // Pedido con tarjeta ya creado: la misma página pasa a mostrar el formulario de pago.
   const [creado, setCreado] = useState<PedidoCreado | null>(null);
@@ -229,6 +268,41 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
     setErrorCupon(null);
   }
 
+  /** Atributos de un campo obligatorio: su nombre y cómo avisa que tiene un error. */
+  const obligatorio = (n: CampoObligatorio) => ({
+    name: n,
+    required: true,
+    "aria-invalid": errores[n] ? true : undefined,
+    "aria-describedby": errores[n] ? `error-${n}` : undefined,
+  });
+
+  /** Revisa un campo al salir de él. Después, mientras se corrige, el error se va apenas el dato está bien. */
+  function revisar(e: React.FocusEvent<HTMLFormElement> | React.ChangeEvent<HTMLFormElement>) {
+    const { name, value } = e.target as unknown as HTMLInputElement;
+    if (!esObligatorio(name)) return;
+    const problema = OBLIGATORIOS[name](value) ?? undefined;
+    if (e.type === "change" && !errores[name]) return;
+    if (errores[name] !== problema) setErrores((x) => ({ ...x, [name]: problema }));
+  }
+
+  function alEnviar(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); // con onSubmit, un error del servidor no borra lo que la persona ya escribió
+    const form = new FormData(e.currentTarget);
+    const nuevos: Partial<Record<CampoObligatorio, string>> = {};
+    for (const n of CAMPOS) {
+      const problema = OBLIGATORIOS[n](String(form.get(n) ?? ""));
+      if (problema) nuevos[n] = problema;
+    }
+    setErrores(nuevos);
+    const faltan = CAMPOS.filter((n) => nuevos[n]);
+    if (faltan.length) {
+      setError(faltan.length === 1 ? "Revisá el dato marcado para seguir." : `Revisá los ${faltan.length} datos marcados para seguir.`);
+      (e.currentTarget.elements.namedItem(faltan[0]) as HTMLElement | null)?.focus();
+      return;
+    }
+    enviar(form);
+  }
+
   function enviar(form: FormData) {
     const texto = (k: string) => String(form.get(k) ?? "");
     const origen = texto("origen") || origenGuardado();
@@ -327,12 +401,15 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
   const bloqueado = sinStock.size > 0;
 
   return (
-    <form action={enviar} className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-16">
+    <form onSubmit={alEnviar} onBlur={revisar} onChange={revisar} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-16">
       <div className="flex min-w-0 flex-col gap-10">
         <header>
           <Pasos />
           <h1 className="text-4xl font-light md:text-5xl">Tu pedido</h1>
           <p className="mt-2 italic text-tenue">Un paso más y empezamos a prepararlo a mano.</p>
+          <p className="mt-3 text-base italic text-tenue">
+            Los datos con <span className="text-error">*</span> son obligatorios.
+          </p>
         </header>
 
         {/* Celular: resumen plegable arriba */}
@@ -345,37 +422,32 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
         </details>
 
         <Capitulo num="I." titulo="Tus datos">
-          <div className="grid gap-6 md:grid-cols-2">
-            <label className="md:col-span-2">
-              <Etiqueta>Nombre y apellido</Etiqueta>
-              <input name="nombre" autoComplete="name" required maxLength={120} className={campo} />
-            </label>
-            <label>
-              <Etiqueta>Mail</Etiqueta>
-              <input name="email" type="email" autoComplete="email" required maxLength={200} className={campo} />
-            </label>
-            <label>
-              <Etiqueta>WhatsApp</Etiqueta>
-              <input name="whatsapp" type="tel" autoComplete="tel" required maxLength={40} placeholder="11 2345 6789" className={campo} />
-            </label>
+          <div className="grid items-start gap-6 md:grid-cols-2">
+            <Campo etiqueta="Nombre y apellido" error={errores.nombre} id="error-nombre" className="md:col-span-2">
+              <input {...obligatorio("nombre")} autoComplete="name" maxLength={120} className={campo} />
+            </Campo>
+            <Campo etiqueta="Mail" error={errores.email} id="error-email">
+              <input {...obligatorio("email")} type="email" autoComplete="email" maxLength={200} placeholder="nombre@ejemplo.com" className={campo} />
+            </Campo>
+            <Campo etiqueta="WhatsApp" error={errores.whatsapp} id="error-whatsapp">
+              <input {...obligatorio("whatsapp")} type="tel" autoComplete="tel" maxLength={40} placeholder="11 2345 6789" className={campo} />
+            </Campo>
           </div>
         </Capitulo>
 
         <Capitulo num="II." titulo="Envío">
-          <div className="grid gap-6 md:grid-cols-6">
-            <label className="md:col-span-6">
-              <Etiqueta>Dirección</Etiqueta>
-              <input name="direccion" autoComplete="street-address" required maxLength={200} placeholder="Calle, número, piso" className={campo} />
-            </label>
-            <label className="md:col-span-3">
-              <Etiqueta>Provincia</Etiqueta>
+          <div className="grid items-start gap-6 md:grid-cols-5">
+            <Campo etiqueta="Dirección" error={errores.direccion} id="error-direccion" className="md:col-span-5">
+              <input {...obligatorio("direccion")} autoComplete="street-address" maxLength={200} placeholder="Calle, número, piso" className={campo} />
+            </Campo>
+            <Campo etiqueta="Provincia" error={errores.provincia} id="error-provincia" className="md:col-span-2">
               <select
-                name="provincia"
+                {...obligatorio("provincia")}
                 autoComplete="address-level1"
-                required
                 value={provincia}
                 onChange={(e) => setProvincia(e.target.value)}
-                className={`${campo} cursor-pointer ${provincia ? "" : "italic text-tenue"}`}
+                style={FLECHA}
+                className={`${desplegable} ${provincia ? "" : "italic text-tenue"}`}
               >
                 <option value="" disabled>
                   Elegí tu provincia
@@ -386,15 +458,13 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="md:col-span-2">
-              <Etiqueta>Ciudad</Etiqueta>
-              <input name="ciudad" autoComplete="address-level2" required maxLength={100} className={campo} />
-            </label>
-            <label>
-              <Etiqueta>C. P.</Etiqueta>
-              <input name="codigo_postal" autoComplete="postal-code" inputMode="numeric" maxLength={10} className={campo} />
-            </label>
+            </Campo>
+            <Campo etiqueta="Ciudad" error={errores.ciudad} id="error-ciudad" className="md:col-span-2">
+              <input {...obligatorio("ciudad")} autoComplete="address-level2" maxLength={100} className={campo} />
+            </Campo>
+            <Campo etiqueta="C. P." error={errores.codigo_postal} id="error-codigo_postal">
+              <input {...obligatorio("codigo_postal")} autoComplete="postal-code" maxLength={10} placeholder="1425" className={campo} />
+            </Campo>
           </div>
           <p className="mt-4 text-base italic text-tenue">
             {!provincia
@@ -416,16 +486,14 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
             </span>
           </label>
           {regalo && (
-            <div className="mt-6 grid gap-6 md:grid-cols-2">
-              <label>
-                <Etiqueta>¿Para quién es? (opcional)</Etiqueta>
+            <div className="mt-6 grid gap-6">
+              <Campo etiqueta="¿Para quién es?" opcional>
                 <input name="regalo_para" maxLength={80} placeholder="Su nombre" className={campo} />
-              </label>
-              <label className="md:col-span-2">
-                <Etiqueta>Mensaje para la tarjeta (opcional)</Etiqueta>
-                <textarea name="regalo_mensaje" maxLength={300} rows={3} placeholder="Unas palabras que acompañen el regalo…" className={`${campo} resize-none`} />
-              </label>
-              <p className="-mt-3 text-base italic text-tenue md:col-span-2">Si lo mandamos directo a esa persona, poné su dirección en Envío.</p>
+              </Campo>
+              <Campo etiqueta="Mensaje para la tarjeta" opcional>
+                <textarea name="regalo_mensaje" maxLength={300} rows={3} placeholder="Unas palabras que acompañen el regalo…" className={`${campoBase} resize-none py-2`} />
+              </Campo>
+              <p className="-mt-3 text-base italic text-tenue">Si lo mandamos directo a esa persona, poné su dirección en Envío.</p>
             </div>
           )}
         </section>
@@ -538,10 +606,9 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
           </fieldset>
         </Capitulo>
 
-        <section className="grid gap-6 border-t border-borde pt-6 md:grid-cols-2">
-          <label>
-            <Etiqueta>¿Cómo nos conociste? (opcional)</Etiqueta>
-            <select name="origen" defaultValue="" className={`${campo} cursor-pointer`}>
+        <section className="grid items-start gap-6 border-t border-borde pt-6 md:grid-cols-2">
+          <Campo etiqueta="¿Cómo nos conociste?" opcional>
+            <select name="origen" defaultValue="" style={FLECHA} className={desplegable}>
               <option value="">Elegí una opción</option>
               {ORIGENES.map(([v, t]) => (
                 <option key={v} value={v}>
@@ -549,11 +616,10 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
                 </option>
               ))}
             </select>
-          </label>
-          <label>
-            <Etiqueta>¿Algo que debamos saber? (opcional)</Etiqueta>
+          </Campo>
+          <Campo etiqueta="¿Algo que debamos saber?" opcional>
             <input name="nota" maxLength={500} placeholder="Horario de entrega, timbre…" className={campo} />
-          </label>
+          </Campo>
           {/* Trampa para bots: invisible para las personas */}
           <input name="web" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden />
         </section>

@@ -9,6 +9,7 @@ import { esProvincia } from "@/lib/provincias";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { estadoVenta } from "@/lib/venta";
 import { PREFIJO_PACK } from "@/lib/pack";
+import { OBLIGATORIOS } from "./checkout/validar";
 
 const ORIGENES = ["anuncio", "instagram", "tiktok", "recomendacion", "iglesia", "google", "otro"] as const;
 
@@ -19,13 +20,13 @@ const codigoCupon = z
   .regex(/^[A-Z0-9_-]{3,30}$/, "Ese cupón no existe o ya venció");
 
 const checkoutSchema = z.object({
-  nombre: z.string().trim().min(2, "Escribí tu nombre y apellido").max(120),
+  nombre: z.string().trim().refine((v) => !OBLIGATORIOS.nombre(v), OBLIGATORIOS.nombre("")!),
   email: z.email("Revisá el mail").max(200).transform((e) => e.toLowerCase()),
-  whatsapp: z.string().trim().min(8, "Dejanos un WhatsApp para coordinar el envío").max(40),
+  whatsapp: z.string().trim().max(40).refine((v) => !OBLIGATORIOS.whatsapp(v), OBLIGATORIOS.whatsapp("")!),
   direccion: z.string().trim().min(5, "Falta la dirección").max(200),
   ciudad: z.string().trim().min(2, "Falta la ciudad").max(100),
   provincia: z.string().refine(esProvincia, "Elegí tu provincia"),
-  codigo_postal: z.string().trim().max(10).optional(),
+  codigo_postal: z.string().trim().max(10).refine((v) => !OBLIGATORIOS.codigo_postal(v), OBLIGATORIOS.codigo_postal("")!),
   nota: z.string().trim().max(500).optional(),
   origen: z.enum(ORIGENES).optional(),
   medio_pago: z.enum(["transferencia", "nave"]),
