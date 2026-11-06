@@ -71,8 +71,8 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
   const esperandoTransferencia = pendiente && p.medio_pago === "transferencia";
   const esperandoTarjeta = pendiente && p.medio_pago === "nave";
   const vencido = Boolean(p.vence_at && new Date(p.vence_at) < new Date());
-  const modo = modoPago();
-  const puedePagar = esperandoTarjeta && !vencido && tarjetaHabilitada() && modo !== null;
+  const modo = await modoPago();
+  const puedePagar = esperandoTarjeta && !vencido && (await tarjetaHabilitada()) && modo !== null;
   const wa = linkWhatsApp(p.whatsapp_contacto, `Hola, les mando el comprobante del pedido ${numeroPedido(p.numero)}.`);
   const waAyuda = linkWhatsApp(p.whatsapp_contacto, `Hola, quiero completar el pago del pedido ${numeroPedido(p.numero)}.`);
 

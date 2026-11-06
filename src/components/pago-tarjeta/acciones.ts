@@ -24,7 +24,7 @@ const TARJETAS = `${TARJETAS_PRUEBA.aprobada.replace(/(\d{4})(?=\d)/g, "$1 ")} (
  * (se validan acá y se descartan). La tarjeta aprobada confirma el pago igual que lo haría el webhook de Nave.
  */
 export async function pagarConTarjetaPrueba(token: string, datos: DatosTarjeta): Promise<ResultadoPago> {
-  if (modoPago() !== "prueba") return { ok: false, error: "El pago con tarjeta todavía no está disponible." };
+  if ((await modoPago()) !== "prueba") return { ok: false, error: "El pago con tarjeta todavía no está disponible." };
   if (!z.uuid().safeParse(token).success) return { ok: false, error: "No encontramos el pedido." };
   const t = tarjetaSchema.safeParse(datos);
   if (!t.success) return { ok: false, error: "Revisá los datos de la tarjeta." };

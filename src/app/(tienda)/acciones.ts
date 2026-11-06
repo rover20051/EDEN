@@ -7,6 +7,7 @@ import { notificarPedidoNuevo } from "@/lib/mensajes";
 import { tarjetaHabilitada } from "@/lib/pagos";
 import { esProvincia } from "@/lib/provincias";
 import { supabaseServidor } from "@/lib/supabase/servidor";
+import { estadoVenta } from "@/lib/venta";
 import { PREFIJO_PACK } from "@/lib/pack";
 
 const ORIGENES = ["anuncio", "instagram", "tiktok", "recomendacion", "iglesia", "google", "otro"] as const;
@@ -57,7 +58,8 @@ export async function confirmarPedido(datos: DatosCheckout): Promise<ResultadoCh
   const parsed = checkoutSchema.safeParse(datos);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Revisá los datos" };
   const d = parsed.data;
-  if (d.medio_pago === "nave" && !tarjetaHabilitada()) {
+  if ((await estadoVenta()) === "cerrada") return { ok: false, error: "Todavía no abrimos las ventas. ¡Muy pronto!" };
+  if (d.medio_pago === "nave" && !(await tarjetaHabilitada())) {
     return { ok: false, error: "El pago con tarjeta se habilita muy pronto. Por ahora podés pagar por transferencia." };
   }
 

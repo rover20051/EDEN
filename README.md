@@ -19,6 +19,14 @@ Con esas claves se trabaja sobre la base real: lo que se compre o cargue queda a
 
 Para entrar a `/admin`, el mail tiene que estar en **Ajustes → Cuentas** y tener usuario en Supabase → Authentication → Users → *Add user*, con *Auto Confirm User* tildado.
 
+## Abrir la tienda
+
+La web publicada queda **cerrada** hasta que se cargue `TIENDA_ABIERTA=1` en Vercel: se ve, pero no permite hacer pedidos.
+
+Para probarla antes, entrar a `/api/prueba?clave=<TIENDA_CLAVE_PRUEBA>`: se puede comprar con la tarjeta de prueba `4242 4242 4242 4242` (aprobada) o `4000 0000 0000 0002` (rechazada), sin cobro. `/api/prueba?salir=1` sale del modo prueba.
+
+Antes de vender de verdad: borrar los pedidos de prueba y `TIENDA_CLAVE_PRUEBA`, para que nadie pueda pagar con la tarjeta de prueba.
+
 ## Avisos de venta en el celular
 
 Se activan desde la campanita del back office, en cada dispositivo. Requieren HTTPS: en un celular funcionan con la web ya publicada.

@@ -834,6 +834,8 @@ body:has(#producto.abierta) .cajon{z-index:87}
 #tienda .cinco .sin-foto{aspect-ratio:3/4}
 .item .sin-foto{width:64px;aspect-ratio:4/5;flex:none}
 #filasExtra{display:contents}
+#bandaPrueba{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:60;background:var(--tinta);color:var(--papel);padding:.45rem 1rem;border-radius:999px;font-size:.9rem;white-space:nowrap}
+#bandaPrueba a{color:inherit;text-decoration:underline;margin-left:.5rem}
 </style>
 </head>
 <body>
@@ -1236,6 +1238,8 @@ tienda.classList.add("cargando");
 /* Sets (packs) activos. En el carrito se guardan como "pack:<slug>" */
 const PACK = {};
 const esPack = k => k.startsWith("pack:");
+/* "abierta", "prueba" o "cerrada". La decide el servidor, que además rechaza los pedidos con la tienda cerrada */
+let VENTA = "abierta";
 let CATALOGO = false, FALLO_CATALOGO = false, PRECIO_SET = 0, pidiendoCatalogo = false;
 const normal = t => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
 const visibles = tipo => EDEN.productos.filter(p => p.tipo === tipo && !p.fuera);
@@ -1278,8 +1282,14 @@ function cargarCatalogo(intento = 0){
   if(CATALOGO || pidiendoCatalogo) return;
   pidiendoCatalogo = true;
   const fallo = () => { sinCatalogo(); if(intento < 4) setTimeout(() => cargarCatalogo(intento + 1), 2000 * (intento + 1)); };
-  fetch("/api/catalogo", { cache: "no-cache" }).then(r => r.ok ? r.json() : null)
-    .then(c => { if(c && Array.isArray(c.productos)) aplicarCatalogo(c); else fallo(); })
+  Promise.all([
+    fetch("/api/catalogo", { cache: "no-cache" }).then(r => r.ok ? r.json() : null),
+    fetch("/api/venta", { cache: "no-store" }).then(r => r.ok ? r.json() : null).catch(() => null)
+  ]).then(([c, v]) => {
+      if(v && v.estado) VENTA = v.estado;
+      if(c && Array.isArray(c.productos)) aplicarCatalogo(c); else fallo();
+      if(VENTA === "prueba" && !$("#bandaPrueba")) document.body.insertAdjacentHTML("beforeend", `<div id="bandaPrueba" role="status">Modo prueba: nada se cobra <a href="/api/prueba?salir=1">Salir</a></div>`);
+    })
     .catch(fallo)
     .finally(() => { pidiendoCatalogo = false; });
 }
@@ -1324,6 +1334,8 @@ const agregarHTML = (id, etq) => `<button class="boton agregar" type="button" da
 const comprarHTML = (id, etq) => agregarHTML(id, etq) + `<button class="regalar" type="button" data-regalar="${esc(id)}" aria-label="Regalar ${etq}">Regalar</button>`;
 /* Agotado: "Avisame cuando vuelva" abre un mini formulario (lista de espera del back office) */
 const esperaHTML = p => `<p class="agotado-txt">Agotado</p>${!p.slug ? "" : leer("eden-espera", []).includes(p.slug) ? `<p class="espera-ok">Te avisamos por mail apenas vuelva.</p>` : `<button class="regalar" type="button" data-espera="${esc(p.id)}" aria-label="Avisame cuando vuelva ${esc(nombreLargo(p))}">Avisame cuando vuelva</button>`}`;
+const MUY_PRONTO = `<p class="agotado-txt">Muy pronto</p>`;
+const siSeVende = html => VENTA === "cerrada" ? MUY_PRONTO : html;
 function tarjeta({ id, etiqueta, foto, nombre, titulo, verbo, descripcion, precio, acciones }){
   const art = document.createElement("article"); art.className = "pieza"; art.id = id;
   art.innerHTML = `<div class="pieza-foto">${etiqueta ? `<span class="distintivo">${esc(etiqueta)}</span>` : ""}${foto}</div><p class="verbo" title="${esc(titulo)}">${nombre}</p><p class="pieza-verbo">${esc(verbo)}</p><p class="variante">${esc(descripcion)}</p><div class="pieza-precio">${precio}</div><div class="pieza-acciones">${acciones}</div>`;
@@ -1340,7 +1352,7 @@ function pintarFila(box, lista){
         nombre: esB ? `<button type="button" class="ver-producto nombre"${ver}>${nom}</button>` : nom,
         verbo: p.catVerbo, descripcion: p.catDescripcion,
         precio: CATALOGO && p.precio > 0 ? `<p class="precio">${precioHTML(p)}</p>${quedanHTML(p.stock)}` : SIN_PRECIO,
-        acciones: !CATALOGO ? agregarHTML(p.id, largo) : agotado(p) ? `<div class="espera">${esperaHTML(p)}</div>` : p.precio > 0 ? comprarHTML(p.id, largo) : ""
+        acciones: !CATALOGO ? agregarHTML(p.id, largo) : agotado(p) ? `<div class="espera">${esperaHTML(p)}</div>` : p.precio > 0 ? siSeVende(comprarHTML(p.id, largo)) : ""
       }));
     });
 }
@@ -1376,7 +1388,7 @@ function pintarSets(){
       foto: fotoHTML(fotoSet(k), `${nom}: ${esc(incluye)}`),
       nombre: nom, verbo: "", descripcion: incluye + "." + (k.descripcion ? " " + k.descripcion : ""),
       precio: `<p class="precio">${precioHTML(precioSet(k))}</p>${quedanHTML(k.stock)}`,
-      acciones: !k.stock ? `<p class="agotado-txt">Agotado</p>` : comprarHTML(id, nom)
+      acciones: !k.stock ? `<p class="agotado-txt">Agotado</p>` : siSeVende(comprarHTML(id, nom))
     }));
   });
 }
@@ -1662,8 +1674,9 @@ function abrirProducto(id){
   $("#prodDesc").textContent = p.catDescripcion || ""; $("#prodDesc").hidden = !p.catDescripcion;
   $("#prodPrecio").innerHTML = conPrecio ? precioHTML(p) : "Precio por confirmar";
   $("#prodPrecio").classList.toggle("pend", !conPrecio);
-  $("#prodAgregar").hidden = $("#prodRegalar").hidden = !conPrecio || sinStock;
-  $("#prodEspera").hidden = !sinStock; $("#prodEspera").innerHTML = sinStock ? esperaHTML(p) : "";
+  const cerrada = VENTA === "cerrada" && conPrecio && !sinStock;
+  $("#prodAgregar").hidden = $("#prodRegalar").hidden = !conPrecio || sinStock || cerrada;
+  $("#prodEspera").hidden = !sinStock && !cerrada; $("#prodEspera").innerHTML = sinStock ? esperaHTML(p) : cerrada ? MUY_PRONTO : "";
   $("#prodMinis").innerHTML = fotos.map((f,k) => `<button type="button" aria-label="Foto ${k+1}"><img src="${esc(f)}" alt=""></button>`).join("");
   $("#prodMinis").querySelectorAll("button").forEach((b,k) => b.onclick = () => mostrarFoto(fotos[k], k));
   $("#prodImg").hidden = !fotos.length;
@@ -1836,6 +1849,7 @@ const carritoTienda = (() => {
   addEventListener("keydown", e => { if(e.key === "Escape") cerrar(); });
   pedir.addEventListener("click", () => {
     const ls = lineas(), items = ls.map(x => ({ slug: x.set ? x.id : x.p.slug, cantidad: x.cant }));
+    if(VENTA === "cerrada"){ pintar("Todavía no abrimos las ventas. ¡Muy pronto!"); return; }
     if(!CATALOGO || !items.length || items.some(i => !i.slug) || ls.some(x => !(precioDe(x) > 0))){ pintar(); return; }
     guardar("eden-checkout", items);
     location.href = "/checkout";
