@@ -10,8 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Courier+Prime&display=swap" rel="stylesheet">
 <style>
 :root{
-  --papel:#F3EBE0;
-  --papel-2:#EADFD0;
+  --papel:#FDFAF5;
+  --papel-2:#F5EFE5;
   --tinta:#4E4540;
   --raiz:#2C221C;
   --musgo:#39432A;
@@ -109,17 +109,17 @@ p{margin:0 0 1.1em}
 .menu.abierto{transform:none}
 .menu-cab{display:flex;justify-content:space-between;align-items:center;padding-bottom:1.2rem;border-bottom:1px solid var(--linea)}
 .menu nav{flex:1;padding-top:.5rem}
-.menu details{border-bottom:1px solid var(--linea)}
-.menu summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:1.1rem 0;font-size:1.7rem;font-weight:400}
+.menu details{border-bottom:0}
+.menu summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:.45rem 0;font-size:1.25rem;font-weight:400}
 .menu summary::-webkit-details-marker{display:none}
-.menu summary::after{content:"+";color:var(--oro);font-size:1.5rem;transition:transform .3s}
+.menu summary::after{content:"+";color:var(--oro);font-size:1.25rem;transition:transform .3s}
 .menu details[open] summary::after{transform:rotate(45deg)}
 .menu ul{list-style:none;margin:0;padding:0}
-.menu details ul{padding:0 0 1.1rem}
+.menu details ul{padding:0 0 .6rem 1rem}
 .menu details li a{display:block;padding:.35rem 0;font-size:1.15rem;text-decoration:none}
 .menu details li a:hover,.menu-simple a:hover{text-decoration:underline;text-underline-offset:.25em;text-decoration-thickness:1px}
 .menu details li.todo a{font-style:italic;color:var(--texto-suave)}
-.menu-simple{padding-top:1.4rem !important}
+.menu-simple{padding-top:0 !important}
 .menu-simple a{display:block;padding:.45rem 0;font-size:1.25rem;text-decoration:none}
 .menu-pie{padding-top:2rem;border-top:1px solid var(--linea);margin-top:2rem;font-size:1rem;color:var(--texto-suave)}
 .menu-pie a{color:var(--tinta)}
@@ -410,7 +410,7 @@ a.boton{text-decoration:none;display:inline-block}
 #caminar{padding-top:clamp(4rem,9vw,7rem)}
 
 /* ====== Ajustes: franja café, menú del jardín, portada con frase ====== */
-.barra-cafe{position:relative;z-index:60;background:#2C221C;color:#F3EBE0;text-align:center;font-family:var(--serif);font-size:.95rem;letter-spacing:.02em;padding:calc(env(safe-area-inset-top,0px) + .5rem) 1rem .5rem}
+.barra-cafe{position:relative;z-index:60;background:#2C221C;color:#FDFAF5;text-align:center;font-family:var(--serif);font-size:.95rem;letter-spacing:.02em;padding:calc(env(safe-area-inset-top,0px) + .5rem) 1rem .5rem}
 .nav{position:absolute;top:var(--barra-h,36px);padding-top:.9rem}
 .nav.solida{position:fixed;top:0;padding-top:calc(env(safe-area-inset-top,0px) + .7rem);padding-bottom:.7rem}
 .nav-marca{justify-self:start}
@@ -565,7 +565,7 @@ html.anim .polaroid.rv.visto{transform:rotate(var(--giro))}
   .cinco .precio.pend{display:none}
 }
 .cinco .precio:not(.pend){font-size:1rem;font-weight:500}
-#palabra .nota-palabra{background:#F3EBE0}
+#palabra .nota-palabra{background:#FDFAF5}
 #tienda .cab{max-width:920px;justify-self:center;width:100%;text-align:left}
 #tienda .col-nombre{font-style:italic;font-size:.55em;color:var(--texto-suave);white-space:nowrap}
 #palabra .cierre-palabra{grid-column:6 / span 6;margin:1.4rem 0 0;font-style:italic;font-size:.95em;line-height:1.6;color:#EFE7D6}
@@ -739,6 +739,136 @@ button.cj-salto:focus-visible{outline:2px solid var(--oro);outline-offset:4px}
   html.anim .aparece{opacity:1;transform:none}
 }
 
+/* ====== Ficha individual de cada Biblia ====== */
+/* En la colección: la foto y el nombre abren la ficha */
+.pieza-ficha{display:block;color:inherit;text-decoration:none;cursor:pointer;position:relative}
+.pieza .verbo .pieza-ficha{display:inline;position:static}
+.pieza .verbo .pieza-ficha:hover{text-decoration:underline;text-underline-offset:.3em;text-decoration-thickness:1px}
+@media (hover:hover){
+  .pieza-ficha.foto-enlace::after{content:"Ver la pieza";position:absolute;left:50%;bottom:.8rem;transform:translate(-50%,6px);padding:.3rem .8rem .35rem;border-radius:999px;background:color-mix(in srgb,var(--papel) 88%,transparent);color:var(--tinta);font-family:var(--maquina);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;opacity:0;transition:opacity .4s ease,transform .5s cubic-bezier(.2,.6,.3,1);pointer-events:none}
+  .pieza:hover .pieza-ficha.foto-enlace::after{opacity:1;transform:translate(-50%,0)}
+}
+
+.ficha{position:fixed;inset:0;z-index:65;background:var(--papel);color:var(--tinta);overflow-y:auto;overscroll-behavior:contain;opacity:0;visibility:hidden;transition:opacity .5s ease,visibility 0s linear .5s}
+.ficha.abierta{opacity:1;visibility:visible;transition:opacity .5s ease}
+.ficha-barra{position:sticky;top:0;z-index:3;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;
+  padding:calc(env(safe-area-inset-top,0px) + .9rem) clamp(1rem,4vw,2.5rem) .9rem;background:color-mix(in srgb,var(--papel) 92%,transparent);backdrop-filter:blur(6px);box-shadow:0 1px 0 var(--linea)}
+.ficha-barra .volver-jardin{justify-self:start;font-size:1rem}
+.ficha-barra .logo-mini{justify-self:center;color:var(--tinta)}
+.ficha-barra .carrito-btn{justify-self:end;color:var(--tinta)}
+.fb-cuerpo{max-width:1180px;margin:0 auto;padding:clamp(2rem,5vw,4rem) clamp(1.25rem,5vw,3rem) clamp(3rem,6vw,4.5rem);transition:opacity .38s ease,transform .45s cubic-bezier(.3,.6,.2,1)}
+.fb-cuerpo.fb-saliendo{opacity:0;transform:translateY(-10px)}
+.fb-cuerpo.fb-entrando{animation:cj-entrar .9s cubic-bezier(.2,.6,.3,1) both}
+.fb-principal{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(2rem,5vw,4.5rem);align-items:start}
+
+/* Galería */
+.fb-galeria{position:sticky;top:5.5rem;display:grid;gap:1rem}
+.fb-foto{position:relative;margin:0;aspect-ratio:3/4;overflow:hidden;background:var(--papel-2)}
+.fb-ampliar{all:unset;display:block;width:100%;height:100%;cursor:zoom-in}
+.fb-ampliar:focus-visible{outline:2px solid var(--oro);outline-offset:-4px}
+.fb-ampliar img{width:100%;height:100%;object-fit:cover;object-position:center 55%;transition:opacity .35s ease,transform 1.4s cubic-bezier(.2,.6,.3,1)}
+.fb-ampliar:hover img{transform:scale(1.025)}
+.fb-ampliar img.cambiando{opacity:0}
+.fb-flechas{position:absolute;right:1rem;bottom:1rem;display:flex;align-items:center;gap:.6rem;padding:.3rem;border-radius:999px;background:color-mix(in srgb,var(--papel) 82%,transparent);backdrop-filter:blur(4px)}
+.fb-flechas .flecha-btn{width:2.3rem;height:2.3rem;font-size:.95rem;border-color:transparent}
+.fb-cuenta{font-family:var(--maquina);font-size:.7rem;letter-spacing:.12em;color:var(--texto-suave);min-width:3.2em;text-align:center}
+.fb-foto > .sin-foto,.fb-otra-foto > .sin-foto{width:100%;height:100%;aspect-ratio:auto;text-align:center;padding:2rem}
+.fb-miniaturas{display:flex;gap:.7rem;overflow-x:auto;scrollbar-width:none;padding:.15rem}
+.fb-miniaturas::-webkit-scrollbar{display:none}
+.fb-mini{all:unset;flex:none;width:72px;aspect-ratio:3/4;cursor:pointer;overflow:hidden;opacity:.55;outline:1px solid transparent;outline-offset:3px;transition:opacity .3s,outline-color .3s}
+.fb-mini img{width:100%;height:100%;object-fit:cover}
+.fb-mini:hover{opacity:.85}
+.fb-mini.activa{opacity:1;outline-color:var(--oro)}
+.fb-mini:focus-visible{outline:2px solid var(--oro)}
+
+/* Información */
+.fb-info{padding-top:.5rem}
+.fb-etq{display:flex;align-items:center;gap:.9rem;margin:0;font-family:var(--maquina);font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--texto-suave)}
+.fb-etq::after{content:"";width:2.5rem;height:1px;background:var(--oro);opacity:.6}
+.fb-info h2{margin:1.2rem 0 0;font-weight:300;font-size:clamp(3rem,2rem + 4vw,5.4rem);line-height:.95;letter-spacing:-.02em}
+.fb-info h2:focus{outline:none}
+.fb-verbo{margin:.5rem 0 0;font-family:var(--maquina);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--oro)}
+.fb-desc{margin:1.6rem 0 0;max-width:24em;font-style:italic;font-size:clamp(1.2rem,1.05rem + .5vw,1.45rem);line-height:1.45;color:var(--texto-suave)}
+.fb-compra{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin:1.6rem 0 0}
+.fb-precio{margin:1rem 0 0;font-size:1.6rem;font-variant-numeric:lining-nums;color:var(--texto-suave)}
+.fb-precio.pend{font-style:italic;font-size:1.1rem;color:var(--texto-suave)}
+.fb-compra .boton{padding:.6rem 1.8rem .7rem}
+.fb-grupo{margin:2.4rem 0 .4rem;font-family:var(--maquina);font-weight:400;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--oro)}
+.fb-specs dl{margin:0;border-top:1px solid var(--linea)}
+.fb-specs dl div{display:flex;justify-content:space-between;align-items:baseline;gap:1.2rem;padding:.6rem 0;border-bottom:1px solid var(--linea)}
+.fb-specs dt{font-style:italic;color:var(--texto-suave);flex:none}
+.fb-specs dd{margin:0;text-align:right;font-size:1.05rem}
+.fb-pend{font-style:italic;color:var(--texto-suave);opacity:.7;font-size:.95rem}
+
+/* Explora */
+.fb-explora{margin-top:clamp(4rem,9vw,7rem)}
+.fb-explora-cab{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding-bottom:.8rem;margin-bottom:1.6rem;border-bottom:1px solid var(--linea)}
+.fb-explora-cab h3{margin:0;font-weight:400;font-style:italic;font-size:clamp(1.6rem,1.3rem + 1vw,2.2rem)}
+.fb-explora-cab p{margin:0;font-size:1rem;color:var(--texto-suave);font-style:italic}
+.fb-otras{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(.8rem,2vw,1.5rem)}
+.fb-otra{display:block;color:inherit;text-decoration:none;overflow:hidden}
+.fb-otra-foto{display:block;aspect-ratio:3/4;overflow:hidden;background:var(--papel-2)}
+.fb-otra-foto img{width:100%;height:100%;object-fit:cover;object-position:center 58%;transition:transform 1.2s cubic-bezier(.2,.6,.3,1)}
+.fb-otra:hover .fb-otra-foto img{transform:scale(1.035)}
+.fb-otra .sin-foto{aspect-ratio:3/4;font-size:.85rem;gap:.6rem;padding:1rem;text-align:center}
+.fb-otra .sin-foto .mono{width:18px}
+.fb-otra-nombre{display:block;margin:.7rem 0 0;font-size:clamp(1.15rem,1rem + .4vw,1.4rem);line-height:1.15}
+.fb-otra-verbo{display:block;margin-top:.2rem;font-family:var(--maquina);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--oro)}
+.fb-otra:hover .fb-otra-nombre{text-decoration:underline;text-underline-offset:.25em;text-decoration-thickness:1px}
+.fb-otra:focus-visible{outline:2px solid var(--oro);outline-offset:4px}
+.fb-pie{display:grid;justify-items:center;gap:1.4rem;margin-top:clamp(3.5rem,8vw,5.5rem);padding-top:2.5rem;border-top:1px solid var(--linea)}
+.fb-pie .mono{width:22px}
+
+/* Visor de la ficha */
+#visorFicha{width:100vw;height:100dvh;max-width:100vw;max-height:100dvh;margin:0;padding:0;border:0;background:rgba(28,22,18,.94);display:none;place-items:center}
+#visorFicha[open]{display:grid}
+#visorFicha::backdrop{background:rgba(28,22,18,.85)}
+#visorFicha img{max-width:92vw;max-height:86dvh;width:auto;height:auto;object-fit:contain}
+#visorFicha .visor-btn[hidden]{display:none}
+
+@media (max-width:860px){
+  .fb-principal{grid-template-columns:1fr}
+  .fb-galeria{position:static}
+  .fb-info{padding-top:0}
+  .fb-otras{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 clamp(1.25rem,5vw,3rem);scrollbar-width:none;margin:0 calc(-1 * clamp(1.25rem,5vw,3rem));padding:0 clamp(1.25rem,5vw,3rem) .4rem}
+  .fb-otras::-webkit-scrollbar{display:none}
+  .fb-otra{flex:0 0 42%;scroll-snap-align:start}
+}
+@media (max-width:600px){
+  .ficha-barra{display:flex;justify-content:space-between}
+  .ficha-barra .logo-mini{display:none}
+  .fb-mini{width:60px}
+}
+@media (prefers-reduced-motion:reduce){
+  .fb-cuerpo,.fb-cuerpo.fb-entrando{transition:none;animation:none}
+}
+/* Enlace «Colección» del menú superior: el título queda justo debajo de la barra */
+#coleccion-1{scroll-margin-top:var(--nav-h,4.5rem)}
+/* Enlaces de Instagram sin subrayado, para que se lea bien @casa_edenn_ */
+a[href*="instagram.com"]{text-decoration:none}
+#preguntas{padding-top:clamp(3.5rem,7vw,5rem)}
+
+/* ====== Cartas del jardín · índice en notas de papel ====== */
+.cj-intro.cj-intro-centro{display:block;text-align:center;padding:clamp(4rem,9vw,7rem) 1.25rem clamp(2.5rem,5vw,4rem)}
+.cj-sup{margin:0;font-style:italic;font-size:clamp(1.1rem,1rem + .4vw,1.4rem);color:var(--texto-suave)}
+.cj-intro-centro .cj-titulo{grid-column:auto;margin:.5rem 0 0;font-weight:300;font-size:clamp(3rem,1.6rem + 5vw,6.4rem);line-height:1.02;letter-spacing:-.01em}
+.cj-notas{list-style:none;max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(1.25rem,5vw,3rem) clamp(6rem,12vw,10rem);display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(2rem,4vw,3.2rem) clamp(1.5rem,3.5vw,3rem)}
+.cj-notas li{margin:0;flex:0 1 calc((100% - 2 * clamp(1.5rem,3.5vw,3rem)) / 3);min-width:15rem;max-width:23rem}
+.cj-nota{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;min-height:clamp(19rem,27vw,24rem);padding:clamp(1.6rem,3vw,2.4rem);background:#FFFEFB;color:var(--hoja-tinta);transform:rotate(var(--giro,0deg));box-shadow:0 1px 0 rgba(44,34,28,.05),0 28px 34px -26px rgba(44,34,28,.45);transition:transform .9s cubic-bezier(.2,.6,.3,1),box-shadow .9s ease}
+.cj-nota span{display:block}
+button.cj-nota{cursor:pointer}
+button.cj-nota:hover,button.cj-nota:focus-visible{transform:rotate(0deg) translateY(-6px);box-shadow:0 1px 0 rgba(44,34,28,.05),0 36px 40px -26px rgba(44,34,28,.5)}
+button.cj-nota:focus-visible{outline:2px solid var(--oro);outline-offset:6px}
+.cj-nota-etq{padding-bottom:.9rem;border-bottom:1px solid rgba(84,69,65,.16);font-family:var(--maquina);font-size:.82rem;letter-spacing:.12em;color:#9C7B31}
+.cj-nota-titulo{margin-top:1.5rem;font-size:clamp(1.5rem,1.2rem + .8vw,1.95rem);line-height:1.22;color:#2f2722}
+.cj-nota-extracto{margin-top:1.2rem;font-family:var(--maquina);font-size:.84rem;line-height:1.95;color:#4a3f38}
+.cj-nota-abrir{margin-top:auto;padding-top:1.6rem;font-style:italic;font-size:1.15rem;color:#2f2722;transition:transform .5s cubic-bezier(.3,.7,.2,1)}
+button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
+.cj-nota.pronto{background:rgba(255,254,251,.55);box-shadow:0 1px 0 rgba(44,34,28,.04),0 24px 30px -26px rgba(44,34,28,.3)}
+.cj-nota.pronto .cj-nota-etq{color:rgba(156,123,49,.6)}
+.cj-nota-pronto{margin-top:1.5rem;font-style:italic;font-size:clamp(1.5rem,1.2rem + .8vw,1.95rem);color:var(--texto-suave);opacity:.6}
+@media (max-width:560px){.cj-notas li{flex-basis:100%}}
+
 /* ====== Tienda conectada: catálogo en vivo, carrito y ficha ====== */
 /* Tarjetas alineadas: cada una ocupa 6 filas de la grilla (foto, nombre, verbo, descripción, precio, botones)
    y usa subgrid, así cada parte queda a la misma altura en toda la fila aunque una tenga tachado, etiqueta o "Quedan N". */
@@ -805,30 +935,8 @@ button.cj-salto:focus-visible{outline:2px solid var(--oro);outline-offset:4px}
 .regalo-op:has(input:checked){border-color:var(--tinta);background:var(--nota)}
 .regalo-op input{accent-color:var(--tinta);margin-top:.3rem}
 .regalo-op small{display:block;font-style:italic;color:var(--texto-suave);font-size:.92rem}
-/* Ficha de cada Biblia: el carrito se abre por encima de ella */
-body:has(#producto.abierta) .velo{z-index:86}
-body:has(#producto.abierta) .cajon{z-index:87}
-.prod{max-width:1080px;margin:0 auto;padding:clamp(2rem,5vw,4rem) clamp(1.25rem,5vw,3rem) clamp(4rem,8vw,6rem);display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:clamp(2rem,5vw,4.5rem);align-items:start}
-.prod-galeria,.prod-info{min-width:0}
-.prod-principal{margin:0;background:var(--papel-2);aspect-ratio:4/5;overflow:hidden}
-.prod-principal img{width:100%;height:100%;object-fit:cover;animation:aparece .5s ease}
-@keyframes aparece{from{opacity:.3}to{opacity:1}}
-.prod-minis{display:flex;gap:.6rem;margin-top:.8rem;overflow-x:auto;scrollbar-width:none}
-.prod-minis button{all:unset;cursor:pointer;flex:0 0 4.4rem;aspect-ratio:1;overflow:hidden;opacity:.6;outline:1px solid transparent;transition:opacity .25s}
-.prod-minis button[aria-pressed="true"]{opacity:1;outline:1px solid var(--tinta);outline-offset:2px}
-.prod-minis button:focus-visible{outline:2px solid var(--oro)}
-.prod-minis img{width:100%;height:100%;object-fit:cover}
-.prod-info{display:grid;gap:1rem;position:sticky;top:5.5rem}
-.prod-info h2{margin:0}
-.prod-desc{margin:0;font-size:1.2rem;font-style:italic}
-.prod-info .precio{margin:0}
-#prodAgregar{justify-self:start;padding:.65rem 1.8rem .75rem}
-#prodRegalar{justify-self:start;margin-top:-.4rem}
-.prod-datos{margin:.8rem 0 0;border-top:1px solid var(--linea)}
-.prod-datos div{display:flex;justify-content:space-between;gap:1rem;padding:.55rem 0;border-bottom:1px solid var(--linea);font-size:1rem}
-.prod-datos dt{font-style:italic;color:var(--texto-suave)}
-.prod-datos dd{margin:0;text-align:right}
-@media (max-width:760px){.prod{grid-template-columns:minmax(0,1fr)}.prod-info{position:static}}
+/* Ficha de cada Biblia (la de Mich): la foto de la tarjeta muestra «Ver la pieza» al pasar el mouse */
+.ver-producto.foto-enlace{position:relative}
 /* Espacio de un producto sin foto cargada: mide lo mismo que una foto */
 .sin-foto{box-sizing:border-box}
 #tienda .cinco .sin-foto{aspect-ratio:3/4}
@@ -836,6 +944,9 @@ body:has(#producto.abierta) .cajon{z-index:87}
 #filasExtra{display:contents}
 #bandaPrueba{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:60;background:var(--tinta);color:var(--papel);padding:.45rem 1rem;border-radius:999px;font-size:.9rem;white-space:nowrap}
 #bandaPrueba a{color:inherit;text-decoration:underline;margin-left:.5rem}
+/* Versículos: primero se va uno y recién después aparece el otro, para que las letras nunca se pisen */
+.verso{will-change:opacity;transition:opacity .8s ease,visibility 0s linear .8s}
+.verso.activo{transition:opacity .9s ease .8s,visibility 0s linear .8s}
 </style>
 </head>
 <body>
@@ -856,8 +967,8 @@ body:has(#producto.abierta) .cajon{z-index:87}
     <a class="nav-marca" href="#inicio" aria-label="Edén, inicio"><span class="logo-mini"></span></a>
   </div>
   <nav class="nav-links" aria-label="Principal">
-    <a href="#tienda">Colección</a>
-    <a href="#devocionales" data-devocionales>Devocionales</a>
+    <a href="#coleccion-1">Colección</a>
+    <a href="#devocionales" data-devocionales>Cartas del jardín</a>
     <a href="#preguntas">Preguntas<span class="largo"> frecuentes</span></a>
   </nav>
   <button class="carrito-btn" type="button" id="abrirCarrito" aria-haspopup="dialog" aria-controls="carrito">Carrito&nbsp;<span id="carritoCuenta">(0)</span></button>
@@ -884,12 +995,11 @@ body:has(#producto.abierta) .cajon{z-index:87}
     <button class="cerrar" type="button" id="cerrarMenu">Cerrar</button>
   </div>
   <nav>
-    <details open><summary>Biblias</summary><ul id="menuBiblias"></ul></details>
+    <details><summary>Biblias</summary><ul id="menuBiblias"></ul></details>
     <details><summary>Journals</summary><ul id="menuJournals"></ul></details>
     <ul class="menu-simple">
-      <li><a href="#devocionales" data-devocionales>Devocionales</a></li>
+      <li><a href="#devocionales" data-devocionales>Cartas del jardín</a></li>
       <li><a href="#palabra">Nuestras Biblias</a></li>
-      <li><a href="#momentos">Momentos</a></li>
       <li><a href="#nosotras-inicio">Nosotras</a></li>
       <li><a href="#preguntas">Preguntas frecuentes</a></li>
       <li><a href="#parte">Ser parte</a></li>
@@ -928,7 +1038,7 @@ body:has(#producto.abierta) .cajon{z-index:87}
 
   <section class="capitulo" id="tienda">
     <div class="rejilla">
-      <div class="cab">
+      <div class="cab" id="coleccion-1">
         <h2><span style="white-space:nowrap">Colección 1</span> <span class="col-nombre">/ De vuelta al jardín</span></h2>
       </div>
       <h3 class="grupo" id="grupo-biblias">Biblias</h3>
@@ -1027,17 +1137,14 @@ body:has(#producto.abierta) .cajon{z-index:87}
   <section class="capitulo" id="preguntas">
     <div class="rejilla">
       <div class="cab">
-        <p class="num">Para caminar juntas</p>
         <h2>Preguntas frecuentes</h2>
       </div>
       <div class="faq">
+        <details><summary>¿Qué versión usan?</summary>
+          <p>Usamos la Nueva Versión Internacional (NVI), en español.</p></details>
         <details><summary>¿Están hechas a mano?</summary>
           <p>Sí. Cada Biblia se hace a mano en Argentina, en cuero marrón, con un detalle dorado en la tapa: <span id="faqDisenos">Origen, Habitación, Anaj, Prajim o Havilah</span>.</p></details>
-        <details><summary>¿Qué versión usan?</summary>
-          <p>Todas nuestras Biblias son de la Nueva Versión Internacional (NVI), en español.</p></details>
-        <details><summary>¿Cuándo y cómo puedo tener una?</summary>
-          <p>La primera edición sale a fin de 2026, con envíos dentro de Argentina. Precio, medidas y envíos: por confirmar. Si te unes al jardín, te avisamos primero.</p></details>
-        <details><summary>¿Cómo me comunico con ustedes?</summary>
+        <details><summary>¿Cómo puedo comunicarme con ustedes?</summary>
           <p>Escríbenos por <a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram @casa_edenn_</a>. Nos encanta conversar.</p></details>
       </div>
     </div>
@@ -1068,14 +1175,14 @@ body:has(#producto.abierta) .cajon{z-index:87}
   <div class="pie-rejilla">
     <div class="pie-marca"><span class="logo-mini" aria-hidden="true"></span><p>Biblias artesanales de cuero, hechas a mano en Argentina.</p></div>
     <div><h3>Colección</h3><ul id="pieColeccion"></ul></div>
-    <div><h3>Edén</h3><ul><li><a href="#devocionales" data-devocionales>Devocionales</a></li><li><a href="#palabra">Nuestras Biblias</a></li><li><a href="#nosotras-inicio">Nosotras</a></li></ul></div>
+    <div><h3>Edén</h3><ul><li><a href="#devocionales" data-devocionales>Cartas del jardín</a></li><li><a href="#palabra">Nuestras Biblias</a></li><li><a href="#nosotras-inicio">Nosotras</a></li></ul></div>
     <div><h3>Ayuda</h3><ul><li><a href="#preguntas">Preguntas frecuentes</a></li><li><a href="#parte">Ser parte</a></li><li><a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Contacto</a></li></ul></div>
     <div><h3>Síguenos</h3><ul><li><a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram</a></li></ul></div>
   </div>
   <div class="pie-legal"><span>© 2026 Edén</span><span>De regreso al Jardín. Al lugar de origen.</span></div>
 </footer>
 
-<div class="historia" id="devocionales" role="dialog" aria-modal="true" aria-label="Devocionales" aria-hidden="true">
+<div class="historia" id="devocionales" role="dialog" aria-modal="true" aria-label="Cartas del jardín" aria-hidden="true">
   <div class="historia-barra">
     <span class="mono" aria-hidden="true"></span>
     <button class="cerrar cj-barra-cartas" type="button" id="barraCartas" data-volver-cartas hidden>Todas las cartas</button>
@@ -1084,14 +1191,12 @@ body:has(#producto.abierta) .cajon{z-index:87}
   <div class="apertura" id="apertura" aria-hidden="true"><div class="ap-velo"></div></div>
 
   <div class="cartas-indice" id="cartasIndice">
-    <header class="cj-intro" id="cjIntro">
-      <p class="cj-etiqueta"><span>Devocionales</span><span class="cj-linea"></span><span>Edén</span></p>
-      <h2 class="cj-titulo" tabindex="-1" style="outline:none"><span>Cartas</span> <em>del jardín</em></h2>
-      <p class="cj-frase">Palabras para detenernos, recordar y volver a Su presencia.</p>
-      <div class="cj-rama" aria-hidden="true"><span class="mecer" data-mecer="1.2"><svg class="bot bot-rama" viewBox="0 0 340 600" aria-hidden="true" focusable="false"><path pathLength="1" d="M40.0 580.0C130.0 440.0 90.0 260.0 300.0 50.0"/><path pathLength="1" d="M67.4 527.9Q108.4 538.0 133.7 505.4Q91.4 500.6 67.4 527.9"/><path pathLength="1" d="M72.7 526.1Q98.4 521.0 121.8 509.5"/><path pathLength="1" d="M78.2 500.6Q85.1 466.7 46.1 440.6Q48.2 481.9 78.2 500.6"/><path pathLength="1" d="M75.6 495.8Q66.6 472.0 51.8 451.4"/><path pathLength="1" d="M87.6 472.4Q127.2 477.8 147.6 444.9Q107.4 444.5 87.6 472.4"/><path pathLength="1" d="M92.4 470.2Q115.9 462.9 136.8 449.8"/><path pathLength="1" d="M96.2 443.5Q100.5 411.4 62.1 389.3Q66.8 427.9 96.2 443.5"/><path pathLength="1" d="M93.4 439.1Q83.5 417.4 68.2 399.0"/><path pathLength="1" d="M104.4 413.7Q141.9 417.3 159.8 385.8Q122.1 386.8 104.4 413.7"/><path pathLength="1" d="M108.8 411.5Q130.7 403.8 149.8 390.8"/><path pathLength="1" d="M112.8 383.2Q116.8 353.3 80.6 332.5Q85.1 368.7 112.8 383.2"/><path pathLength="1" d="M110.2 379.1Q100.7 358.8 86.4 341.6"/><path pathLength="1" d="M121.8 351.9Q157.0 356.0 174.2 327.0Q138.9 327.1 121.8 351.9"/><path pathLength="1" d="M126.0 349.9Q146.6 343.2 164.8 331.5"/><path pathLength="1" d="M131.9 319.8Q137.3 292.4 104.3 271.0Q106.9 305.0 131.9 319.8"/><path pathLength="1" d="M129.7 315.9Q121.9 296.5 109.3 279.8"/><path pathLength="1" d="M143.7 287.0Q176.4 293.2 194.1 267.6Q161.4 265.2 143.7 287.0"/><path pathLength="1" d="M147.7 285.4Q167.3 280.7 185.0 271.1"/><path pathLength="1" d="M157.6 253.4Q165.1 228.8 136.4 205.9Q135.7 237.5 157.6 253.4"/><path pathLength="1" d="M155.9 249.6Q150.4 231.0 140.2 214.4"/><path pathLength="1" d="M174.1 219.1Q203.8 228.1 222.5 206.5Q192.6 200.9 174.1 219.1"/><path pathLength="1" d="M177.9 218.1Q196.5 215.8 213.8 208.8"/><path pathLength="1" d="M193.7 184.1Q203.4 162.8 179.7 138.2Q175.4 167.1 193.7 184.1"/><path pathLength="1" d="M192.5 180.5Q189.6 162.8 182.2 146.5"/><path pathLength="1" d="M216.8 148.5Q243.2 160.2 262.5 142.8Q235.9 134.1 216.8 148.5"/><path pathLength="1" d="M220.5 148.0Q237.7 148.1 254.3 143.8"/><path pathLength="1" d="M244.1 112.1Q255.7 94.2 237.1 68.6Q229.7 94.4 244.1 112.1"/><path pathLength="1" d="M243.6 108.6Q243.1 92.2 238.3 76.5"/><path pathLength="1" d="M276.0 75.1Q298.8 88.9 318.0 75.5Q295.0 64.3 276.0 75.1"/><path pathLength="1" d="M279.3 75.1Q294.9 77.3 310.4 75.4"/><path pathLength="1" d="M300.0 50.0Q320.3 46.7 326.2 23.8Q305.0 31.4 300.0 50.0"/><path pathLength="1" d="M302.1 47.9Q313.0 39.5 321.5 28.5"/></svg></span></div>
+    <header class="cj-intro cj-intro-centro" id="cjIntro">
+      <p class="cj-sup">Devocionales</p>
+      <h2 class="cj-titulo" tabindex="-1" style="outline:none">Cartas del jardín</h2>
     </header>
 
-    <ul class="cj-cartas" id="coleccionCartas" aria-label="Cartas del jardín"></ul>
+    <ul class="cj-notas" id="coleccionCartas" aria-label="Cartas del jardín"></ul>
   </div>
 
   <!-- ====== CARTA I ======
@@ -1158,35 +1263,25 @@ body:has(#producto.abierta) .cajon{z-index:87}
 </div>
 
 
-<div class="historia" id="producto" role="dialog" aria-modal="true" aria-labelledby="prodNombre" aria-hidden="true">
-  <div class="historia-barra">
-    <span class="mono" aria-hidden="true"></span>
-    <button class="cerrar volver-jardin" type="button" id="cerrarProducto"><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 9.5c-4.5 0-6-6-12-6S6 8 1.5 8"/><path d="M5.5 4.2 1.5 8l4.3 3.3"/></svg>Volver a la colección</button>
+<!-- ====== Ficha individual de cada Biblia ======
+     Una sola plantilla para todos los modelos. Se completa sola con los datos
+     de EDEN.productos y FICHAS (en el <script>, busca "Fichas de cada Biblia: editar aquí"). -->
+<div class="ficha" id="ficha" role="dialog" aria-modal="true" aria-labelledby="fbNombre" aria-hidden="true">
+  <div class="ficha-barra">
+    <button class="cerrar volver-jardin" type="button" data-fb-volver><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 9.5c-4.5 0-6-6-12-6S6 8 1.5 8"/><path d="M5.5 4.2 1.5 8l4.3 3.3"/></svg>Volver a todas las Biblias</button>
+    <span class="logo-mini" aria-hidden="true"></span>
+    <button class="carrito-btn" type="button" id="fichaCarrito">Carrito&nbsp;<span id="fichaCuenta">(0)</span></button>
   </div>
-  <div class="prod">
-    <div class="prod-galeria">
-      <figure class="prod-principal"><img id="prodImg" alt=""></figure>
-      <div class="prod-minis" id="prodMinis" role="group" aria-label="Fotos del producto"></div>
-    </div>
-    <div class="prod-info">
-      <p class="num" id="prodVerbo"></p>
-      <h2 id="prodNombre"></h2>
-      <p class="prod-desc" id="prodDesc"></p>
-      <p class="precio" id="prodPrecio"></p>
-      <button class="boton lleno" type="button" id="prodAgregar">Agregar</button>
-      <button class="regalar" type="button" id="prodRegalar">Regalar esta Biblia</button>
-      <div class="espera" id="prodEspera" hidden></div>
-      <dl class="prod-datos">
-        <div><dt>Idioma</dt><dd>Español</dd></div>
-        <div><dt>Tapa</dt><dd>Cuero</dd></div>
-        <div><dt>Versión</dt><dd>NVI</dd></div>
-        <div><dt>Hecha en</dt><dd>Argentina</dd></div>
-        <div><dt>Primera edición</dt><dd>30 ejemplares</dd></div>
-        <div><dt>Envíos</dt><dd>Dentro de Argentina</dd></div>
-      </dl>
-    </div>
-  </div>
+  <div class="fb-cuerpo" id="fichaCuerpo"></div>
 </div>
+
+<dialog id="visorFicha" aria-label="Foto ampliada">
+  <img id="visorFichaImg" alt="">
+  <button type="button" class="visor-btn cerrar-v" id="vfCerrar" aria-label="Cerrar">✕</button>
+  <button type="button" class="visor-btn ant" id="vfAnt" aria-label="Foto anterior">←</button>
+  <button type="button" class="visor-btn sig" id="vfSig" aria-label="Foto siguiente">→</button>
+</dialog>
+
 
 <div class="velo" id="velo"></div>
 
@@ -1216,6 +1311,35 @@ const EDEN = {
   instagram: "https://www.instagram.com/casa_edenn_/"
 };
 /* ======================================== */
+
+/* ====== Fichas de cada Biblia: editar aquí ======
+   Cada Biblia usa su "id" del catálogo de arriba (ventana, florecer, roca, biblia-4, biblia-5).
+   · Los campos vacíos ("") se muestran como «Por confirmar».
+   · Medidas: escribe solo el número (ej. alto:"21.5") y se agrega «cm» solo.
+   · galeria: fotos adicionales de ESE modelo (la principal es su "imagen" del catálogo).
+       - Una foto nueva: escribe su dirección o archivo, ej. "fotos/origen-lomo.jpg"
+       - Una foto que ya está en la página: { enPagina:"#palabra .foto img" }
+   · slug: el nombre que aparece en el enlace para compartir (ej. #biblia/origen).
+   · COMUN: datos que comparten todas las Biblias; cada modelo puede cambiarlos. */
+const FICHAS = {
+  COMUN: {
+    version: "NVI",
+    materiales: "Cuero con detalle dorado en la tapa"
+  },
+  "ventana": { slug:"origen",
+    galeria: [ { enPagina:"#palabra .foto img" }, { enPagina:"#parte .parte-foto img" }, { enPagina:"#caminar .polaroid.pl img" } ],
+    alto:"", ancho:"", grosor:"" },
+  "florecer": { slug:"anaj", galeria: [],
+    alto:"", ancho:"", grosor:"" },
+  "roca": { slug:"habitacion", galeria: [],
+    alto:"", ancho:"", grosor:"" },
+  "biblia-4": { slug:"prajim", galeria: [],
+    alto:"", ancho:"", grosor:"" },
+  "biblia-5": { slug:"havilah", galeria: [],
+    alto:"", ancho:"", grosor:"" }
+};
+/* ============================================ */
+
 
 const $ = s => document.querySelector(s);
 const PROD = Object.fromEntries(EDEN.productos.map(p=>[p.id,p]));
@@ -1276,6 +1400,7 @@ function aplicarCatalogo(c){
   tienda.classList.remove("cargando");
   carritoTienda.alCatalogo();
   pintarProductos(); pintarSets(); pintarMenu();
+  dispatchEvent(new Event("eden:catalogo"));
 }
 /* Si falla, reintenta unas veces: un corte de conexión no puede dejar la tienda sin precios hasta recargar */
 function cargarCatalogo(intento = 0){
@@ -1307,7 +1432,7 @@ function abrirPuerta(inmediato){
   try{ sessionStorage.setItem("eden-entro","1") }catch(e){}
 }
 let yaEntro = false; try{ yaEntro = sessionStorage.getItem("eden-entro")==="1" }catch(e){}
-if(yaEntro) abrirPuerta(true); else { document.body.classList.add("cerrado"); $("#entrar").focus(); }
+if(yaEntro || /^#biblia\//.test(location.hash)) abrirPuerta(true); else { document.body.classList.add("cerrado"); $("#entrar").focus(); }
 $("#entrar").addEventListener("click",()=>abrirPuerta(false));
 
 /* Nav */
@@ -1316,6 +1441,9 @@ const barra = $("#barraCafe");
 const medirBarra = () => document.documentElement.style.setProperty("--barra-h", barra.offsetHeight + "px");
 medirBarra(); addEventListener("resize", medirBarra);
 const alScroll = () => nav.classList.toggle("solida", window.scrollY > window.innerHeight*0.6);
+/* Espacio que deja el enlace «Colección»: alto de la barra fija + un respiro */
+const medirNav = () => { const c = nav.classList.contains("solida"); nav.classList.add("solida"); const pad = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0; document.documentElement.style.setProperty("--nav-h", Math.max(0, nav.offsetHeight + 40 - pad) + "px"); if(!c) nav.classList.remove("solida"); };
+medirNav(); addEventListener("resize", medirNav);
 addEventListener("scroll",alScroll,{passive:true}); alScroll();
 
 /* Instagram */
@@ -1336,6 +1464,16 @@ const comprarHTML = (id, etq) => agregarHTML(id, etq) + `<button class="regalar"
 const esperaHTML = p => `<p class="agotado-txt">Agotado</p>${!p.slug ? "" : leer("eden-espera", []).includes(p.slug) ? `<p class="espera-ok">Te avisamos por mail apenas vuelva.</p>` : `<button class="regalar" type="button" data-espera="${esc(p.id)}" aria-label="Avisame cuando vuelva ${esc(nombreLargo(p))}">Avisame cuando vuelva</button>`}`;
 const MUY_PRONTO = `<p class="agotado-txt">Muy pronto</p>`;
 const siSeVende = html => VENTA === "cerrada" ? MUY_PRONTO : html;
+/* Ficha de cada Biblia (la de Mich): su enlace #biblia/<slug> y lo que se compra ahí */
+const slugDe = p => (FICHAS[p.id] && FICHAS[p.id].slug) || normal(p.nombre).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+function compraFicha(p){
+  const conPrecio = CATALOGO && p.precio > 0, sinStock = CATALOGO && agotado(p), cerrada = VENTA === "cerrada" && conPrecio && !sinStock;
+  const etq = esc(nombreLargo(p));
+  const precio = conPrecio ? `<p class="fb-precio">${precioHTML(p)}</p>${quedanHTML(p.stock)}` : `<p class="fb-precio pend">Precio por confirmar</p>`;
+  const acciones = sinStock ? `<div class="espera">${esperaHTML(p)}</div>` : cerrada ? MUY_PRONTO : !conPrecio ? ""
+    : `<button class="boton lleno agregar" type="button" data-agregar="${esc(p.id)}" aria-label="Agregar ${etq} al carrito">Agregar</button><button class="regalar" type="button" data-regalar="${esc(p.id)}" aria-label="Regalar ${etq}">Regalar</button>`;
+  return precio + (acciones ? `<div class="fb-compra">${acciones}</div>` : "");
+}
 function tarjeta({ id, etiqueta, foto, nombre, titulo, verbo, descripcion, precio, acciones }){
   const art = document.createElement("article"); art.className = "pieza"; art.id = id;
   art.innerHTML = `<div class="pieza-foto">${etiqueta ? `<span class="distintivo">${esc(etiqueta)}</span>` : ""}${foto}</div><p class="verbo" title="${esc(titulo)}">${nombre}</p><p class="pieza-verbo">${esc(verbo)}</p><p class="variante">${esc(descripcion)}</p><div class="pieza-precio">${precio}</div><div class="pieza-acciones">${acciones}</div>`;
@@ -1344,11 +1482,11 @@ function tarjeta({ id, etiqueta, foto, nombre, titulo, verbo, descripcion, preci
 function pintarFila(box, lista){
     box.innerHTML = "";
     lista.forEach(p => {
-      const esB = p.tipo === "biblia", nom = esc(p.nombre), largo = esc(nombreLargo(p)), ver = esB ? ` data-ver-producto="${esc(p.id)}"` : "";
+      const esB = p.tipo === "biblia", nom = esc(p.nombre), largo = esc(nombreLargo(p)), ver = esB ? ` data-ficha="${esc(p.id)}"` : "";
       const img = fotoHTML(fotoDe(p), largo);
       box.appendChild(tarjeta({
         id: "p-" + p.id, etiqueta: CATALOGO && p.etiqueta, titulo: p.nombre,
-        foto: esB ? `<button type="button" class="ver-producto"${ver} aria-label="Ver la ${largo}">${img}</button>` : img,
+        foto: esB ? `<button type="button" class="ver-producto pieza-ficha foto-enlace"${ver} aria-label="Ver la ${largo}">${img}</button>` : img,
         nombre: esB ? `<button type="button" class="ver-producto nombre"${ver}>${nom}</button>` : nom,
         verbo: p.catVerbo, descripcion: p.catDescripcion,
         precio: CATALOGO && p.precio > 0 ? `<p class="precio">${precioHTML(p)}</p>${quedanHTML(p.stock)}` : SIN_PRECIO,
@@ -1400,6 +1538,7 @@ function pintarSets(){
 const CARTAS = [
   { n:1, numero:"I", abierta:true, fecha:"Noviembre 2026",
     titulo:"De vuelta al jardín, <em>al lugar de origen</em>",
+    extracto:"En el principio, el hombre no corría; caminaba con Dios.",
     intro:"En el principio, el hombre no corría; caminaba con Dios. El jardín dejó de ser memoria y volvió a ser invitación.",
     verso:"Dios el Señor plantó un jardín al oriente del Edén.", cita:"Génesis 2:8 · NVI" },
   { n:2, numero:"II", abierta:false, verso:"Serás como jardín bien regado, como manantial cuyas aguas no se agotan.", cita:"Isaías 58:11" },
@@ -1442,15 +1581,17 @@ function crearBreves(){
 /* Pintar la colección */
 function pintarCartas(){
   crearBreves();
-  const giros = [-1.6, 1.2, -.6, 1.8, -1.1];
-  $("#coleccionCartas").innerHTML = CARTAS.map((c,k) => `
-    <li class="aparece"><button type="button" class="cj-carta" style="--giro:${giros[k % 5]}deg" data-abrir-carta="${c.n}" aria-label="Abrir la carta ${c.numero}${c.cita ? ", " + c.cita : ""}">
-      <span class="cj-carta-dentro" aria-hidden="true">${c.verso ? `<q>${c.verso}</q><small>${c.cita || ""}</small>` : ""}</span>
-      <span class="cj-carta-tapa" aria-hidden="true">
-        <span class="cj-cara reverso"></span>
-        <span class="cj-cara frente"><span class="cj-carta-etq">Carta</span><span class="cj-carta-num">${c.numero}</span><span class="cj-carta-cita">${c.cita || ""}</span></span>
-      </span>
-    </button></li>`).join("");
+  const giros = [-1.8, 1, -.6, 1.4, -1.2];
+  // Cartas abiertas: título, una frase y «Abrir la carta». Las demás: «Próximamente».
+  $("#coleccionCartas").innerHTML = CARTAS.map((c,k) => {
+    const g = giros[k % giros.length];
+    if(!c.abierta) return `<li class="aparece"><div class="cj-nota pronto" style="--giro:${g}deg" role="group" aria-label="Carta ${c.numero}, próximamente">
+      <span class="cj-nota-etq">Carta ${c.numero}</span><span class="cj-nota-pronto">Próximamente</span></div></li>`;
+    const titulo = sinEtiquetas(c.titulo || c.cita || ""), ext = c.extracto || c.verso || "";
+    return `<li class="aparece"><button type="button" class="cj-nota" style="--giro:${g}deg" data-abrir-carta="${c.n}" aria-label="Abrir la carta ${c.numero}: ${titulo}">
+      <span class="cj-nota-etq">Carta ${c.numero}</span><span class="cj-nota-titulo">${titulo}</span>
+      ${ext ? `<span class="cj-nota-extracto">“${ext}”</span>` : ""}<span class="cj-nota-abrir">Abrir la carta →</span></button></li>`;
+  }).join("");
   CARTAS.forEach(c => {
     const art = document.getElementById("carta-" + c.n);
     art.querySelectorAll("[data-fecha]").forEach(e => e.textContent = c.fecha || "");
@@ -1461,8 +1602,9 @@ function pintarCartas(){
 
 /* Navegación al pie de cada carta */
 function pintarNav(n){
-  const i = CARTAS.findIndex(c => c.n === n);
-  const ant = CARTAS[i - 1], sig = CARTAS[i + 1];
+  const lista = CARTAS.filter(c => c.abierta);
+  const i = lista.findIndex(c => c.n === n);
+  const ant = i > 0 ? lista[i - 1] : null, sig = i >= 0 ? lista[i + 1] : null;
   const salto = (c, txt, emp) => !c ? `<span></span>` :
     `<button type="button" class="cj-salto" style="--empuje:${emp}px" data-abrir-carta="${c.n}"><small>${txt} · Carta ${c.numero}</small><span>${c.titulo ? sinEtiquetas(c.titulo) : (c.cita || "")}</span></button>`;
   lnav.innerHTML = salto(ant, "Anterior", -4) + `<button type="button" class="cerrar" data-volver-cartas>Todas las cartas</button>` + salto(sig, "Siguiente", 4);
@@ -1657,41 +1799,6 @@ document.addEventListener("submit", async e => {
   }catch(err){ msg.textContent = err.message || "No pudimos anotarte. Probá de nuevo en un rato."; btn.disabled = false; }
 });
 
-/* Ficha de cada Biblia (se abre tocando la foto o el nombre) */
-const prodPag = $("#producto"); let prodActual = null, focoProd = null;
-const fotoPorAlt = a => { const i = document.querySelector(`main img[alt^="${a}"]`); return i ? i.getAttribute("src") : null; };
-function fotosDe(p){
-  const lista = [fotoDe(p), ...((EDEN.galerias || {})[p.id] || [])].filter(Boolean);
-  if(p.id === "ventana") lista.push(...["Manos sosteniendo la Biblia Origen","La Biblia Origen sostenida","Dos amigas sonríen sosteniendo"].map(fotoPorAlt).filter(Boolean));
-  return lista;
-}
-function mostrarFoto(src, k){ $("#prodImg").src = src; $("#prodImg").alt = nombreLargo(prodActual); prodPag.querySelectorAll(".prod-minis button").forEach((b,i) => b.setAttribute("aria-pressed", String(i === k))); }
-function abrirProducto(id){
-  const p = PROD[id]; if(!p) return; prodActual = p; focoProd = document.activeElement;
-  const fotos = fotosDe(p), conPrecio = CATALOGO && p.precio > 0, sinStock = CATALOGO && agotado(p);
-  $("#prodVerbo").textContent = p.catVerbo || "Biblia";
-  $("#prodNombre").textContent = p.nombre;
-  $("#prodDesc").textContent = p.catDescripcion || ""; $("#prodDesc").hidden = !p.catDescripcion;
-  $("#prodPrecio").innerHTML = conPrecio ? precioHTML(p) : "Precio por confirmar";
-  $("#prodPrecio").classList.toggle("pend", !conPrecio);
-  const cerrada = VENTA === "cerrada" && conPrecio && !sinStock;
-  $("#prodAgregar").hidden = $("#prodRegalar").hidden = !conPrecio || sinStock || cerrada;
-  $("#prodEspera").hidden = !sinStock && !cerrada; $("#prodEspera").innerHTML = sinStock ? esperaHTML(p) : cerrada ? MUY_PRONTO : "";
-  $("#prodMinis").innerHTML = fotos.map((f,k) => `<button type="button" aria-label="Foto ${k+1}"><img src="${esc(f)}" alt=""></button>`).join("");
-  $("#prodMinis").querySelectorAll("button").forEach((b,k) => b.onclick = () => mostrarFoto(fotos[k], k));
-  $("#prodImg").hidden = !fotos.length;
-  if(fotos.length) mostrarFoto(fotos[0], 0); else $("#prodImg").removeAttribute("src");
-  prodPag.classList.add("abierta"); prodPag.setAttribute("aria-hidden","false"); prodPag.scrollTop = 0;
-  document.body.style.overflow = "hidden"; setTimeout(() => $("#cerrarProducto").focus(), 60);
-}
-function cerrarProducto(){ if(!prodPag.classList.contains("abierta")) return; prodPag.classList.remove("abierta"); prodPag.setAttribute("aria-hidden","true"); document.body.style.overflow = ""; if(focoProd) focoProd.focus(); }
-$("#cerrarProducto").onclick = cerrarProducto;
-// Escape cierra de a una capa: con el carrito abierto, cierra solo el carrito
-addEventListener("keydown", e => { if(e.key === "Escape" && !$("#carrito").classList.contains("abierto")) cerrarProducto(); });
-$("#prodAgregar").onclick = () => { carritoTienda.abrir(carritoTienda.agregar(prodActual.id)); };
-$("#prodRegalar").onclick = () => { const falta = carritoTienda.agregar(prodActual.id); if(!falta) guardar("eden-regalo", true); carritoTienda.abrir(falta); };
-tienda.addEventListener("click", e => { const v = e.target.closest("[data-ver-producto]"); if(v) abrirProducto(v.dataset.verProducto); });
-
 /* ====== Carrito ======
    Se guarda en el navegador de cada persona, así no se pierde si recarga la página.
    «Hacer mi pedido» guarda el pedido y lleva al checkout, que vuelve a validar precios y stock. */
@@ -1860,6 +1967,170 @@ const carritoTienda = (() => {
 if(location.hash === "#carrito"){ history.replaceState(null, "", location.pathname + location.search); carritoTienda.abrir(); }
 cargarCatalogo();
 setTimeout(sinCatalogo, 6000);
+
+
+/* ====== Ficha individual de cada Biblia ======
+   Una sola plantilla que se completa con los datos de cada modelo.
+   Cada ficha tiene su propio enlace para compartir: …#biblia/origen, …#biblia/anaj, etc. */
+(() => {
+  const ficha = $("#ficha"), cuerpo = $("#fichaCuerpo"), visorF = $("#visorFicha"), vImg = $("#visorFichaImg");
+  const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+  const datos = p => ({ ...FICHAS.COMUN, ...(FICHAS[p.id] || {}) });
+  const ESPECS = [
+    ["Pieza", [["modelo","Modelo"],["version","Versión"],["materiales","Materiales"]]],
+    ["Medidas", [["alto","Alto","cm"],["ancho","Ancho","cm"],["grosor","Grosor","cm"]]]
+  ];
+  const valor = (v, u) => (v === "" || v == null) ? `<span class="fb-pend">Por confirmar</span>`
+    : esc(v) + (u && /^[\d.,\s]+$/.test(String(v)) ? " " + u : "");
+  function fotosDe(p){
+    const lista = [fotoDe(p), ...(datos(p).galeria || []), ...((EDEN.galerias || {})[p.id] || [])];
+    return lista.map((f,k) => {
+      if(!f) return null;
+      if(typeof f === "object" && f.enPagina){ const im = document.querySelector(f.enPagina); return im ? { src:im.currentSrc || im.src, alt:im.alt || `Biblia ${p.nombre}` } : null; }
+      return { src:f, alt:`Biblia ${p.nombre}` + (k ? `, foto ${k + 1}` : "") };
+    }).filter((f, k, t) => f && t.findIndex(g => g && new URL(g.src, location.href).href === new URL(f.src, location.href).href) === k);
+  }
+  const sinFoto = txt => `<span class="sin-foto"><span class="mono" aria-hidden="true"></span><span>${txt}</span></span>`;
+
+  let actual = null, fotos = [], i = 0, ocupado = false, focoAntes = null;
+
+  function pintar(p){
+    const d = { modelo:p.nombre, ...datos(p) };
+    fotos = fotosDe(p); i = 0;
+    const galeria = fotos.length ? `
+      <figure class="fb-foto">
+        <button type="button" class="fb-ampliar" aria-label="Ampliar foto de la Biblia ${esc(p.nombre)}"><img id="fbImg" src="${fotos[0].src}" alt="${esc(fotos[0].alt)}"></button>
+        ${fotos.length > 1 ? `<div class="fb-flechas"><button type="button" class="flecha-btn" data-fb-paso="-1" aria-label="Foto anterior">←</button><span class="fb-cuenta" id="fbCuenta" aria-live="polite">1 / ${fotos.length}</span><button type="button" class="flecha-btn" data-fb-paso="1" aria-label="Foto siguiente">→</button></div>` : ""}
+      </figure>
+      ${fotos.length > 1 ? `<div class="fb-miniaturas">${fotos.map((f,k) => `<button type="button" class="fb-mini${k ? "" : " activa"}" data-fb-foto="${k}" aria-label="Ver foto ${k + 1} de ${fotos.length}"${k ? "" : ` aria-current="true"`}><img src="${f.src}" alt="" loading="lazy"></button>`).join("")}</div>` : ""}`
+      : `<div class="fb-foto">${sinFoto(`Las fotografías de ${esc(p.nombre)} llegan muy pronto`)}</div>`;
+    const especs = ESPECS.map(([titulo, filas]) => `
+      <h3 class="fb-grupo">${titulo}</h3>
+      <dl>${filas.map(([k, etq, u]) => `<div><dt>${etq}</dt><dd>${valor(d[k], u)}</dd></div>`).join("")}</dl>`).join("");
+    const otras = visibles("biblia").filter(x => x !== p).map(o => {
+      const f = fotosDe(o)[0];
+      return `<a class="fb-otra" href="#biblia/${slugDe(o)}" data-fb-ir="${o.id}" aria-label="Ver la Biblia ${esc(o.nombre)}">
+        <span class="fb-otra-foto">${f ? `<img src="${f.src}" alt="" loading="lazy">` : sinFoto("Fotos muy pronto")}</span>
+        <span class="fb-otra-nombre">${esc(o.nombre)}</span>${o.verbo ? `<span class="fb-otra-verbo">${esc(o.verbo)}</span>` : ""}
+      </a>`; }).join("");
+    cuerpo.innerHTML = `
+      <div class="fb-principal">
+        <div class="fb-galeria">${galeria}</div>
+        <div class="fb-info">
+          <p class="fb-etq">Colección 1 · De regreso al jardín</p>
+          <h2 id="fbNombre" tabindex="-1">${esc(p.nombre)}</h2>
+          ${p.catVerbo ? `<p class="fb-verbo">${esc(p.catVerbo)}</p>` : ""}${p.catDescripcion ? `<p class="fb-desc">${esc(p.catDescripcion)}</p>` : ""}
+          ${compraFicha(p)}
+          <div class="fb-specs">${especs}</div>
+        </div>
+      </div>
+      <section class="fb-explora" aria-labelledby="fbExplora">
+        <div class="fb-explora-cab"><h3 id="fbExplora">Explora nuestras Biblias</h3><p>Descubre los otros modelos</p></div>
+        <div class="fb-otras">${otras}</div>
+      </section>
+      <div class="fb-pie"><span class="mono" aria-hidden="true"></span><button class="boton" type="button" data-fb-volver>Volver a todas las Biblias</button></div>`;
+    document.title = `Biblia ${p.nombre} · Edén`;
+    actual = p;
+  }
+
+  /* Galería */
+  function ver(n){
+    if(!fotos.length) return;
+    i = (n + fotos.length) % fotos.length;
+    const img = $("#fbImg"), f = fotos[i];
+    if(quieto){ img.src = f.src; img.alt = f.alt; }
+    else { img.classList.add("cambiando"); setTimeout(() => { img.src = f.src; img.alt = f.alt; img.classList.remove("cambiando"); }, 200); }
+    cuerpo.querySelectorAll(".fb-mini").forEach((m,k) => { m.classList.toggle("activa", k === i); k === i ? m.setAttribute("aria-current","true") : m.removeAttribute("aria-current"); });
+    const c = $("#fbCuenta"); if(c) c.textContent = `${i + 1} / ${fotos.length}`;
+  }
+  function verGrande(n){
+    i = (n + fotos.length) % fotos.length; vImg.src = fotos[i].src; vImg.alt = fotos[i].alt;
+    $("#vfAnt").hidden = $("#vfSig").hidden = fotos.length < 2;
+  }
+  $("#vfAnt").addEventListener("click", () => { verGrande(i - 1); ver(i); });
+  $("#vfSig").addEventListener("click", () => { verGrande(i + 1); ver(i); });
+  $("#vfCerrar").addEventListener("click", () => visorF.close());
+  visorF.addEventListener("click", e => { if(e.target === visorF) visorF.close(); });
+  visorF.addEventListener("keydown", e => { if(e.key === "ArrowRight"){ verGrande(i + 1); ver(i); } if(e.key === "ArrowLeft"){ verGrande(i - 1); ver(i); } });
+  let vx = 0; visorF.addEventListener("touchstart", e => vx = e.touches[0].clientX, { passive:true });
+  visorF.addEventListener("touchend", e => { const dx = e.changedTouches[0].clientX - vx; if(Math.abs(dx) > 50){ verGrande(i + (dx < 0 ? 1 : -1)); ver(i); } });
+
+  /* Abrir, cambiar y cerrar */
+  async function abrir(p){
+    if(ficha.classList.contains("abierta")){
+      if(p === actual || ocupado) return;
+      ocupado = true;
+      if(!quieto){ cuerpo.classList.add("fb-saliendo"); await espera(380); }
+      pintar(p); ficha.scrollTop = 0; cuerpo.classList.remove("fb-saliendo");
+      if(!quieto){ cuerpo.classList.remove("fb-entrando"); void cuerpo.offsetWidth; cuerpo.classList.add("fb-entrando"); }
+      $("#fbNombre").focus({ preventScroll:true });
+      ocupado = false; return;
+    }
+    focoAntes = document.activeElement;
+    pintar(p); ficha.scrollTop = 0;
+    ficha.classList.add("abierta"); ficha.setAttribute("aria-hidden","false");
+    document.body.style.overflow = "hidden";
+    if(!quieto){ cuerpo.classList.remove("fb-entrando"); void cuerpo.offsetWidth; cuerpo.classList.add("fb-entrando"); }
+    setTimeout(() => $("#fbNombre").focus({ preventScroll:true }), 60);
+  }
+  function cerrar(irColeccion){
+    if(!ficha.classList.contains("abierta")) return;
+    if(visorF.open) visorF.close();
+    ficha.classList.remove("abierta"); ficha.setAttribute("aria-hidden","true");
+    const antes = actual; document.body.style.overflow = ""; document.title = TITULO; actual = null;
+    if(/^#biblia\//.test(location.hash)){ try{ history.replaceState(null, "", "#grupo-biblias"); }catch(e){} }
+    if(irColeccion){
+      $("#grupo-biblias").scrollIntoView({ behavior:"instant", block:"start" });
+      const enlace = antes && document.querySelector(`#p-${antes.id} .verbo a`); if(enlace) enlace.focus({ preventScroll:true });
+    } else if(focoAntes && document.contains(focoAntes)) focoAntes.focus({ preventScroll:true });
+  }
+  const TITULO = document.title;
+  const deHash = () => { const m = location.hash.match(/^#biblia\/([\w-]+)/); return m ? visibles("biblia").find(b => slugDe(b) === m[1].toLowerCase()) : null; };
+  const ir = p => {
+    const h = "#biblia/" + slugDe(p);
+    if(location.hash === h) abrir(p);
+    else if(ficha.classList.contains("abierta")) location.replace(h);
+    else location.hash = h;
+  };
+
+  /* Clics: colección, otros modelos, galería y volver */
+  document.addEventListener("click", e => {
+    const a = e.target.closest("[data-ficha], [data-fb-ir]");
+    if(a){ e.preventDefault(); const p = PROD[a.dataset.ficha || a.dataset.fbIr]; if(p) ir(p); return; }
+    if(e.target.closest("[data-fb-volver]")){ cerrar(true); return; }
+  });
+  cuerpo.addEventListener("click", e => {
+    const m = e.target.closest("[data-fb-foto]"); if(m){ ver(+m.dataset.fbFoto); return; }
+    const s = e.target.closest("[data-fb-paso]"); if(s){ ver(i + +s.dataset.fbPaso); return; }
+    if(e.target.closest(".fb-ampliar")){ verGrande(i); visorF.showModal ? visorF.showModal() : visorF.setAttribute("open",""); }
+  });
+  let tx = 0, ty = 0;
+  cuerpo.addEventListener("touchstart", e => { if(e.target.closest(".fb-foto")){ tx = e.touches[0].clientX; ty = e.touches[0].clientY; } else tx = null; }, { passive:true });
+  cuerpo.addEventListener("touchend", e => { if(tx == null) return; const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    if(Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) ver(i + (dx < 0 ? 1 : -1)); });
+
+  /* Teclado: Escape vuelve a la colección (si el carrito no está abierto); flechas cambian la foto */
+  addEventListener("keydown", e => {
+    if(!ficha.classList.contains("abierta") || visorF.open) return;
+    if($("#carrito").classList.contains("abierto") || $("#menu").classList.contains("abierto")) return;
+    if(e.key === "Escape") cerrar(false);
+    if((e.key === "ArrowRight" || e.key === "ArrowLeft") && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) ver(i + (e.key === "ArrowRight" ? 1 : -1));
+  }, true);
+
+  /* Carrito desde la ficha: mismo carrito de siempre */
+  const cuenta = $("#carritoCuenta"), fCuenta = $("#fichaCuenta"), fBtn = $("#fichaCarrito");
+  const copiar = () => { fCuenta.textContent = cuenta.textContent; fBtn.classList.toggle("pulso", $("#abrirCarrito").classList.contains("pulso")); };
+  new MutationObserver(copiar).observe(cuenta, { childList:true, characterData:true, subtree:true });
+  new MutationObserver(copiar).observe($("#abrirCarrito"), { attributes:true, attributeFilter:["class"] });
+  copiar();
+  fBtn.addEventListener("click", () => $("#abrirCarrito").click());
+
+  /* Enlaces propios: abrir la ficha desde la dirección, y con «atrás» del navegador */
+  addEventListener("hashchange", () => { const p = deHash(); if(p) abrir(p); else cerrar(false); });
+  const inicial = deHash(); if(inicial) abrir(inicial);
+  /* Con el catálogo: la ficha abierta muestra precio y stock; un enlace a una Biblia nueva del back office se abre recién ahora */
+  addEventListener("eden:catalogo", () => { if(actual) pintar(actual); else { const p = deHash(); if(p) abrir(p); } });
+})();
 
 /* ====== Suscripción · Cartas del jardín: los correos se guardan en el back office, sección Cartas ====== */
 (() => {
