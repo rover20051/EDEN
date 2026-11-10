@@ -144,7 +144,7 @@ p{margin:0 0 1.1em}
 
 /* ---------- Pradera ---------- */
 .pradera{position:relative;min-height:46vh;display:grid;place-items:center;text-align:center;
-  background:#8d9168 url(/img/5fe3e67def78.jpg) center 70%/cover no-repeat;color:#FBF7EE;padding:4rem 1.5rem}
+  background:#8d9168 url(/img/c4f3aa6717d7.jpg) center 62%/cover no-repeat;color:#FBF7EE;padding:4rem 1.5rem}
 .pradera::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,26,18,.05),rgba(30,26,18,.28))}
 .pradera blockquote{position:relative;margin:0;max-width:26ch;font-size:clamp(1.5rem,1.1rem + 1.6vw,2.4rem);line-height:1.3;font-style:italic;text-shadow:0 1px 18px rgba(30,26,18,.35)}
 .pradera cite{display:block;font-style:normal;font-size:1.1rem;margin-top:1.2rem;opacity:.9}
@@ -431,7 +431,7 @@ a.boton{text-decoration:none;display:inline-block}
 #nosotras-inicio{padding-bottom:clamp(3rem,7vw,5rem)}
 .quienes{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(2rem,6vw,5rem);align-items:center}
 .quienes img{width:100%;height:auto}
-.quienes-texto{font-size:clamp(1.3rem,1.1rem + .8vw,1.75rem);line-height:1.5;max-width:26em;margin:0}
+.quienes-texto{font-size:clamp(1.1rem,1rem + .4vw,1.35rem);line-height:1.6;max-width:26em;margin:0}
 @media (max-width:760px){.quienes{grid-template-columns:1fr}.quienes img{max-width:440px}}
 
 /* ====== Fotos alrededor de la página ====== */
@@ -812,7 +812,7 @@ button.cj-salto:focus-visible{outline:2px solid var(--oro);outline-offset:4px}
 .fb-otra:hover .fb-otra-foto img{transform:scale(1.035)}
 .fb-otra .sin-foto{aspect-ratio:3/4;font-size:.85rem;gap:.6rem;padding:1rem;text-align:center}
 .fb-otra .sin-foto .mono{width:18px}
-.fb-otra-nombre{display:block;margin:.7rem 0 0;font-size:clamp(1.15rem,1rem + .4vw,1.4rem);line-height:1.15}
+.fb-otra-nombre{display:block;margin:.8rem 0 0;font-family:var(--maquina);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--oro);line-height:1.3}
 .fb-otra-verbo{display:block;margin-top:.2rem;font-family:var(--maquina);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:var(--oro)}
 .fb-otra:hover .fb-otra-nombre{text-decoration:underline;text-underline-offset:.25em;text-decoration-thickness:1px}
 .fb-otra:focus-visible{outline:2px solid var(--oro);outline-offset:4px}
@@ -851,7 +851,7 @@ a[href*="instagram.com"]{text-decoration:none}
 /* ====== Cartas del jardín · índice en notas de papel ====== */
 .cj-intro.cj-intro-centro{display:block;text-align:center;padding:clamp(4rem,9vw,7rem) 1.25rem clamp(2.5rem,5vw,4rem)}
 .cj-sup{margin:0;font-style:italic;font-size:clamp(1.1rem,1rem + .4vw,1.4rem);color:var(--texto-suave)}
-.cj-intro-centro .cj-titulo{grid-column:auto;margin:.5rem 0 0;font-weight:300;font-size:clamp(3rem,1.6rem + 5vw,6.4rem);line-height:1.02;letter-spacing:-.01em}
+.cj-intro-centro .cj-titulo{grid-column:auto;margin:0;font-weight:300;font-size:clamp(3rem,1.6rem + 5vw,6.4rem);line-height:1.02;letter-spacing:-.01em}
 .cj-notas{list-style:none;max-width:1120px;margin:0 auto;padding:clamp(1rem,3vw,2rem) clamp(1.25rem,5vw,3rem) clamp(6rem,12vw,10rem);display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(2rem,4vw,3.2rem) clamp(1.5rem,3.5vw,3rem)}
 .cj-notas li{margin:0;flex:0 1 calc((100% - 2 * clamp(1.5rem,3.5vw,3rem)) / 3);min-width:15rem;max-width:23rem}
 .cj-nota{all:unset;box-sizing:border-box;display:flex;flex-direction:column;width:100%;min-height:clamp(19rem,27vw,24rem);padding:clamp(1.6rem,3vw,2.4rem);background:#FFFEFB;color:var(--hoja-tinta);transform:rotate(var(--giro,0deg));box-shadow:0 1px 0 rgba(44,34,28,.05),0 28px 34px -26px rgba(44,34,28,.45);transition:transform .9s cubic-bezier(.2,.6,.3,1),box-shadow .9s ease}
@@ -868,6 +868,146 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
 .cj-nota.pronto .cj-nota-etq{color:rgba(156,123,49,.6)}
 .cj-nota-pronto{margin-top:1.5rem;font-style:italic;font-size:clamp(1.5rem,1.2rem + .8vw,1.95rem);color:var(--texto-suave);opacity:.6}
 @media (max-width:560px){.cj-notas li{flex-basis:100%}}
+/* Carta I: nota de la izquierda, más abajo */
+.lectura-cab + .lectura-parte{margin-top:clamp(2.2rem,4vw,3.2rem)}
+.lectura-nota.lectura-nota-izq{margin:2rem auto 0 0;--giro:-2.5deg}
+@media (min-width:1180px){
+  .lectura-parte .lectura-nota.lectura-nota-izq{left:auto;right:calc(100% + 2.4rem);top:auto;bottom:4rem}
+  .lectura-parte .lectura-nota.lectura-nota-izq.rv-nota{transform:translateX(10px) rotate(var(--giro))}
+  .lectura-parte .lectura-nota.lectura-nota-izq.rv-nota.visto{transform:rotate(var(--giro))}
+}
+/* Ficha: frase corta debajo del nombre */
+.fb-frase{margin:1.1rem 0 0;max-width:30em}
+.fb-frase p{margin:0 0 .55rem;font-style:italic;font-size:clamp(.98rem,.94rem + .2vw,1.08rem);line-height:1.6;color:var(--texto-suave)}
+.fb-frase + .fb-precio{margin-top:1.1rem}
+/* Carta I: un solo texto continuo */
+.lectura-parte + .lectura-parte{margin-top:1.15em}
+/* ====== Sets: Biblia + Journal ====== */
+.set-armador{grid-column:1 / -1;max-width:920px;width:100%;justify-self:center;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:clamp(1.6rem,4vw,3.5rem);align-items:center}
+.set-vista{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.6rem}
+.set-foto{margin:0}
+.set-foto img{width:100%;aspect-ratio:4/5;object-fit:cover;object-position:center 58%;display:block;background:var(--papel-2);transition:opacity .35s ease}
+.set-foto img.cambiando{opacity:0}
+.set-foto figcaption{margin-top:.7rem;font-family:var(--maquina);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--oro);text-align:center}
+.set-mas{font-weight:300;font-size:2rem;color:var(--oro);line-height:1}
+.set-etq{margin:0;font-family:var(--maquina);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--texto-suave)}
+.set-titulo{margin:.5rem 0 0;font-weight:400;font-size:clamp(1.7rem,1.3rem + 1vw,2.2rem);line-height:1.1}
+.set-texto{margin:.6rem 0 0;font-style:italic;color:var(--texto-suave);font-size:1.05rem}
+.set-paso{margin:1.5rem 0 0;padding:0;border:0;min-width:0}
+.set-paso legend{padding:0;margin-bottom:.7rem;font-family:var(--maquina);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--tinta)}
+.set-opciones{display:flex;flex-wrap:wrap;gap:.5rem}
+.set-op{all:unset;box-sizing:border-box;cursor:pointer;padding:.42rem .95rem .5rem;border:1px solid var(--linea);border-radius:999px;font-size:1rem;line-height:1.2;color:var(--tinta);transition:border-color .3s,background .3s,color .3s}
+.set-op:hover{border-color:var(--oro)}
+.set-op[aria-checked="true"]{background:var(--tinta);border-color:var(--tinta);color:var(--papel)}
+.set-op:focus-visible{outline:2px solid var(--oro);outline-offset:3px}
+.set-compra{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-top:1.8rem;padding-top:1.2rem;border-top:1px solid var(--linea)}
+.set-precio{margin:0;font-size:1.5rem;font-variant-numeric:lining-nums}
+.set-antes{margin:.15rem 0 0;font-size:.95rem;color:var(--texto-suave)}
+.set-antes s{opacity:.8}
+.set-antes b{font-weight:400;color:var(--oro)}
+.set-resumen{margin:.8rem 0 0;font-style:italic;font-size:.95rem;color:var(--texto-suave);min-height:1.4em}
+@media (max-width:720px){
+  .set-armador{grid-template-columns:1fr}
+  .set-vista{max-width:420px;width:100%;justify-self:center}
+}
+/* Mitad del espacio blanco antes de Colección 1 pasa a la foto de la pradera */
+#tienda.capitulo{padding-top:clamp(2.5rem,6vw,5rem)}
+/* Colección: crema más claro, menos amarillo */
+#tienda{background:#FAF8F4}
+.pradera{padding-top:calc(clamp(3.5rem,8vw,6rem) + clamp(1.25rem,3vw,2.5rem));padding-bottom:calc(clamp(3.5rem,8vw,6rem) + clamp(1.25rem,3vw,2.5rem))}
+/* ====== Página de cada categoría ====== */
+.ficha.categoria{z-index:64}
+.cat-cab{text-align:center}
+.cat-cab .fb-etq{justify-content:center}
+.cat-cab .fb-etq::before{content:"";width:2.5rem;height:1px;background:var(--oro);opacity:.6}
+.cat-cab h2{margin:1rem 0 0;font-weight:300;font-size:clamp(3rem,2rem + 4vw,5.4rem);line-height:1;letter-spacing:-.02em}
+.cat-cab h2:focus{outline:none}
+.cat-tabs{display:flex;justify-content:center;gap:.6rem;margin-top:1.6rem}
+.cat-tab{all:unset;cursor:pointer;padding:.42rem 1.1rem .5rem;border:1px solid var(--linea);border-radius:999px;font-size:1.05rem;transition:border-color .3s,background .3s,color .3s}
+.cat-tab:hover{border-color:var(--oro)}
+.cat-tab[aria-current="true"]{background:var(--tinta);border-color:var(--tinta);color:var(--papel)}
+.cat-tab:focus-visible{outline:2px solid var(--oro);outline-offset:3px}
+.cat-grilla{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(1.4rem,3vw,2.6rem) clamp(1rem,2.5vw,2rem);max-width:1000px;margin:clamp(2.2rem,5vw,3.5rem) auto 0}
+.cat-grilla .pieza .verbo{font-size:.74rem;margin-top:.9rem}
+.cat-grilla .pieza .pie{margin-top:.5rem}
+@media (max-width:720px){ .cat-grilla{grid-template-columns:repeat(2,minmax(0,1fr))} }
+.cat-sets{max-width:920px;margin:clamp(2.2rem,5vw,3.5rem) auto 0}
+.cat-sets .set-armador{margin:0 auto}
+/* Promoción del set en el carrito */
+.promo-set{padding:1rem 1rem 1.1rem;background:color-mix(in srgb,var(--oro) 9%,var(--papel));border:1px solid color-mix(in srgb,var(--oro) 35%,transparent);display:grid;gap:.8rem}
+.promo-txt{margin:0;font-size:1rem;line-height:1.45}
+.promo-txt b{font-weight:500}
+.promo-ops{display:flex;flex-wrap:wrap;gap:.4rem}
+.promo-ops .set-op{font-size:.92rem;padding:.32rem .8rem .38rem}
+.cajon-pie .promo-btn{padding:.6rem}
+
+/* ================================================================
+   Dirección editorial: menos «tienda», más librería independiente.
+   Sin píldoras ni cajas: botones como texto subrayado, opciones
+   como palabras, y un único botón sólido de esquinas rectas donde
+   de verdad hace falta (agregar desde una ficha o set, y el pedido).
+   ================================================================ */
+.boton{border-radius:0}
+.boton:not(.lleno){border:0;background:none;padding:0 0 .12em;color:var(--tinta);
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.32em;text-decoration-color:color-mix(in srgb,currentColor 45%,transparent);
+  transition:color .25s,text-decoration-color .25s}
+.boton:not(.lleno):hover{background:none;color:var(--oro);text-decoration-color:currentColor}
+.boton.lleno{padding:.62rem 1.6rem .7rem}
+.cinco .boton:not(.lleno),.cat-grilla .boton:not(.lleno){padding:0 0 .12em;font-size:.95rem}
+.pieza .agregar.hecho{background:none;color:var(--oro)}
+.pieza .pie{gap:.4rem 1rem}
+/* Entrar y suscribirse: palabras, no botones */
+#entrar{font-style:italic;font-size:1.25rem}
+.campo .boton.lleno{background:none;color:var(--tinta);border:0;padding:0;font-style:italic;font-size:1.1rem}
+.boton:not(.lleno):focus-visible,.campo .boton.lleno:focus-visible{outline:none;color:var(--oro);text-decoration-color:var(--oro)}
+.campo .boton.lleno:focus-visible{text-decoration:underline;text-underline-offset:.32em}
+.campo .boton.lleno:hover{background:none;color:var(--oro)}
+/* Cantidades del carrito sin círculos */
+.item-cant button{border:0;border-radius:0;width:1.4rem}
+.item-cant button:hover{color:var(--oro)}
+/* Flechas sin círculos */
+.flecha-btn{border:0;border-radius:0;background:none;width:auto;height:auto;padding:.2rem .35rem;font-size:1.2rem}
+.flecha-btn:hover{background:none;color:var(--oro)}
+.flecha-btn:disabled:hover{color:var(--tinta)}
+/* «Volver»: texto con su flecha, sin contorno */
+.volver-jardin{border:0;border-radius:0;padding:.2rem 0}
+.volver-jardin:hover{background:none;border:0;color:var(--oro)}
+/* Fichas: sin etiqueta flotante sobre la foto; flechas y contador debajo, en texto */
+.pieza-ficha.foto-enlace::after{content:none !important}
+.fb-flechas{position:static;justify-content:flex-end;margin-top:.7rem;padding:0;background:none;backdrop-filter:none;border-radius:0}
+.fb-flechas .flecha-btn{width:auto;height:auto}
+.fb-foto{overflow:visible}
+.fb-foto .fb-ampliar{overflow:hidden;aspect-ratio:3/4}
+.fb-foto{aspect-ratio:auto}
+.fb-foto > .sin-foto{aspect-ratio:3/4;height:auto}
+.fb-mini{outline-offset:2px}
+/* Opciones (sets, categorías): palabras en fila; la elegida en tinta y subrayada */
+.set-opciones,.promo-ops{gap:.35rem 1.25rem}
+.set-op,.promo-ops .set-op{border:0;border-radius:0;padding:.1rem 0 .15rem;background:none;color:var(--texto-suave);font-size:1.08rem;
+  text-decoration:underline;text-decoration-color:transparent;text-decoration-thickness:1px;text-underline-offset:.35em;transition:color .25s,text-decoration-color .25s}
+.set-op:hover{color:var(--tinta);border:0}
+.set-op[aria-checked="true"]{background:none;color:var(--tinta);text-decoration-color:var(--oro)}
+.cat-tabs{gap:1.8rem}
+.cat-tab{border:0;border-radius:0;padding:.1rem 0 .2rem;color:var(--texto-suave);font-style:italic;font-size:1.2rem;
+  text-decoration:underline;text-decoration-color:transparent;text-decoration-thickness:1px;text-underline-offset:.35em}
+.cat-tab:hover{color:var(--tinta)}
+.cat-tab[aria-current="true"]{background:none;color:var(--tinta);text-decoration-color:var(--oro)}
+.cat-cab .fb-etq::before,.cat-cab .fb-etq::after{content:none}
+/* Promo del carrito: una nota al pie, no una caja */
+.promo-set{background:none;border:0;border-top:1px solid var(--linea);padding:1rem 0 0;gap:.7rem}
+.promo-txt{font-style:italic;color:var(--texto-suave)}
+.promo-txt b{font-weight:400;font-style:normal;color:var(--tinta)}
+.cajon-pie .promo-btn{width:auto;justify-self:start;padding:0 0 .12em}
+@media (max-width:520px){ .campo .boton.lleno{width:auto;text-align:left} }
+/* Modelos (sets y promo del carrito): en óvalo; el elegido se llena de café */
+.set-opciones,.promo-ops{gap:.5rem}
+.set-op,.promo-ops .set-op{border:1px solid var(--linea);border-radius:999px;padding:.42rem .95rem .5rem;color:var(--tinta);text-decoration:none;font-size:1rem;transition:border-color .25s,background .25s,color .25s}
+.promo-ops .set-op{font-size:.92rem;padding:.32rem .8rem .38rem}
+.set-op:hover{border:1px solid var(--oro);color:var(--tinta)}
+.set-op[aria-checked="true"],.set-op[aria-checked="true"]:hover{background:var(--tinta);border-color:var(--tinta);color:var(--papel)}
+/* «Sumar journal» / «Convertir en set»: óvalo que se vuelve café al tocarlo */
+.cajon-pie .promo-btn{width:100%;justify-self:stretch;border:1px solid var(--tinta);border-radius:999px;padding:.6rem 1rem .65rem;text-decoration:none;color:var(--tinta);background:none;transition:background .25s,color .25s}
+.cajon-pie .promo-btn:hover,.cajon-pie .promo-btn:active,.cajon-pie .promo-btn:focus-visible{background:var(--tinta);color:var(--papel);text-decoration:none}
 
 /* ====== Tienda conectada: catálogo en vivo, carrito y ficha ====== */
 /* Tarjetas alineadas: cada una ocupa 6 filas de la grilla (foto, nombre, verbo, descripción, precio, botones)
@@ -908,9 +1048,14 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
 .regalar{font:inherit;font-size:.95rem;font-style:italic;background:none;border:0;color:var(--texto-suave);cursor:pointer;text-decoration:underline;text-underline-offset:.2em;padding:0}
 .cinco .regalar{font-size:.88rem}
 .regalar:hover{color:var(--tinta)}
-/* Sets */
-#filaSets{display:contents}
-#filaSets[hidden]{display:none}
+/* Sets: «Armá tu set» de Mich y, debajo, los packs del back office. Lo que no hay, no ocupa lugar */
+#sets{margin-top:clamp(2rem,4vw,3rem)}
+#sets[hidden],.set-armador[hidden],#grupo-sets[hidden],.barra-cafe[hidden],.set-pronto[hidden],#setAgregar[hidden],#menu li[hidden]{display:none !important}
+.set-pronto{font-size:1rem}
+/* Página de cada categoría: mismas partes que la tienda (sin foto, oferta, stock) */
+.cat-grilla .sin-foto{aspect-ratio:3/4}
+.cat-grilla .precio .antes{font-size:.8em;font-weight:400}
+.cat-grilla .pieza .pie{flex-wrap:wrap}
 /* "Avisame cuando vuelva" */
 .espera{display:grid;gap:.4rem;justify-items:start;width:100%;min-width:0}
 .espera[hidden]{display:none}
@@ -923,14 +1068,11 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
 .espera-form .hp{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);opacity:0;pointer-events:none}
 .espera-ok{margin:0;font-style:italic;font-size:.92rem;color:var(--musgo)}
 #prodEspera .espera-form{max-width:22rem}
-/* Carrito: línea del Set, sugerencia, regalo y bloqueo sin precios */
+/* Carrito: línea del Set, regalo y bloqueo sin precios (la promo del Set usa el diseño de Mich) */
 .cajon-pie [hidden]{display:none !important}
 .set-linea{font-size:1rem !important;color:var(--musgo)}
 .precio-item.pend{font-style:italic;font-size:.95rem;color:var(--texto-suave);white-space:nowrap}
 #hacerPedido:disabled{opacity:.5;cursor:default}
-.sugerencia{margin-top:1rem;padding:1rem 1.1rem;background:var(--nota);border:1px solid var(--linea);display:grid;gap:.7rem}
-.sugerencia p{margin:0;font-style:italic;font-size:1.05rem}
-.sugerencia .boton{justify-self:start;font-size:.95rem;padding:.35rem 1.1rem .45rem}
 .regalo-op{display:flex;gap:.7rem;align-items:flex-start;cursor:pointer;font-size:1.05rem;padding:.8rem 1rem;border:1px solid var(--linea);transition:border-color .2s,background .2s}
 .regalo-op:has(input:checked){border-color:var(--tinta);background:var(--nota)}
 .regalo-op input{accent-color:var(--tinta);margin-top:.3rem}
@@ -960,7 +1102,7 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
   </div>
 </div>
 
-<div class="barra-cafe" id="barraCafe">Primera edición de 30 ejemplares · Lanzamiento a fin de 2026 · Envíos dentro de Argentina</div>
+<div class="barra-cafe" id="barraCafe"><span id="barraTexto">Envíos gratis en Buenos Aires</span></div>
 <header class="nav" id="nav">
   <div class="nav-izq">
     <button class="menu-btn" id="abrirMenu" type="button" aria-haspopup="dialog" aria-controls="menu" aria-label="Abrir menú"><span class="hamb" aria-hidden="true"></span></button>
@@ -981,6 +1123,7 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
   </div>
   <div class="items" id="carritoItems"></div>
   <div class="cajon-pie" id="carritoPie">
+    <div class="promo-set" id="carritoPromo" hidden></div>
     <label class="regalo-op"><input type="checkbox" id="esRegalo"><span>Es para regalar<small>Sumamos una tarjeta con tu mensaje y el paquete va sin precios.</small></span></label>
     <div class="total set-linea" id="setLinea" hidden><span>Set Biblia + Journal</span><span></span></div>
     <div class="total"><span>Total</span><span id="carritoTotal"></span></div>
@@ -995,9 +1138,10 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
     <button class="cerrar" type="button" id="cerrarMenu">Cerrar</button>
   </div>
   <nav>
-    <details><summary>Biblias</summary><ul id="menuBiblias"></ul></details>
-    <details><summary>Journals</summary><ul id="menuJournals"></ul></details>
     <ul class="menu-simple">
+      <li><a href="#grupo-biblias" data-categoria="biblia">Biblias</a></li>
+      <li><a href="#grupo-journals" data-categoria="journal">Journals</a></li>
+      <li><a href="#grupo-sets" data-categoria="set">Sets</a></li>
       <li><a href="#devocionales" data-devocionales>Cartas del jardín</a></li>
       <li><a href="#palabra">Nuestras Biblias</a></li>
       <li><a href="#nosotras-inicio">Nosotras</a></li>
@@ -1039,18 +1183,34 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
   <section class="capitulo" id="tienda">
     <div class="rejilla">
       <div class="cab" id="coleccion-1">
-        <h2><span style="white-space:nowrap">Colección 1</span> <span class="col-nombre">/ De vuelta al jardín</span></h2>
+        <h2><span style="white-space:nowrap">Colección 1</span> <span class="col-nombre">— De vuelta al jardín</span></h2>
       </div>
       <h3 class="grupo" id="grupo-biblias">Biblias</h3>
       <div class="coleccion cinco" id="biblias"></div>
       <h3 class="grupo" id="grupo-journals">Journals</h3>
       <div class="coleccion cinco" id="journals"></div>
       <div id="filasExtra"></div>
-      <div id="filaSets" hidden>
-        <h3 class="grupo" id="grupo-sets">Sets</h3>
-        <div class="coleccion cinco" id="sets"></div>
+      <h3 class="grupo" id="grupo-sets">Sets</h3>
+      <div class="set-armador" id="setArmador">
+        <div class="set-vista" aria-hidden="true">
+          <figure class="set-foto"><img id="setFotoB" alt=""><figcaption id="setNomB"></figcaption></figure>
+          <span class="set-mas">+</span>
+          <figure class="set-foto"><img id="setFotoJ" alt=""><figcaption id="setNomJ"></figcaption></figure>
+        </div>
+        <div class="set-info">
+          <p class="set-etq">Biblia + Journal</p>
+          <h4 class="set-titulo">Armá tu set</h4>
+          <p class="set-texto">Elegí tu Biblia y tu journal, y combinalos como quieras.</p>
+          <fieldset class="set-paso"><legend>1 · Tu Biblia</legend><div class="set-opciones" id="setBiblias"></div></fieldset>
+          <fieldset class="set-paso"><legend>2 · Tu journal</legend><div class="set-opciones" id="setJournals"></div></fieldset>
+          <div class="set-compra">
+            <div class="set-precios"><p class="set-precio" id="setPrecio"></p><p class="set-antes" id="setAntes"></p></div>
+            <button class="boton lleno agregar" type="button" id="setAgregar" data-agregar="">Agregar</button>
+          </div>
+          <p class="set-resumen" id="setResumen" aria-live="polite"></p>
+        </div>
       </div>
-      <p class="aviso aviso-tienda">Primera edición de 30 ejemplares · Lanzamiento a fin de 2026 · Envíos dentro de Argentina</p>
+      <div class="coleccion cinco" id="sets" hidden></div>
     </div>
   </section>
 
@@ -1065,7 +1225,6 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
       </div>
       <div class="prosa">
         <p>Biblias artesanales de cuero, hechas a mano en Argentina.</p>
-        <p>Cada una lleva un detalle dorado en la tapa: una ventana, flores o una casita.</p>
       </div>
       <aside class="nota nota-palabra" aria-label="Nota"><p>“Señor, ¿a quién iríamos? Tú tienes las palabras que dan vida eterna.”</p><p style="margin-top:.8rem">Juan 6:68-69</p></aside>
       <dl class="detalles">
@@ -1073,7 +1232,6 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
         <div><dt>Tapa</dt><dd>Cuero</dd></div>
         <div><dt>Versión</dt><dd>NVI</dd></div>
         <div><dt>Hecha en</dt><dd>Argentina</dd></div>
-        <div><dt>Primera edición</dt><dd>30 ejemplares</dd></div>
       </dl>
       <p class="cierre-palabra">Desde el principio fuimos creados para caminar con Dios; el corazón de Edén es acompañarte a volver a ese lugar de comunión.</p>
     </div>
@@ -1093,10 +1251,10 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
   <section class="capitulo" id="nosotras-inicio" aria-labelledby="t-quienes">
     <div class="divisor" aria-hidden="true"><span></span></div>
     <div class="quienes">
-      <img src="/img/3a2e54a44ce7.jpg" alt="Nari y Michelle, sentadas juntas en el marco de una ventana" loading="lazy" width="900" height="1200">
+      <img src="/img/48289b339746.jpg" alt="Mich y Nari, sentadas juntas en el marco de una ventana, sonriendo al sol" loading="lazy" width="900" height="1125">
       <div>
         <p class="num" id="t-quienes">Quiénes somos</p>
-        <p class="quienes-texto">Somos Nari y Mich.<br>Nos conocimos en Redding, California, en una escuela de ministerio. Desde entonces compartimos mesa, viajes, misiones, conversaciones largas y muchos sueños, con Jesús en el centro. Hoy una vive en Estados Unidos y la otra en Argentina.</p>
+        <p class="quienes-texto">Somos Mich &amp; Nari<br>Nos conocimos en Redding, California. Desde entonces compartimos mesa, viajes, misiones, conversaciones largas y muchos sueños con Jesús en el centro. Hoy una vive en Estados Unidos y la otra en Argentina.<br><br>Con el tiempo, Dios fue poniendo en nosotras el deseo de crear algo juntas: un espacio que invite a acercarse a Su Palabra y hacerle lugar en lo cotidiano. Así nació Edén, y nos alegra poder compartir este camino con vos.</p>
       </div>
     </div>
   </section>
@@ -1108,7 +1266,7 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
       <div class="cab">
         <p class="num">Cartas del jardín</p>
         <h2 id="t-parte">Ven al jardín.</h2>
-        <p>Un espacio en tu correo para los devocionales y las nuevas cartas de Edén.</p>
+        <p>Suscribite y recibí las nuevas cartas y novedades de Edén.</p>
       </div>
       <div class="unete-caja">
       <form class="unete" id="formUnete" name="cartas-del-jardin" method="POST" data-netlify="true" netlify-honeypot="bot-field" novalidate>
@@ -1143,7 +1301,7 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
         <details><summary>¿Qué versión usan?</summary>
           <p>Usamos la Nueva Versión Internacional (NVI), en español.</p></details>
         <details><summary>¿Están hechas a mano?</summary>
-          <p>Sí. Cada Biblia se hace a mano en Argentina, en cuero marrón, con un detalle dorado en la tapa: <span id="faqDisenos">Origen, Habitación, Anaj, Prajim o Havilah</span>.</p></details>
+          <p>Sí, cada Biblia se hace a mano en Argentina.</p></details>
         <details><summary>¿Cómo puedo comunicarme con ustedes?</summary>
           <p>Escríbenos por <a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram @casa_edenn_</a>. Nos encanta conversar.</p></details>
       </div>
@@ -1155,7 +1313,7 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
     <figure class="polaroid pr rv"><button type="button" class="foto-btn " data-foto aria-label="Ampliar foto: Vista desde arriba: dos amigas leen la Biblia con un café"><img src="/img/f0b1f2e1c9f3.jpg" alt="Vista desde arriba: dos amigas leen la Biblia con un café" width="1000" height="1333" loading="lazy" draggable="false"></button></figure>
     <div class="rejilla">
       <div class="ventana-chica" aria-hidden="true"></div>
-      <h2>De vuelta. <em>Al origen.</em></h2>
+      <h2>Volver <em>al origen.</em></h2>
       <p>El jardín sigue abierto. La invitación sigue en pie, y Dios aún camina, esperando encontrarse contigo.</p>
       <div class="enlaces">
         <a class="boton" href="#" id="ig">Seguir en Instagram</a>
@@ -1192,7 +1350,6 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
 
   <div class="cartas-indice" id="cartasIndice">
     <header class="cj-intro cj-intro-centro" id="cjIntro">
-      <p class="cj-sup">Devocionales</p>
       <h2 class="cj-titulo" tabindex="-1" style="outline:none">Cartas del jardín</h2>
     </header>
 
@@ -1205,39 +1362,27 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
        Si una carta no tiene su <article>, se abre igual y muestra su versículo. -->
   <article class="carta-vista" id="carta-1" hidden>
     <div class="lectura">
-      <span class="lectura-bot lb1" aria-hidden="true"><span class="mecer" data-mecer="1.4"><svg class="bot bot-rama" viewBox="0 0 340 600" aria-hidden="true" focusable="false"><path d="M40.0 580.0C130.0 440.0 90.0 260.0 300.0 50.0"/><path d="M67.4 527.9Q108.4 538.0 133.7 505.4Q91.4 500.6 67.4 527.9"/><path d="M72.7 526.1Q98.4 521.0 121.8 509.5"/><path d="M78.2 500.6Q85.1 466.7 46.1 440.6Q48.2 481.9 78.2 500.6"/><path d="M75.6 495.8Q66.6 472.0 51.8 451.4"/><path d="M87.6 472.4Q127.2 477.8 147.6 444.9Q107.4 444.5 87.6 472.4"/><path d="M92.4 470.2Q115.9 462.9 136.8 449.8"/><path d="M96.2 443.5Q100.5 411.4 62.1 389.3Q66.8 427.9 96.2 443.5"/><path d="M93.4 439.1Q83.5 417.4 68.2 399.0"/><path d="M104.4 413.7Q141.9 417.3 159.8 385.8Q122.1 386.8 104.4 413.7"/><path d="M108.8 411.5Q130.7 403.8 149.8 390.8"/><path d="M112.8 383.2Q116.8 353.3 80.6 332.5Q85.1 368.7 112.8 383.2"/><path d="M110.2 379.1Q100.7 358.8 86.4 341.6"/><path d="M121.8 351.9Q157.0 356.0 174.2 327.0Q138.9 327.1 121.8 351.9"/><path d="M126.0 349.9Q146.6 343.2 164.8 331.5"/><path d="M131.9 319.8Q137.3 292.4 104.3 271.0Q106.9 305.0 131.9 319.8"/><path d="M129.7 315.9Q121.9 296.5 109.3 279.8"/><path d="M143.7 287.0Q176.4 293.2 194.1 267.6Q161.4 265.2 143.7 287.0"/><path d="M147.7 285.4Q167.3 280.7 185.0 271.1"/><path d="M157.6 253.4Q165.1 228.8 136.4 205.9Q135.7 237.5 157.6 253.4"/><path d="M155.9 249.6Q150.4 231.0 140.2 214.4"/><path d="M174.1 219.1Q203.8 228.1 222.5 206.5Q192.6 200.9 174.1 219.1"/><path d="M177.9 218.1Q196.5 215.8 213.8 208.8"/><path d="M193.7 184.1Q203.4 162.8 179.7 138.2Q175.4 167.1 193.7 184.1"/><path d="M192.5 180.5Q189.6 162.8 182.2 146.5"/><path d="M216.8 148.5Q243.2 160.2 262.5 142.8Q235.9 134.1 216.8 148.5"/><path d="M220.5 148.0Q237.7 148.1 254.3 143.8"/><path d="M244.1 112.1Q255.7 94.2 237.1 68.6Q229.7 94.4 244.1 112.1"/><path d="M243.6 108.6Q243.1 92.2 238.3 76.5"/><path d="M276.0 75.1Q298.8 88.9 318.0 75.5Q295.0 64.3 276.0 75.1"/><path d="M279.3 75.1Q294.9 77.3 310.4 75.4"/><path d="M300.0 50.0Q320.3 46.7 326.2 23.8Q305.0 31.4 300.0 50.0"/><path d="M302.1 47.9Q313.0 39.5 321.5 28.5"/></svg></span></span>
+      
       <span class="lectura-bot lb2" aria-hidden="true"><span class="mecer" data-mecer="-1"><svg class="bot bot-flor" viewBox="0 0 120 240" aria-hidden="true" focusable="false"><path d="M60 230C58 190 66 150 60 70"/><path d="M60.0 182.0Q79.6 178.1 87.9 162.5Q68.9 168.0 60.0 182.0"/><path d="M62.2 180.4Q73.2 174.2 82.8 166.0"/><path d="M60.0 142.0Q54.5 128.4 32.1 122.5Q43.8 138.5 60.0 142.0"/><path d="M57.8 140.4Q48.2 132.2 37.2 126.0"/><path d="M60.0 52.0C53.4 32.1 60.0 32.0 60.0 32.0C60.0 32.0 66.6 32.1 60.0 52.0"/><path d="M60.0 52.0C76.9 39.6 79.0 45.8 79.0 45.8C79.0 45.8 81.0 52.1 60.0 52.0"/><path d="M60.0 52.0C77.1 64.2 71.8 68.2 71.8 68.2C71.8 68.2 66.4 72.0 60.0 52.0"/><path d="M60.0 52.0C53.6 72.0 48.2 68.2 48.2 68.2C48.2 68.2 42.9 64.2 60.0 52.0"/><path d="M60.0 52.0C39.0 52.1 41.0 45.8 41.0 45.8C41.0 45.8 43.1 39.6 60.0 52.0"/><path d="M57.4 52.0a2.6 2.6 0 1 0 5.2 0a2.6 2.6 0 1 0 -5.2 0"/></svg></span></span>
       <div class="lectura-hoja">
         <header class="lectura-cab">
           <div class="lectura-meta"><span>Carta I</span><span data-fecha></span></div>
           <h2 tabindex="-1">De vuelta al jardín, <em>al lugar de origen</em></h2>
-          <p class="lectura-tiempo" data-tiempo></p>
         </header>
 
-        <figure class="lectura-verso">
-          <blockquote>Dios el Señor plantó un jardín al oriente del Edén.</blockquote>
-          <figcaption>Génesis 2:8 · NVI</figcaption>
-        </figure>
-
         <section class="lectura-parte">
-          <h3><span>I</span>En el principio</h3>
           <div class="lectura-prosa">
             <p>Nuestra colección Edén nace del anhelo de volver al deleite y el placer de la comunión con Dios. Cuando comprendemos que el jardín fue Su diseño original, entendemos cuál fue y es la intención de Dios con Su creación.</p>
             <p>En el principio, el hombre no corría; caminaba con Dios. Adán y Eva disfrutaban de una relación con Dios sin ningún tipo de limitación. Génesis describe cómo la voz de Dios se paseaba por el huerto.</p>
             <p>Todo les había sido entregado: autoridad sobre la creación, intimidad, comunión. Vivían contemplando y conociendo el esplendor de Dios. El Jardín era más que un lugar; era la belleza de Su corazón expresada en la creación y el aliento de Su boca hecho tangible.</p>
           </div>
-          <aside class="nota lectura-nota rv-nota" aria-label="Nota">
-            <ul>
-              <li>Volver al origen también es una forma de avanzar.</li>
-              <li>Lo esencial no se pierde, se recuerda.</li>
-            </ul>
+          <aside class="nota lectura-nota rv-nota" aria-label="Versículo">
+            <p>“Con el sudor de tu rostro comerás el pan…”</p>
+            <p style="margin-top:.8rem">Génesis 3:19</p>
           </aside>
         </section>
 
-        <div class="lectura-adorno" aria-hidden="true"><span></span></div>
-
         <section class="lectura-parte">
-          <h3><span>II</span>Abierto nuevamente por amor</h3>
           <div class="lectura-prosa">
             <p>Hasta que el pecado susurró, y lo que era comunión se volvió distancia. El disfrute se volvió esfuerzo. La tierra, antes generosa, ahora exigía sudor. El alma, antes libre, comenzó a esconderse. Y el eco de la vergüenza reemplazó la voz de Dios. Ya no bastaba simplemente existir; ahora había que cubrirse, justificarse, huir.</p>
             <p class="resalte">El jardín no desapareció; pero el acceso sí.</p>
@@ -1245,9 +1390,9 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
             <p>Hay un llamado a regresar al Jardín, al lugar de origen. Edén significa deleite, placer, disfrute, y esa nunca dejó de ser la intención de Dios. Fuimos creados no solo para existir, sino para disfrutar de Su presencia.</p>
             <p>En medio de un mundo que corre, exige y distrae, este llamado se vuelve urgente: volver al Jardín. No para escapar de la realidad, sino para reencontrar lo esencial. Un lugar donde no gobiernan demandas ni distracciones, sino la presencia. Donde el alma descansa y vuelve a recordar quién es.</p>
           </div>
-          <aside class="nota lectura-nota rv-nota" aria-label="Nota">
-            <p>“Con el sudor de tu rostro comerás el pan…”</p>
-            <p style="margin-top:.8rem">Génesis 3:19</p>
+          <aside class="nota lectura-nota lectura-nota-izq rv-nota" aria-label="Versículo">
+            <p>Jesús es el camino, la verdad y la vida.</p>
+            <p style="margin-top:.8rem">Juan 14:6</p>
           </aside>
         </section>
 
@@ -1262,6 +1407,16 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
   <nav class="lectura-nav" id="lecturaNav" aria-label="Otras cartas" hidden></nav>
 </div>
 
+
+<!-- ====== Página de cada categoría (solo Biblias o solo Journals) ====== -->
+<div class="ficha categoria" id="categoria" role="dialog" aria-modal="true" aria-labelledby="catTitulo" aria-hidden="true">
+  <div class="ficha-barra">
+    <button class="cerrar volver-jardin" type="button" data-cat-volver><svg viewBox="0 0 28 14" aria-hidden="true"><path d="M27 9.5c-4.5 0-6-6-12-6S6 8 1.5 8"/><path d="M5.5 4.2 1.5 8l4.3 3.3"/></svg>Volver</button>
+    <span class="logo-mini" aria-hidden="true"></span>
+    <button class="carrito-btn" type="button" id="catCarrito">Carrito&nbsp;<span id="catCuenta">(0)</span></button>
+  </div>
+  <div class="fb-cuerpo" id="catCuerpo"></div>
+</div>
 
 <!-- ====== Ficha individual de cada Biblia ======
      Una sola plantilla para todos los modelos. Se completa sola con los datos
@@ -1294,13 +1449,13 @@ const EDEN = {
     { id:"ventana", tipo:"biblia", verbo:"Volver", nombre:"Origen", descripcion:"Una ventana abierta: la invitación a asomarse otra vez al jardín.", imagen:"/img/54891cba382d.jpg" },
     { id:"florecer", tipo:"biblia", verbo:"Florecer", nombre:"Anaj", descripcion:"Lo que crece despacio, cuando tiene raíz.", imagen:"/img/4cfd5f11059c.jpg" },
     { id:"roca", tipo:"biblia", verbo:"Permanecer", nombre:"Habitación", descripcion:"Como la casa edificada sobre la roca.", imagen:"/img/df00104fe040.jpg" },
-    { id:"biblia-4", tipo:"biblia", verbo:"", nombre:"Prajim", descripcion:"Diseño por confirmar.", foto:0 },
-    { id:"biblia-5", tipo:"biblia", verbo:"", nombre:"Havilah", descripcion:"Diseño por confirmar.", foto:1 },
+    { id:"biblia-4", tipo:"biblia", verbo:"", nombre:"Salmo 27", descripcion:"Diseño por confirmar.", foto:0 },
+    { id:"biblia-5", tipo:"biblia", verbo:"", nombre:"Jardín", descripcion:"Diseño por confirmar.", foto:1 },
     { id:"journal-1", tipo:"journal", verbo:"", nombre:"Origen", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:0 },
     { id:"journal-2", tipo:"journal", verbo:"", nombre:"Anaj", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:1 },
     { id:"journal-3", tipo:"journal", verbo:"", nombre:"Habitación", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:2 },
-    { id:"journal-4", tipo:"journal", verbo:"", nombre:"Prajim", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:0 },
-    { id:"journal-5", tipo:"journal", verbo:"", nombre:"Havilah", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:1 }
+    { id:"journal-4", tipo:"journal", verbo:"", nombre:"Salmo 27", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:0 },
+    { id:"journal-5", tipo:"journal", verbo:"", nombre:"Jardín", descripcion:"Para escribir lo que Él te va diciendo en el camino.", foto:1 }
   ],
   /* Fotos extra de la ficha de cada Biblia */
   galerias: {
@@ -1315,27 +1470,34 @@ const EDEN = {
 /* ====== Fichas de cada Biblia: editar aquí ======
    Cada Biblia usa su "id" del catálogo de arriba (ventana, florecer, roca, biblia-4, biblia-5).
    · Los campos vacíos ("") se muestran como «Por confirmar».
-   · Medidas: escribe solo el número (ej. alto:"21.5") y se agrega «cm» solo.
+   · Medidas: están en COMUN (las mismas para todas); un modelo distinto puede tener su propio medidas:"…".
    · galeria: fotos adicionales de ESE modelo (la principal es su "imagen" del catálogo).
        - Una foto nueva: escribe su dirección o archivo, ej. "fotos/origen-lomo.jpg"
        - Una foto que ya está en la página: { enPagina:"#palabra .foto img" }
+   · frase: el texto corto debajo del nombre en la ficha (\n separa párrafos).
    · slug: el nombre que aparece en el enlace para compartir (ej. #biblia/origen).
    · COMUN: datos que comparten todas las Biblias; cada modelo puede cambiarlos. */
 const FICHAS = {
   COMUN: {
     version: "NVI",
+    medidas: ["23 cm de largo", "15 cm de ancho", "2,3 cm de grosor"],
     materiales: "Cuero con detalle dorado en la tapa"
   },
-  "ventana": { slug:"origen",
+  "ventana": { frase:"Volver al origen es regresar al diseño inicial de Dios, a la esencia con la que fuimos creados; una vida de comunión, de cercanía, de habitar en su presencia.",
+    slug:"origen",
     galeria: [ { enPagina:"#palabra .foto img" }, { enPagina:"#parte .parte-foto img" }, { enPagina:"#caminar .polaroid.pl img" } ],
     alto:"", ancho:"", grosor:"" },
-  "florecer": { slug:"anaj", galeria: [],
+  "florecer": { frase:"Fuimos creados para disfrutar de Dios; encontrar placer en Su presencia y deleite en Su Palabra.",
+    slug:"anaj", galeria: [],
     alto:"", ancho:"", grosor:"" },
-  "roca": { slug:"habitacion", galeria: [],
+  "roca": { frase:"Un lugar para habitar en su presencia donde su casa se convierta en nuestro hogar. No queremos solo visitar, ¡queremos habitar!",
+    slug:"habitacion", galeria: [],
     alto:"", ancho:"", grosor:"" },
-  "biblia-4": { slug:"prajim", galeria: [],
+  "biblia-4": { frase:"“Una sola cosa deseo y esa buscaré, habitar en la casa del Señor todos los días de mi vida” — Ese anhelo de permanecer y habitar en su presencia. Buscando su rostro y contemplando su hermosura.",
+    slug:"salmo-27", galeria: [],
     alto:"", ancho:"", grosor:"" },
-  "biblia-5": { slug:"havilah", galeria: [],
+  "biblia-5": { frase:"El jardín, un lugar donde no gobiernan demandas ni distracciones, sino la presencia de Dios. Donde el alma descansa y vuelve a recordar quién es.\nEl jardín sigue abierto, la invitación sigue en pie y Dios aún camina esperando encontrarse contigo.",
+    slug:"jardin", galeria: [],
     alto:"", ancho:"", grosor:"" }
 };
 /* ============================================ */
@@ -1343,6 +1505,7 @@ const FICHAS = {
 
 const $ = s => document.querySelector(s);
 const PROD = Object.fromEntries(EDEN.productos.map(p=>[p.id,p]));
+
 const fmt = n => new Intl.NumberFormat("es-AR",{style:"currency",currency:EDEN.moneda,maximumFractionDigits:0}).format(n);
 const guardar = (k,v) => { try{ localStorage.setItem(k,JSON.stringify(v)) }catch(e){} };
 const leer = (k,d) => { try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? d }catch(e){ return d } };
@@ -1375,8 +1538,17 @@ function sinCatalogo(){
   if(CATALOGO) return;
   FALLO_CATALOGO = true; tienda.classList.remove("cargando"); carritoTienda.pintar();
 }
+/* Aviso de la barra de arriba: lo escribe el back office (Ajustes). Vacío, la barra se va, salvo que lleve el botón de arrepentimiento */
+function avisoBarra(txt){
+  const barra = $("#barraCafe"), span = $("#barraTexto"); if(!barra || !span) return;
+  span.textContent = txt; span.hidden = !txt;
+  barra.hidden = !txt && !barra.querySelector("a");
+  dispatchEvent(new Event("resize")); // la página vuelve a medir el alto de la barra
+}
 function aplicarCatalogo(c){
   PRECIO_SET = c.precio_set || 0;
+  // Si el servidor todavía no lo manda (sin la migración 0012) queda el aviso que trae la página
+  if("aviso_barra" in c) avisoBarra(c.aviso_barra || "");
   const vistos = new Set(), orden = new Map();
   c.productos.forEach((x, i) => {
     let p = EDEN.productos.find(q => q.tipo === x.tipo && !vistos.has(q) && normal(q.nombre) === normal(x.diseno));
@@ -1390,6 +1562,9 @@ function aplicarCatalogo(c){
     p.nombre = sinTipo(x.nombre) || x.diseno; p.largo = x.nombre; p.diseno = x.diseno; p.categoria = x.categoria || null; p.precio = x.precio; p.stock = x.stock; p.slug = x.slug; p.activo = x.activo; p.etiqueta = x.etiqueta; p.precio_anterior = x.precio_anterior;
     // En la tarjeta, verbo y descripción aparecen solo si los cargó el back office
     p.catVerbo = x.verbo || ""; p.catDescripcion = x.descripcion || "";
+    // Ficha de la Biblia: frase y medidas del back office. Sin la migración 0012 no vienen y quedan las del archivo de Mich
+    if("frase" in x) p.catFrase = x.frase || "";
+    if("medidas" in x) p.catMedidas = x.medidas || "";
     if(x.foto_url) p.imagen = x.foto_url;
   });
   // Lo que esta página traía y el back office no: no se vende
@@ -1474,6 +1649,23 @@ function compraFicha(p){
     : `<button class="boton lleno agregar" type="button" data-agregar="${esc(p.id)}" aria-label="Agregar ${etq} al carrito">Agregar</button><button class="regalar" type="button" data-regalar="${esc(p.id)}" aria-label="Regalar ${etq}">Regalar</button>`;
   return precio + (acciones ? `<div class="fb-compra">${acciones}</div>` : "");
 }
+/* Frase y medidas de la ficha: las del back office (Productos → Editar). Sin frase, la descripción corta.
+   Si el servidor todavía no las manda, quedan las del archivo de Mich */
+const textosFicha = p => ({
+  ...(p.catFrase !== undefined ? { frase: p.catFrase || p.catDescripcion || "" } : {}),
+  ...(p.catMedidas !== undefined ? { medidas: p.catMedidas ? p.catMedidas.split("\n").map(s => s.trim()).filter(Boolean) : "" } : {})
+});
+/* Tarjeta de la página de cada categoría (diseño de Mich) con precio, stock y compra del back office */
+function tarjetaCategoria(p){
+  const largo = esc(nombreLargo(p)), nom = esc(p.nombre), img = fotoHTML(fotoDe(p), largo);
+  const enlace = p.tipo === "biblia" ? `#biblia/${esc(slugDe(p))}` : "";
+  const cabeza = enlace
+    ? `<a class="pieza-ficha foto-enlace" href="${enlace}" data-ficha="${esc(p.id)}" tabindex="-1" aria-hidden="true">${img}</a><p class="verbo"><a class="pieza-ficha" href="${enlace}" data-ficha="${esc(p.id)}" aria-label="Ver la ficha de la ${largo}">${nom}</a></p>`
+    : `${img}<p class="verbo">${nom}</p>`;
+  const precio = CATALOGO && p.precio > 0 ? `<p class="precio">${precioHTML(p)}</p>` : SIN_PRECIO;
+  const accion = !CATALOGO ? "" : agotado(p) ? `<div class="espera">${esperaHTML(p)}</div>` : p.precio > 0 ? siSeVende(agregarHTML(p.id, largo)) : "";
+  return `<article class="pieza">${cabeza}<div class="pie">${precio}${accion}</div>${CATALOGO ? quedanHTML(p.stock) : ""}</article>`;
+}
 function tarjeta({ id, etiqueta, foto, nombre, titulo, verbo, descripcion, precio, acciones }){
   const art = document.createElement("article"); art.className = "pieza"; art.id = id;
   art.innerHTML = `<div class="pieza-foto">${etiqueta ? `<span class="distintivo">${esc(etiqueta)}</span>` : ""}${foto}</div><p class="verbo" title="${esc(titulo)}">${nombre}</p><p class="pieza-verbo">${esc(verbo)}</p><p class="variante">${esc(descripcion)}</p><div class="pieza-precio">${precio}</div><div class="pieza-acciones">${acciones}</div>`;
@@ -1516,9 +1708,11 @@ function precioSet(k){
   const lista = piezasDe(k).reduce((a,x) => a + (x.p.precio || 0) * x.q, 0);
   return { ...k, precio_anterior: k.precio_anterior > k.precio ? k.precio_anterior : lista > k.precio ? lista : null };
 }
+/* El título «Sets» se ve si hay «Armá tu set» (precio del Set en Ajustes) o algún pack del back office */
+const grupoSets = () => { $("#grupo-sets").hidden = $("#setArmador").hidden && $("#sets").hidden; };
 function pintarSets(){
   const sets = Object.values(PACK), box = $("#sets");
-  $("#filaSets").hidden = !sets.length; box.innerHTML = "";
+  box.hidden = !sets.length; box.innerHTML = ""; grupoSets();
   sets.forEach(k => {
     const id = "pack:" + k.slug, nom = esc(k.nombre), incluye = incluyeDe(k);
     box.appendChild(tarjeta({
@@ -1536,7 +1730,7 @@ function pintarSets(){
    Si una carta tiene su <article id="carta-N"> en el HTML, se abre completa;
    si no, se abre mostrando su versículo. */
 const CARTAS = [
-  { n:1, numero:"I", abierta:true, fecha:"Noviembre 2026",
+  { n:1, numero:"I", abierta:true, fecha:"Diciembre 2026",
     titulo:"De vuelta al jardín, <em>al lugar de origen</em>",
     extracto:"En el principio, el hombre no corría; caminaba con Dios.",
     intro:"En el principio, el hombre no corría; caminaba con Dios. El jardín dejó de ser memoria y volvió a ser invitación.",
@@ -1728,11 +1922,9 @@ function cerrarMenu(volver=true){ if(!menu.classList.contains("abierto")) return
 $("#cerrarMenu").onclick = () => cerrarMenu();
 addEventListener("keydown",e=>{ if(e.key==="Escape") cerrarMenu() });
 function pintarMenu(){
-  const biblias = visibles("biblia");
-  $("#pieColeccion").innerHTML = biblias.map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("");
-  $("#faqDisenos").textContent = new Intl.ListFormat("es",{type:"disjunction"}).format(biblias.map(p=>p.nombre));
-  $("#menuBiblias").innerHTML = visibles("biblia").map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("") + `<li class="todo"><a href="#grupo-biblias">Todas las Biblias</a></li>`;
-  $("#menuJournals").innerHTML = visibles("journal").map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("") + `<li class="todo"><a href="#grupo-journals">Todos los journals</a></li>`;
+  $("#pieColeccion").innerHTML = visibles("biblia").map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("");
+  if($("#menuBiblias")) $("#menuBiblias").innerHTML = visibles("biblia").map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("") + `<li class="todo"><a href="#grupo-biblias">Todas las Biblias</a></li>`;
+  if($("#menuJournals")) $("#menuJournals").innerHTML = visibles("journal").map(p=>`<li><a href="#p-${esc(p.id)}">${esc(p.nombre)}</a></li>`).join("") + `<li class="todo"><a href="#grupo-journals">Todos los journals</a></li>`;
   $("#abrirMenu").onclick = abrirMenu;
 }
 pintarMenu();
@@ -1850,15 +2042,38 @@ const carritoTienda = (() => {
     const pares = Math.min(cuenta("biblia"), cuenta("journal"));
     return PRECIO_SET && pares ? Math.max(0, pares * (minimo("biblia") + minimo("journal") - PRECIO_SET)) : 0;
   }
-  /* Sugerencia: si hay una Biblia sin Journal, ofrecer el del mismo diseño */
-  function sugerenciaHTML(ls){
-    const items = ls.filter(x => x.p), biblias = items.filter(x => x.p.tipo === "biblia"), journals = items.filter(x => x.p.tipo === "journal");
-    if(!PRECIO_SET || biblias.reduce((a,x) => a + x.cant, 0) <= journals.reduce((a,x) => a + x.cant, 0)) return "";
-    const sola = (biblias.find(b => !journals.some(j => j.p.diseno === b.p.diseno)) || biblias[0]).p;
-    const sirve = x => x.tipo === "journal" && !x.fuera && x.precio > 0 && !agotado(x) && !sinLugar(x.id, 1);
-    const journal = EDEN.productos.find(x => sirve(x) && x.diseno === sola.diseno) || EDEN.productos.find(sirve);
-    return journal ? `<div class="sugerencia"><p>Sumá el Journal ${esc(journal.nombre)} y llevate el Set por ${fmt(PRECIO_SET)}.</p><button class="boton" type="button" data-cant="1" data-id="${esc(journal.id)}">Sumar Journal</button></div>` : "";
+  /* Promo del Set (diseño de Mich): si hay una Biblia sin journal, ofrece sumarle uno y muestra cuánto suma de verdad,
+     con el descuento del Set ya aplicado. Si Biblia y journal ya están, el descuento se ve en la línea del Set. */
+  const promo = $("#carritoPromo");
+  let promoJournal = null;
+  function pintarPromo(ls, conPrecios){
+    const items = ls.filter(x => x.p), cuenta = t => items.filter(x => x.p.tipo === t).reduce((a,x) => a + x.cant, 0);
+    const ocultar = () => { promo.hidden = true; promo.innerHTML = ""; };
+    if(!conPrecios || !PRECIO_SET || cuenta("biblia") <= cuenta("journal")) return ocultar();
+    const biblias = items.filter(x => x.p.tipo === "biblia"), journals = items.filter(x => x.p.tipo === "journal");
+    const b = (biblias.find(x => !journals.some(j => j.p.diseno === x.p.diseno)) || biblias[0]).p;
+    const extraDe = j => {
+      const otra = ls.some(x => x.p === j) ? ls.map(x => x.p === j ? { ...x, cant: x.cant + 1 } : x) : [...ls, { id: j.id, cant: 1, p: j }];
+      return j.precio - (ahorroSet(otra) - ahorroSet(ls));
+    };
+    const opciones = EDEN.productos.filter(x => x.tipo === "journal" && !x.fuera && x.precio > 0 && !agotado(x) && !sinLugar(x.id, 1) && extraDe(x) < x.precio);
+    if(!opciones.length) return ocultar();
+    if(!opciones.some(j => j.id === promoJournal)) promoJournal = (opciones.find(j => j.diseno === b.diseno) || opciones[0]).id;
+    const j = PROD[promoJournal], extra = extraDe(j);
+    promo.innerHTML = `<p class="promo-txt">¿Sumás un journal a tu Biblia <b>${esc(b.nombre)}</b>? Con la promo del set te queda en <b>${fmt(extra)}</b> en lugar de ${fmt(j.precio)}.</p>
+      ${opciones.length > 1 ? `<div class="promo-ops" role="radiogroup" aria-label="Elegí tu journal">${opciones.map(x => `<button type="button" class="set-op" role="radio" aria-checked="${x.id === promoJournal}" data-promo-j="${esc(x.id)}">${esc(x.nombre)}</button>`).join("")}</div>` : ""}
+      <button type="button" class="boton promo-btn" data-promo-sumar>Sumar journal ${esc(j.nombre)} · ${fmt(extra)}</button>`;
+    promo.hidden = false;
   }
+  promo.addEventListener("click", e => {
+    const op = e.target.closest("[data-promo-j]");
+    if(op){ promoJournal = op.dataset.promoJ; pintar(); const elegido = promo.querySelector('[aria-checked="true"]'); if(elegido) elegido.focus(); return; }
+    if(e.target.closest("[data-promo-sumar]")){
+      const falta = agregar(promoJournal);
+      pintar(falta || "¡Listo! Sumamos el journal y quedó como set.");
+      pedir.focus();
+    }
+  });
   function pintar(aviso = ""){
     guardar("eden-carrito", carrito);
     const ls = lineas(), n = ls.reduce((a,x) => a + x.cant, 0);
@@ -1890,7 +2105,8 @@ const carritoTienda = (() => {
           ${precio}
           <button type="button" class="quitar" data-quitar="${id}">Quitar</button>
         </div>
-      </div>`; }).join("") + (conPrecios ? sugerenciaHTML(ls) : "");
+      </div>`; }).join("");
+    pintarPromo(ls, conPrecios);
     const ahorro = conPrecios ? ahorroSet(ls) : 0, linea = $("#setLinea");
     linea.hidden = !ahorro;
     if(ahorro) linea.lastElementChild.textContent = "−" + fmt(ahorro);
@@ -1909,6 +2125,19 @@ const carritoTienda = (() => {
     const falta = sinLugar(id, 1); if(falta) return falta;
     const it = carrito.find(x => x.id === id);
     if(it) it.cant++; else carrito.push({ id, cant:1 });
+    pintar();
+    boton.classList.add("pulso"); setTimeout(() => boton.classList.remove("pulso"), 900);
+    return "";
+  }
+  /* «Armá tu set»: la Biblia y el journal entran juntos o ninguno (el descuento del Set lo calcula el carrito) */
+  function agregarJuntos(ids){
+    const antes = carrito.map(x => ({ ...x }));
+    for(const id of ids){
+      const falta = sinLugar(id, 1);
+      if(falta){ carrito = antes; pintar(); return falta; }
+      const it = carrito.find(x => x.id === id);
+      if(it) it.cant++; else carrito.push({ id, cant:1 });
+    }
     pintar();
     boton.classList.add("pulso"); setTimeout(() => boton.classList.remove("pulso"), 900);
     return "";
@@ -1962,12 +2191,146 @@ const carritoTienda = (() => {
     location.href = "/checkout";
   });
   pintar();
-  return { pintar, abrir, agregar, alCatalogo };
+  return { pintar, abrir, agregar, agregarJuntos, alCatalogo };
 })();
 if(location.hash === "#carrito"){ history.replaceState(null, "", location.pathname + location.search); carritoTienda.abrir(); }
 cargarCatalogo();
 setTimeout(sinCatalogo, 6000);
 
+
+/* ====== Armá tu set ======
+   El diseño es de Mich; los datos salen del back office: las Biblias y journals a la venta, sus fotos y el precio del Set (Ajustes).
+   «Agregar» suma la Biblia y el journal al carrito, que aplica el precio del Set (el servidor lo vuelve a calcular al hacer el pedido).
+   Sin precio del Set, o sin Biblias o journals disponibles, la sección no se muestra. */
+(() => {
+  const caja = $("#setArmador"), btn = $("#setAgregar");
+  const SIN_FOTO = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+  btn.removeAttribute("data-agregar"); // lo suma este armador, no el botón genérico de la tienda
+  btn.insertAdjacentHTML("afterend", `<p class="agotado-txt set-pronto" hidden>Muy pronto</p>`);
+  const pronto = caja.querySelector(".set-pronto");
+  /* La sección, su título y «Sets» en el menú se ven solo cuando hay Set (hasta tener el catálogo, no) */
+  const mostrar = si => {
+    caja.hidden = !si; grupoSets();
+    document.querySelectorAll('[data-categoria="set"]').forEach(a => { const li = a.closest("li"); if(li) li.hidden = !si; });
+  };
+  mostrar(false);
+  let bs = [], js = [], b = null, j = null;
+  const disponibles = tipo => CATALOGO ? visibles(tipo).filter(p => p.precio > 0 && !agotado(p)) : [];
+  const opciones = (lista, cont, tipo) => {
+    const el = $(cont);
+    el.setAttribute("role", "radiogroup");
+    el.setAttribute("aria-label", tipo === "b" ? "Elegí tu Biblia" : "Elegí tu journal");
+    el.innerHTML = lista.map(p => `<button type="button" class="set-op" role="radio" data-set-${tipo}="${esc(p.id)}">${esc(p.nombre)}</button>`).join("");
+  };
+  const foto = (img, src) => {
+    src = src || SIN_FOTO; // sin foto cargada queda el espacio, del color del papel
+    if(img.getAttribute("src") === src) return;
+    if(quieto || !img.getAttribute("src")){ img.src = src; return; }
+    img.classList.add("cambiando"); setTimeout(() => { img.src = src; img.classList.remove("cambiando"); }, 180);
+  };
+  function pintar(){
+    caja.querySelectorAll("[data-set-b]").forEach(x => x.setAttribute("aria-checked", x.dataset.setB === b.id));
+    caja.querySelectorAll("[data-set-j]").forEach(x => x.setAttribute("aria-checked", x.dataset.setJ === j.id));
+    foto($("#setFotoB"), fotoDe(b)); foto($("#setFotoJ"), fotoDe(j));
+    $("#setNomB").textContent = nombreLargo(b); $("#setNomJ").textContent = nombreLargo(j);
+    const separado = b.precio + j.precio, precio = Math.min(PRECIO_SET, separado), ahorro = separado - precio;
+    $("#setPrecio").textContent = fmt(precio);
+    $("#setAntes").innerHTML = ahorro > 0 ? `<s>${fmt(separado)}</s> por separado · <b>ahorrás ${fmt(ahorro)}</b>` : "";
+    $("#setResumen").textContent = `Tu set: ${nombreLargo(b)} + ${nombreLargo(j)}`;
+    btn.setAttribute("aria-label", `Agregar el set ${nombreLargo(b)} y ${nombreLargo(j)} al carrito`);
+  }
+  /* Con cada catálogo: qué se puede elegir, si la venta está abierta y si la sección se muestra */
+  function armar(){
+    bs = disponibles("biblia"); js = disponibles("journal");
+    mostrar(PRECIO_SET > 0 && bs.length > 0 && js.length > 0);
+    if(caja.hidden) return;
+    if(!bs.includes(b)) b = bs[0];
+    if(!js.includes(j)) j = js.find(x => x.diseno === b.diseno) || js[0];
+    opciones(bs, "#setBiblias", "b"); opciones(js, "#setJournals", "j");
+    const cerrada = VENTA === "cerrada";
+    btn.hidden = cerrada; pronto.hidden = !cerrada;
+    pintar();
+  }
+  caja.addEventListener("click", e => {
+    const ob = e.target.closest("[data-set-b]"), oj = e.target.closest("[data-set-j]");
+    if(ob){ b = PROD[ob.dataset.setB] || b; pintar(); return; }
+    if(oj){ j = PROD[oj.dataset.setJ] || j; pintar(); return; }
+    if(e.target.closest("#setAgregar")){
+      const falta = carritoTienda.agregarJuntos([b.id, j.id]);
+      if(!falta){ btn.textContent = "Agregado"; btn.classList.add("hecho"); setTimeout(() => { btn.textContent = "Agregar"; btn.classList.remove("hecho"); }, 1600); }
+      carritoTienda.abrir(falta);
+    }
+  });
+  caja.addEventListener("keydown", e => {
+    const op = e.target.closest(".set-op"); if(!op || !/Arrow(Left|Right|Up|Down)/.test(e.key)) return;
+    e.preventDefault();
+    const grupo = [...op.parentElement.children], i = grupo.indexOf(op);
+    const sig = grupo[(i + (/Right|Down/.test(e.key) ? 1 : -1) + grupo.length) % grupo.length];
+    sig.focus(); sig.click();
+  });
+  addEventListener("eden:catalogo", armar);
+})();
+
+/* ====== Página de cada categoría: solo Biblias o solo Journals ======
+   Se abre desde el menú lateral. Las Biblias abren su ficha; «Agregar» usa el carrito de siempre. */
+(() => {
+  const vista = $("#categoria"), cuerpo = $("#catCuerpo");
+  const NOMBRES = { biblia:"Biblias", journal:"Journals", set:"Sets" };
+  let tipo = null, focoAntes = null;
+  // El armador de sets es uno solo: se muestra aquí y vuelve a su lugar al salir
+  const armador = $("#setArmador"), armOrigen = armador.parentNode, armDespues = armador.nextSibling;
+  const devolverArmador = () => { if(armador.parentNode !== armOrigen) armOrigen.insertBefore(armador, armDespues); };
+  const tarjeta = tarjetaCategoria;
+  function pintar(t){
+    tipo = t; devolverArmador();
+    cuerpo.innerHTML = `
+      <header class="cat-cab">
+        <p class="fb-etq">Colección 1 — De vuelta al jardín</p>
+        <h2 id="catTitulo" tabindex="-1">${NOMBRES[t]}</h2>
+        <div class="cat-tabs">${Object.entries(NOMBRES).filter(([k]) => k !== "set" || !$("#setArmador").hidden).map(([k,n]) => `<button type="button" class="cat-tab" data-cat-ir="${k}" aria-current="${k === t}">${n}</button>`).join("")}</div>
+      </header>
+      ${t === "set" ? `<div class="cat-sets" id="catSets"></div>` : `<div class="cat-grilla">${visibles(t).map(tarjeta).join("")}</div>`}
+      <div class="fb-pie"><span class="mono" aria-hidden="true"></span><button class="boton" type="button" data-cat-volver>Volver al jardín</button></div>`;
+    if(t === "set") $("#catSets").appendChild(armador);
+    document.title = `${NOMBRES[t]} · Edén`;
+  }
+  const TITULO = document.title;
+  function abrir(t){
+    const yaAbierta = vista.classList.contains("abierta");
+    if(!yaAbierta) focoAntes = document.activeElement;
+    pintar(t); vista.scrollTop = 0;
+    vista.classList.add("abierta"); vista.setAttribute("aria-hidden","false");
+    document.body.style.overflow = "hidden";
+    if(!quieto){ cuerpo.classList.remove("fb-entrando"); void cuerpo.offsetWidth; cuerpo.classList.add("fb-entrando"); }
+    setTimeout(() => $("#catTitulo").focus({ preventScroll:true }), 60);
+  }
+  function cerrar(){
+    if(!vista.classList.contains("abierta")) return;
+    vista.classList.remove("abierta"); vista.setAttribute("aria-hidden","true");
+    document.body.style.overflow = ""; document.title = TITULO; tipo = null; devolverArmador();
+    if(focoAntes && document.contains(focoAntes)) focoAntes.focus({ preventScroll:true });
+  }
+  document.addEventListener("click", e => {
+    const c = e.target.closest("[data-categoria]"); if(c){ e.preventDefault(); abrir(c.dataset.categoria); return; }
+    const t = e.target.closest("[data-cat-ir]"); if(t){ abrir(t.dataset.catIr); return; }
+    if(e.target.closest("[data-cat-volver]")) cerrar();
+  });
+  // Escape: si la ficha de una Biblia está abierta encima, se cierra solo esa
+  addEventListener("keydown", e => {
+    if(e.key !== "Escape" || !vista.classList.contains("abierta")) return;
+    if($("#ficha").classList.contains("abierta") || $("#carrito").classList.contains("abierto") || $("#menu").classList.contains("abierto")) return;
+    cerrar();
+  }, true);
+  // Al cerrar la ficha de una Biblia, la página de la categoría sigue sin dejar mover el fondo
+  new MutationObserver(() => { if(vista.classList.contains("abierta") && !$("#ficha").classList.contains("abierta")) document.body.style.overflow = "hidden"; })
+    .observe($("#ficha"), { attributes:true, attributeFilter:["class"] });
+  const cuenta = $("#carritoCuenta");
+  const copiar = () => $("#catCuenta").textContent = cuenta.textContent;
+  new MutationObserver(copiar).observe(cuenta, { childList:true, characterData:true, subtree:true }); copiar();
+  $("#catCarrito").addEventListener("click", () => $("#abrirCarrito").click());
+  /* Con el catálogo: la página abierta muestra precios, stock y productos del back office */
+  addEventListener("eden:catalogo", () => { if(tipo) pintar(tipo); });
+})();
 
 /* ====== Ficha individual de cada Biblia ======
    Una sola plantilla que se completa con los datos de cada modelo.
@@ -1977,10 +2340,9 @@ setTimeout(sinCatalogo, 6000);
   const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
   const datos = p => ({ ...FICHAS.COMUN, ...(FICHAS[p.id] || {}) });
   const ESPECS = [
-    ["Pieza", [["modelo","Modelo"],["version","Versión"],["materiales","Materiales"]]],
-    ["Medidas", [["alto","Alto","cm"],["ancho","Ancho","cm"],["grosor","Grosor","cm"]]]
+    ["Pieza", [["modelo","Modelo"],["version","Versión"],["medidas","Medidas"],["materiales","Materiales"]]]
   ];
-  const valor = (v, u) => (v === "" || v == null) ? `<span class="fb-pend">Por confirmar</span>`
+  const valor = (v, u) => Array.isArray(v) ? v.map(esc).join("<br>") : (v === "" || v == null) ? `<span class="fb-pend">Por confirmar</span>`
     : esc(v) + (u && /^[\d.,\s]+$/.test(String(v)) ? " " + u : "");
   function fotosDe(p){
     const lista = [fotoDe(p), ...(datos(p).galeria || []), ...((EDEN.galerias || {})[p.id] || [])];
@@ -1995,7 +2357,7 @@ setTimeout(sinCatalogo, 6000);
   let actual = null, fotos = [], i = 0, ocupado = false, focoAntes = null;
 
   function pintar(p){
-    const d = { modelo:p.nombre, ...datos(p) };
+    const d = { modelo:p.nombre, ...datos(p), ...textosFicha(p) };
     fotos = fotosDe(p); i = 0;
     const galeria = fotos.length ? `
       <figure class="fb-foto">
@@ -2011,7 +2373,7 @@ setTimeout(sinCatalogo, 6000);
       const f = fotosDe(o)[0];
       return `<a class="fb-otra" href="#biblia/${slugDe(o)}" data-fb-ir="${o.id}" aria-label="Ver la Biblia ${esc(o.nombre)}">
         <span class="fb-otra-foto">${f ? `<img src="${f.src}" alt="" loading="lazy">` : sinFoto("Fotos muy pronto")}</span>
-        <span class="fb-otra-nombre">${esc(o.nombre)}</span>${o.verbo ? `<span class="fb-otra-verbo">${esc(o.verbo)}</span>` : ""}
+        <span class="fb-otra-nombre">${esc(o.nombre)}</span>
       </a>`; }).join("");
     cuerpo.innerHTML = `
       <div class="fb-principal">
@@ -2019,7 +2381,7 @@ setTimeout(sinCatalogo, 6000);
         <div class="fb-info">
           <p class="fb-etq">Colección 1 · De regreso al jardín</p>
           <h2 id="fbNombre" tabindex="-1">${esc(p.nombre)}</h2>
-          ${p.catVerbo ? `<p class="fb-verbo">${esc(p.catVerbo)}</p>` : ""}${p.catDescripcion ? `<p class="fb-desc">${esc(p.catDescripcion)}</p>` : ""}
+          ${d.frase ? `<div class="fb-frase">${String(d.frase).split("\n").map(t => `<p>${esc(t)}</p>`).join("")}</div>` : ""}
           ${compraFicha(p)}
           <div class="fb-specs">${especs}</div>
         </div>
