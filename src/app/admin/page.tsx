@@ -86,8 +86,16 @@ export default async function Hoy() {
   const stockDe = (t: string) => (stock ?? []).filter((s) => s.tipo === t).reduce((n, s) => n + s.disponibles, 0);
   const tarjeta = `group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-low p-2.5 transition-all hover:bg-surface-container-lowest ${sombraTarjeta}`;
 
+  const { count: arrepentidos } = await supabase.from("arrepentimientos").select("id", { count: "exact", head: true }).eq("estado", "pendiente");
+
   return (
     <div className="flex w-full flex-col">
+      {(arrepentidos ?? 0) > 0 && (
+        <Link href="/admin/devoluciones" className="mb-3 flex items-center gap-2 rounded-2xl bg-secondary-fixed/50 px-3 py-2 font-body-md text-body-sm text-on-surface">
+          {icono("undo", "text-[16px]")}
+          <span>{arrepentidos === 1 ? "Hay 1 pedido de arrepentimiento para resolver" : `Hay ${arrepentidos} pedidos de arrepentimiento para resolver`}</span>
+        </Link>
+      )}
       <div className="mb-3 flex flex-col justify-between gap-2 md:flex-row md:items-end">
         <div>
           <div className="mb-1 flex items-center gap-space-xs font-label-sm text-label-sm uppercase tracking-widest text-outline">

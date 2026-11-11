@@ -6,6 +6,8 @@ type Firma = { nombre: string; usuario: string };
 export const REMITENTES = {
   pedido_recibido: { nombre: "Edén Pagos", usuario: "pagos" },
   reserva_vencida: { nombre: "Edén Pagos", usuario: "pagos" },
+  devolucion: { nombre: "Edén Pagos", usuario: "pagos" },
+  arrepentimiento: { nombre: "Edén Pedidos", usuario: "pedidos" },
   pago_confirmado: { nombre: "Edén Pedidos", usuario: "pedidos" },
   en_camino: { nombre: "Edén Envíos", usuario: "envios" },
   lista_espera: { nombre: "Edén", usuario: "hola" },

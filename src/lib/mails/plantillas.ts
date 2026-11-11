@@ -41,6 +41,8 @@ export const VARIABLES: Record<Plantilla, string[]> = {
   en_camino: ["nombre", "pedido"],
   lista_espera: ["nombre", "producto"],
   reserva_vencida: ["nombre", "pedido"],
+  devolucion: ["nombre", "pedido", "monto"],
+  arrepentimiento: ["nombre", "codigo"],
 };
 
 const rellenar = (texto: string, vars: Record<string, string>) => texto.replace(/\{(\w+)\}/g, (todo, k: string) => vars[k] ?? todo);
@@ -60,12 +62,15 @@ export const PLANTILLAS = {
   en_camino: "Tu pedido está en camino",
   lista_espera: "Volvió un producto",
   reserva_vencida: "Venció la reserva (transferencia)",
+  devolucion: "Te devolvimos tu dinero",
+  arrepentimiento: "Recibimos tu arrepentimiento",
 } as const;
 export type Plantilla = keyof typeof PLANTILLAS;
 
 /** Dirección pública del sitio, sin barra final. */
 export const sitio = () => (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
 export const linkSeguimiento = (token: string) => `${sitio()}/pedido/${encodeURIComponent(token)}`;
+const linkArrepentimiento = () => `${sitio()}/arrepentimiento`;
 
 const primerNombre = (n: string) => n.trim().split(/\s+/)[0] || n;
 
@@ -172,6 +177,7 @@ export function mailPedidoRecibido(p: PedidoMail, c: ContactoMail, t?: TextosMai
       bajada: "Tu pedido quedó reservado. Lo confirmamos apenas veamos la transferencia.",
       cuerpo,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
+      arrepentimiento: linkArrepentimiento(),
       motivo: "Recibiste este mail porque hiciste un pedido en Edén.",
     });
 }
@@ -210,6 +216,7 @@ export function mailPagoConfirmado(p: PedidoMail, c: ContactoMail, t?: TextosMai
       cuerpo,
       automatico: true,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
+      arrepentimiento: linkArrepentimiento(),
       motivo: "Recibiste este mail porque hiciste una compra en Edén.",
     });
 }
@@ -251,6 +258,7 @@ export function mailEnCamino(p: PedidoMail, c: ContactoMail, t?: TextosMail): Ma
       cuerpo,
       automatico: true,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el envío del pedido ${num}.`),
+      arrepentimiento: linkArrepentimiento(),
       motivo: "Recibiste este mail porque hiciste una compra en Edén.",
     });
 }
@@ -341,6 +349,55 @@ export function mailReservaVencida(p: PedidoMail, c: ContactoMail, t?: TextosMai
   });
 }
 
+// ───────────── Devolución y arrepentimiento ─────────────
+
+export function mailDevolucion(p: PedidoMail, d: { monto: number; completa: boolean }, c: ContactoMail, t?: TextosMail): Mail {
+  const nombre = primerNombre(p.nombre);
+  const num = numeroPedido(p.numero);
+  const monto = ars(d.monto);
+  const conTarjeta = p.medio_pago === "nave" || p.medio_pago === "mercadopago";
+  const cuerpo = [
+    caja(dato("Te devolvimos", `<span style="font-family:${MONO};font-size:20px;">${escapar(monto)}</span>`)),
+    espacio(16),
+    parrafo(
+      conTarjeta
+        ? "Lo devolvimos a la tarjeta con la que pagaste. El banco lo acredita según sus tiempos y lo vas a ver en tu resumen."
+        : "Si en unos días no lo ves en tu cuenta, escribinos y lo revisamos.",
+    ),
+    espacio(8),
+  ].join("");
+  return armar(t, { nombre, pedido: num, monto }, {
+    asunto: `Te devolvimos ${monto} del pedido ${num} · Edén`,
+    preheader: `Registramos la devolución de ${monto} de tu pedido ${num}.`,
+    ceja: `Pedido ${num}`,
+    titulo: d.completa ? `Te devolvimos tu dinero, ${nombre}.` : `Te devolvimos una parte, ${nombre}.`,
+    bajada: d.completa ? "Gracias por tu paciencia." : "El resto de tu pedido sigue igual.",
+    cuerpo,
+    contacto: contactoDe(c, `Hola! Tengo una consulta por la devolución del pedido ${num}.`),
+    motivo: "Recibiste este mail porque hiciste una compra en Edén.",
+  });
+}
+
+export function mailArrepentimiento(d: { nombre: string; codigo: string; pedido: string | null }, c: ContactoMail, t?: TextosMail): Mail {
+  const nombre = primerNombre(d.nombre);
+  const cuerpo = [
+    caja(dato("Tu código", `<span style="font-family:${MONO};font-size:20px;">${escapar(d.codigo)}</span>`) + (d.pedido ? dato("Pedido", escapar(d.pedido)) : "")),
+    espacio(16),
+    parrafo("Te vamos a escribir para coordinar cómo vuelve la pieza. El envío corre por nuestra cuenta y, cuando la recibamos, te devolvemos lo que pagaste por el mismo medio."),
+    espacio(8),
+  ].join("");
+  return armar(t, { nombre, codigo: d.codigo }, {
+    asunto: `Recibimos tu arrepentimiento · ${d.codigo}`,
+    preheader: `Tu código es ${d.codigo}. Te escribimos para coordinar la devolución.`,
+    ceja: "Botón de arrepentimiento",
+    titulo: `Recibimos tu pedido, ${nombre}.`,
+    bajada: "Guardá este código por cualquier consulta.",
+    cuerpo,
+    contacto: contactoDe(c, `Hola! Les escribo por mi arrepentimiento ${d.codigo}.`),
+    motivo: "Recibiste este mail porque usaste el botón de arrepentimiento en casaeden.com.ar.",
+  });
+}
+
 // ───────────── Cartas del jardín ─────────────
 
 /** Texto de una carta: párrafos separados por una línea en blanco, y los links quedan clickeables. */
@@ -387,5 +444,9 @@ export function vistaPrevia(plantilla: Plantilla, c: ContactoMail, t?: TextosMai
       return mailListaEspera({ nombre: "Lucía", producto: "Biblia Origen", tipo: "biblia", precio: 75000 }, c, t);
     case "reserva_vencida":
       return mailReservaVencida(p, c, t);
+    case "devolucion":
+      return mailDevolucion(p, { monto: p.total, completa: true }, c, t);
+    case "arrepentimiento":
+      return mailArrepentimiento({ nombre: p.nombre, codigo: "ARR-7K2M9Q", pedido: numeroPedido(p.numero) }, c, t);
   }
 }

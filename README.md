@@ -65,6 +65,7 @@ Todo lo que depende del dominio sale de variables, así que el cambio es de conf
 ## Pendientes conocidos
 
 - La suscripción a las cartas de la web usa Netlify Forms: todavía no guarda los mails.
+- Devoluciones: se registran en cada pedido; la plata se devuelve afuera (banco o panel de cobros). El botón de arrepentimiento (`/arrepentimiento`, exigido por la Disposición 954/2025) entrega un código en el momento y avisa a las socias.
 - Nave: falta conectar el checkout embebido y su webhook, que tiene que llamar a `aprobar_pago_externo`.
 
 ## Notas técnicas

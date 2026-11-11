@@ -74,6 +74,8 @@ type Marco = {
   automatico?: boolean;
   /** Link para darse de baja (cartas). */
   baja?: string;
+  /** Link al botón de arrepentimiento (mails de una compra: la ley pide informarlo en cada documento de venta). */
+  arrepentimiento?: string;
   /** Por qué le llega este mail (pie). */
   motivo: string;
 };
@@ -134,6 +136,7 @@ export function marco(m: Marco) {
       <div style="font-family:${SERIF};font-style:italic;font-size:21px;color:${COLOR.raiz};">“De regreso al Jardín.”</div>
       ${m.automatico ? `<div style="margin-top:12px;font-family:${SANS};font-size:13px;line-height:1.6;color:${COLOR.tinta};">Este es un mail automático, no hace falta responderlo.${contacto ? " Si necesitás algo, escribinos a:" : ""}</div>` : ""}
       ${contacto ? `<div style="margin-top:12px;font-family:${SANS};font-size:13px;line-height:1.6;color:${COLOR.tinta};">${contacto}</div>` : ""}
+      ${m.arrepentimiento ? `<div style="margin-top:14px;font-family:${SANS};font-size:11px;line-height:1.5;color:${COLOR.suave};">Tenés 10 días corridos desde que recibís tu compra para arrepentirte, sin costo: <a href="${urlSegura(m.arrepentimiento)}" style="color:${COLOR.suave};text-decoration:underline;">botón de arrepentimiento</a>.</div>` : ""}
       <div style="margin-top:14px;font-family:${SANS};font-size:11px;line-height:1.5;color:${COLOR.suave};">${escapar(m.motivo)}</div>
       ${m.baja ? `<div style="margin-top:8px;font-family:${SANS};font-size:11px;line-height:1.5;color:${COLOR.suave};"><a href="${m.baja}" style="color:${COLOR.suave};text-decoration:underline;">Darme de baja</a></div>` : ""}
     </td></tr>

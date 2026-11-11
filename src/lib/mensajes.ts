@@ -4,6 +4,8 @@ import { avisoYaSalio, mandarAviso, mandarMail, yaRegistrado } from "@/lib/mails
 import { textosDeMail } from "@/lib/mails/textos";
 import { escapar } from "@/lib/mails/html";
 import {
+  mailArrepentimiento,
+  mailDevolucion,
   mailEnCamino,
   mailListaEspera, mailReservaVencida,
   mailPagoConfirmado,
@@ -225,6 +227,48 @@ export async function notificarDespacho(pedidoId: string): Promise<void> {
     await mandarMail({ pedidoId: p.id, tipo: "en_camino", para: d.p.email, asunto: mail.asunto, html: mail.html });
   } catch (e) {
     console.error("[mensajes] notificarDespacho", e);
+  }
+}
+
+/** Devolución registrada: mail al cliente. Cada devolución manda el suyo (puede haber varias parciales). */
+export async function notificarDevolucion(pedidoId: string, monto: number, completa: boolean): Promise<void> {
+  try {
+    const d = await cargar(pedidoId);
+    if (!d?.p.email) return;
+    const mail = mailDevolucion(d.p, { monto, completa }, d.c, await textosDeMail("devolucion"));
+    await mandarMail({ pedidoId, tipo: "devolucion", para: d.p.email, asunto: mail.asunto, html: mail.html });
+  } catch (e) {
+    console.error("[mensajes] notificarDevolucion", e);
+  }
+}
+
+/**
+ * Pedido de arrepentimiento: aviso a las socias siempre; mail al cliente solo si ese mail ya compró,
+ * para que el formulario público no sirva para mandarle mails a cualquiera. El código igual se muestra en pantalla.
+ */
+export async function notificarArrepentimiento(a: {
+  codigo: string;
+  nombre: string;
+  email: string;
+  pedidoId: string | null;
+  numero: number | null;
+  esCliente: boolean;
+}): Promise<void> {
+  try {
+    const pedido = a.numero ? numeroPedido(a.numero) : null;
+    if (a.esCliente) {
+      const { data: aj } = await supabaseServidor().from("ajustes").select(AJUSTES).eq("id", 1).maybeSingle();
+      const mail = mailArrepentimiento({ nombre: a.nombre, codigo: a.codigo, pedido }, contactoDe(aj), await textosDeMail("arrepentimiento"));
+      await mandarMail({ pedidoId: a.pedidoId, tipo: "arrepentimiento", para: a.email, asunto: mail.asunto, html: mail.html });
+    }
+    const destino = a.pedidoId ? `/admin/pedidos/${a.pedidoId}` : "/admin/devoluciones";
+    await mandarAviso({
+      pedidoId: a.pedidoId,
+      tipo: "aviso_arrepentimiento",
+      texto: `↩️ <b>Arrepentimiento</b> · <a href="${escapar(sitio() + destino)}">${escapar(a.codigo)}</a> · ${escapar(nombreCorto(a.nombre))}${pedido ? ` · ${escapar(pedido)}` : ""}${a.esCliente ? "" : "\nEse mail no tiene compras: revisalo antes de responder."}`,
+    });
+  } catch (e) {
+    console.error("[mensajes] notificarArrepentimiento", e);
   }
 }
 

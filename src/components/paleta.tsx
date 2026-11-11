@@ -27,6 +27,7 @@ const OPCIONES: Opcion[] = [
   { id: "numeros", grupo: "Ir a", label: "Números", icono: "query_stats", href: "/admin/numeros", claves: "metricas estadisticas ganancia ventas", atajo: ["g", "u"] },
   { id: "cupones", grupo: "Ir a", label: "Cupones", icono: "confirmation_number", href: "/admin/cupones", claves: "descuento codigo promocion promo", atajo: ["g", "c"] },
   { id: "cartas", grupo: "Ir a", label: "Cartas del jardín", icono: "drafts", href: "/admin/cartas", claves: "newsletter suscriptores carta mensual devocional difusion" },
+  { id: "devoluciones", grupo: "Ir a", label: "Devoluciones", icono: "undo", href: "/admin/devoluciones", claves: "arrepentimiento reembolso devolver plata" },
   { id: "ajustes", grupo: "Ir a", label: "Ajustes", icono: "settings", href: "/admin/ajustes", claves: "configuracion precios mail alias", atajo: ["g", "a"] },
   { id: "mensajes", grupo: "Ir a", label: "Mails y avisos", icono: "mail", href: "/admin/ajustes/mensajes", claves: "mail correo aviso notificacion enviados venta" },
   { id: "editar-mails", grupo: "Ir a", label: "Editar los mails automáticos", icono: "edit_note", href: "/admin/ajustes/mensajes/editar", claves: "plantilla texto asunto cambiar mail correo" },

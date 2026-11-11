@@ -7,9 +7,9 @@ import { MAX_FOTO_BYTES, TIPOS_FOTO } from "@/lib/fotos";
 const LADO_MAX = 1600;
 const OBJETIVO = 900 * 1024;
 
-async function achicar(archivo: File): Promise<File> {
+export async function achicar(archivo: File, lado = LADO_MAX): Promise<File> {
   const bitmap = await createImageBitmap(archivo);
-  const escala = Math.min(1, LADO_MAX / Math.max(bitmap.width, bitmap.height));
+  const escala = Math.min(1, lado / Math.max(bitmap.width, bitmap.height));
   const lienzo = document.createElement("canvas");
   lienzo.width = Math.round(bitmap.width * escala);
   lienzo.height = Math.round(bitmap.height * escala);

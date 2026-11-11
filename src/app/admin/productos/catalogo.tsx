@@ -21,6 +21,8 @@ export type ProductoCatalogo = {
   stock: number;
   verbo: string | null;
   descripcion: string | null;
+  frase: string | null;
+  medidas: string | null;
   foto_path: string | null;
   foto_url: string | null;
   espera: Espera[];
@@ -233,7 +235,18 @@ export function TablaCatalogo({ productos }: { productos: ProductoCatalogo[] }) 
     </form>
     {editado && (
       <EditarProducto
-        p={{ id: editado.id, nombre: editado.nombre, tipo: editado.tipo, categoria_nombre: editado.categoria_nombre, diseno: editado.diseno, verbo: editado.verbo, descripcion: editado.descripcion, foto_url: editado.foto_url }}
+        p={{
+          id: editado.id,
+          nombre: editado.nombre,
+          tipo: editado.tipo,
+          categoria_nombre: editado.categoria_nombre,
+          diseno: editado.diseno,
+          verbo: editado.verbo,
+          descripcion: editado.descripcion,
+          frase: editado.frase,
+          medidas: editado.medidas,
+          foto_url: editado.foto_url,
+        }}
         onCerrar={cerrarEdicion}
       />
     )}

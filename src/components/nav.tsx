@@ -13,8 +13,8 @@ export const ITEMS_NAV = [
   { href: "/admin/ajustes", label: "Ajustes", icono: "settings" },
 ];
 
-/** La barra lateral suma Cupones y Cartas (la de celular tiene lugar para 6: esas quedan en el buscador ⌘K). */
-const ITEMS_BARRA = [...ITEMS_NAV.slice(0, 3), { href: "/admin/cupones", label: "Cupones", icono: "confirmation_number" }, { href: "/admin/cartas", label: "Cartas", icono: "drafts" }, ...ITEMS_NAV.slice(3)];
+/** La barra lateral suma Cupones, Cartas y Devoluciones (la de celular tiene lugar para 6: esas quedan en el buscador ⌘K). */
+const ITEMS_BARRA = [...ITEMS_NAV.slice(0, 3), { href: "/admin/cupones", label: "Cupones", icono: "confirmation_number" }, { href: "/admin/cartas", label: "Cartas", icono: "drafts" }, { href: "/admin/devoluciones", label: "Devoluciones", icono: "undo" }, ...ITEMS_NAV.slice(3)];
 
 /** Barra lateral colapsable (compu) y barra inferior (celular). */
 export function Nav({ nombre }: { nombre: string }) {

@@ -1,12 +1,14 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
+import { MAX_FOTO_BYTES, MIME_FOTO, tipoRealFoto } from "@/lib/fotos";
 import { aPesos } from "@/lib/format";
-import { avisarListaEspera, notificarDespacho, notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
+import { avisarListaEspera, notificarDespacho, notificarDevolucion, notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
 import { createClient } from "@/lib/supabase/server";
 
 export type Resultado = { ok: true; mensaje?: string } | { ok: false; error: string };
@@ -94,6 +96,33 @@ export async function marcarEntregado(pedidoId: string) {
 
 export async function cancelarPedido(pedidoId: string) {
   return rpc("cancelar_pedido", { p_pedido: pedidoId });
+}
+
+/** Registra plata ya devuelta y le avisa al cliente. La plata se devuelve afuera: en el banco o en el panel de cobros. */
+export async function registrarDevolucion(pedidoId: string, _prev: Resultado | null, form: FormData): Promise<Resultado> {
+  const monto = aPesos(form.get("monto"));
+  if (!monto) return fallo("Falta el monto a devolver");
+  const { supabase } = await requireAdmin();
+  const { data, error } = await supabase.rpc("registrar_devolucion", {
+    p_pedido: pedidoId,
+    p_monto: monto,
+    p_motivo: String(form.get("motivo") ?? ""),
+    p_referencia: String(form.get("referencia") ?? ""),
+    p_vuelve_al_stock: form.get("vuelve_al_stock") === "si",
+  });
+  if (error) return fallo(error.message);
+  const completa = Boolean((data as { completa: boolean }).completa);
+  after(() => notificarDevolucion(pedidoId, monto, completa));
+  revalidatePath("/admin", "layout");
+  return ok("Devolución registrada");
+}
+
+export async function resolverArrepentimiento(id: string): Promise<Resultado> {
+  const { supabase, admin } = await requireAdmin();
+  const { error } = await supabase.from("arrepentimientos").update({ estado: "resuelto", resuelto_por: admin.email, resuelto_at: new Date().toISOString() }).eq("id", id);
+  if (error) return fallo(error.message);
+  revalidatePath("/admin", "layout");
+  return ok("Marcado como resuelto");
 }
 
 export async function extenderVencimiento(pedidoId: string) {
@@ -279,11 +308,15 @@ export async function crearLote(_prev: Resultado | null, form: FormData): Promis
 export async function guardarAjustes(_prev: Resultado | null, form: FormData): Promise<Resultado> {
   const email = String(form.get("email_contacto") ?? "").trim().toLowerCase();
   if (email && !z.email().safeParse(email).success) return fallo("Revisá el mail de contacto");
+  // El aviso de la barra de la web llega con la migración 0012: sin el campo en el formulario no se toca
+  const aviso = form.has("aviso_barra") ? String(form.get("aviso_barra") ?? "").replace(/\s+/g, " ").trim() : undefined;
+  if (aviso && aviso.length > 120) return fallo("El aviso de la barra puede tener hasta 120 letras");
   const datos = {
     alias_transferencia: String(form.get("alias_transferencia") ?? "").trim(),
     email_contacto: email,
     whatsapp_contacto: String(form.get("whatsapp_contacto") ?? "").trim(),
     precio_set: aPesos(form.get("precio_set")) ?? 0,
+    ...(aviso !== undefined ? { aviso_barra: aviso || null } : {}),
     updated_at: new Date().toISOString(),
   };
   const { supabase } = await requireAdmin();
@@ -327,6 +360,29 @@ export async function editarAdmin(_prev: Resultado | null, form: FormData): Prom
   if (error) return fallo(error.message);
   revalidatePath("/admin", "layout");
   return ok("Guardado");
+}
+
+/** Foto de quien está logueado (se ve en el encabezado). Va en el bucket público de fotos, con un nombre imposible de adivinar. */
+export async function guardarFotoPerfil(form: FormData): Promise<Resultado> {
+  const archivo = form.get("foto");
+  if (!(archivo instanceof File) || archivo.size === 0) return fallo("Falta la foto");
+  if (archivo.size > MAX_FOTO_BYTES) return fallo("La foto pesa más de 5 MB");
+  const bytes = new Uint8Array(await archivo.arrayBuffer());
+  const ext = tipoRealFoto(bytes);
+  if (!ext) return fallo("La foto tiene que ser JPG, PNG o WebP");
+  const { supabase, admin } = await requireAdmin();
+  const { data: antes } = await supabase.from("admins").select("foto_path").eq("email", admin.email).maybeSingle();
+  const path = `equipo/${randomUUID()}.${ext}`;
+  const subida = await supabase.storage.from("productos").upload(path, bytes, { contentType: MIME_FOTO[ext], cacheControl: "31536000", upsert: false });
+  if (subida.error) return fallo(`No se pudo subir la foto: ${subida.error.message}`);
+  const { error } = await supabase.from("admins").update({ foto_path: path }).eq("email", admin.email);
+  if (error) {
+    await supabase.storage.from("productos").remove([path]);
+    return fallo(error.message);
+  }
+  if (antes?.foto_path) await supabase.storage.from("productos").remove([antes.foto_path as string]);
+  revalidatePath("/admin", "layout");
+  return ok("Foto guardada");
 }
 
 export async function cerrarSesion() {

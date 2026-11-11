@@ -19,6 +19,8 @@ export type ProductoEditable = {
   diseno: string;
   verbo: string | null;
   descripcion: string | null;
+  frase: string | null;
+  medidas: string | null;
   foto_url: string | null;
 };
 
@@ -60,6 +62,40 @@ function CamposWeb({ verbo, descripcion }: { verbo?: string | null; descripcion?
           className={area}
         />
         <span className={ayuda}>{desc.length}/300 · en la tarjeta se ven unas dos líneas</span>
+      </label>
+    </>
+  );
+}
+
+/** Textos de la ficha de cada Biblia (la página que se abre al tocarla): la frase debajo del nombre y las medidas. */
+function CamposFicha({ frase, medidas }: { frase?: string | null; medidas?: string | null }) {
+  const [texto, setTexto] = useState(frase ?? "");
+  return (
+    <>
+      <label className="flex flex-col gap-0.5 sm:col-span-2">
+        <span className={rotulo}>Frase de la ficha</span>
+        <textarea
+          name="frase"
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          maxLength={600}
+          rows={3}
+          placeholder="Volver al origen es regresar al diseño inicial de Dios…"
+          className={area}
+        />
+        <span className={ayuda}>{texto.length}/600 · va debajo del nombre en la ficha; cada Enter empieza un párrafo. Vacía, se ve la descripción corta.</span>
+      </label>
+      <label className="flex flex-col gap-0.5 sm:col-span-2">
+        <span className={rotulo}>Medidas</span>
+        <textarea
+          name="medidas"
+          defaultValue={medidas ?? ""}
+          maxLength={200}
+          rows={3}
+          placeholder={"23 cm de largo\n15 cm de ancho\n2,3 cm de grosor"}
+          className={area}
+        />
+        <span className={ayuda}>Una por línea. Vacías, la ficha dice “Por confirmar”.</span>
       </label>
     </>
   );
@@ -209,6 +245,7 @@ export function NuevoProducto({ categorias, puedeCrearCategoria }: { categorias:
                   </datalist>
                 </label>
                 <CamposWeb />
+                {categoria === "biblia" && <CamposFicha />}
                 <div className="sm:col-span-2">
                   <CampoFoto />
                 </div>
@@ -266,6 +303,7 @@ export function EditarProducto({ p, onCerrar }: { p: ProductoEditable; onCerrar:
             <span className={ayuda}>No se cambia: la web y el Set usan el diseño para unir Biblia y Journal.</span>
           </div>
           <CamposWeb verbo={p.verbo} descripcion={p.descripcion} />
+          {p.tipo === "biblia" && <CamposFicha frase={p.frase} medidas={p.medidas} />}
           <div className="sm:col-span-2">
             <CampoFoto actual={p.foto_url} etiqueta={p.foto_url ? "Foto" : "Foto (hoy usa la de siempre de la web)"} />
           </div>

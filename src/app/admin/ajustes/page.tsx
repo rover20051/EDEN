@@ -13,6 +13,8 @@ const MAILS = [
   { titulo: "Confirmamos tu pago", cuando: "Al confirmar el pago (tarjeta o transferencia).", contenido: "Qué compró y que empieza la preparación.", ejemplo: `${PREVIA}pago_confirmado` },
   { titulo: "Tu pedido está en camino", cuando: "Al cargar la empresa de envío y el número de seguimiento.", contenido: "Empresa, número de seguimiento y link para seguir el pedido.", ejemplo: `${PREVIA}en_camino` },
   { titulo: "Volvió un producto", cuando: "Al cargar una tanda de un producto con lista de espera.", contenido: "Aviso por única vez y link a la tienda.", ejemplo: `${PREVIA}lista_espera` },
+  { titulo: "Te devolvimos tu dinero", cuando: "Al registrar una devolución en el pedido.", contenido: "Cuánto se devolvió y cómo le llega.", ejemplo: `${PREVIA}devolucion` },
+  { titulo: "Recibimos tu arrepentimiento", cuando: "Al usar el botón de arrepentimiento, si ese mail ya compró.", contenido: "Su código y cómo sigue.", ejemplo: `${PREVIA}arrepentimiento` },
 ];
 
 const tarjeta = "flex flex-col gap-3 rounded-2xl bg-surface-container-low p-4 shadow-sm";
@@ -29,13 +31,16 @@ const cabecera = (rotulo: string, titulo: string, icono: string, ayuda?: string)
 
 export default async function Ajustes() {
   const { supabase } = await requireAdmin();
-  const [{ data: ajustes }, { data: admins }, { data: productos }, { data: envios }] = await Promise.all([
+  const [{ data: ajustes }, { data: admins }, { data: productos }, { data: envios }, barra] = await Promise.all([
     supabase.from("ajustes").select("alias_transferencia, email_contacto, whatsapp_contacto, precio_set").eq("id", 1).single(),
     supabase.from("admins").select("email, nombre, socio").order("nombre"),
     supabase.from("productos").select("tipo, precio").eq("activo", true),
     // Aparte: si la migración 0006 no corrió, estas columnas no existen y no tiene que romper el resto.
     supabase.from("ajustes").select("envio_tarifas, envio_gratis_desde").eq("id", 1).maybeSingle(),
+    // Aparte: el aviso de la barra llega con la migración 0012. Sin ella el campo no aparece.
+    supabase.from("ajustes").select("aviso_barra").eq("id", 1).maybeSingle(),
   ]);
+  const avisoBarra = barra.error ? undefined : ((barra.data?.aviso_barra as string | null) ?? "");
   const cfg = configMensajeria();
   const mailsReales = cfg.mails.modo === "real" && cfg.mails.resend && cfg.mails.dominio;
   const avisosOk = cfg.avisos.resend;
@@ -67,7 +72,7 @@ export default async function Ajustes() {
         <div className="flex flex-col gap-4 lg:col-span-6">
           <article className={tarjeta}>
             {cabecera("Lo que ve quien compra", "Datos para el cliente", "payments")}
-            {ajustes && <FormAjustes a={ajustes} precioSueltos={precioSueltos} />}
+            {ajustes && <FormAjustes a={ajustes} precioSueltos={precioSueltos} avisoBarra={avisoBarra} />}
           </article>
 
           <article className={tarjeta}>

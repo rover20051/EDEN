@@ -21,3 +21,14 @@ export const fotoProducto = (nombre: string, fotoPath?: string | null) => urlFot
 /** Fotos de productos y packs: solo imágenes comunes y hasta 5 MB. */
 export const TIPOS_FOTO = ["image/jpeg", "image/png", "image/webp"];
 export const MAX_FOTO_BYTES = 5 * 1024 * 1024;
+
+/** Mira los primeros bytes (no confía en el nombre ni en el tipo que manda el navegador). */
+export function tipoRealFoto(b: Uint8Array): "jpg" | "png" | "webp" | null {
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "png";
+  const ascii = (i: number, n: number) => String.fromCharCode(...b.slice(i, i + n));
+  if (ascii(0, 4) === "RIFF" && ascii(8, 4) === "WEBP") return "webp";
+  return null;
+}
+
+export const MIME_FOTO = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" } as const;

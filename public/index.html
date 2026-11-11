@@ -1089,6 +1089,10 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
 /* Versículos: primero se va uno y recién después aparece el otro, para que las letras nunca se pisen */
 .verso{will-change:opacity;transition:opacity .8s ease,visibility 0s linear .8s}
 .verso.activo{transition:opacity .9s ease .8s,visibility 0s linear .8s}
+/* Botón de arrepentimiento: visible desde el primer acceso (Disposición 954/2025) */
+.barra-arrepentimiento{color:inherit;text-underline-offset:3px;white-space:nowrap;margin-left:.6rem}
+.pie-legal a{color:inherit;text-underline-offset:3px}
+.umbral-arrepentimiento{display:block;margin-top:1.4rem;font-size:.95rem;color:var(--texto-suave);text-underline-offset:3px}
 </style>
 </head>
 <body>
@@ -1099,10 +1103,11 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
     <div class="ventana" aria-hidden="true"></div>
     <p>De regreso al Jardín.<br>Al lugar de origen.</p>
     <button class="boton" id="entrar" type="button">Entrar al jardín</button>
+    <a class="umbral-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a>
   </div>
 </div>
 
-<div class="barra-cafe" id="barraCafe"><span id="barraTexto">Envíos gratis en Buenos Aires</span></div>
+<div class="barra-cafe" id="barraCafe"><span id="barraTexto">Envíos gratis en Buenos Aires</span> <a class="barra-arrepentimiento" href="/arrepentimiento">Botón de arrepentimiento</a></div>
 <header class="nav" id="nav">
   <div class="nav-izq">
     <button class="menu-btn" id="abrirMenu" type="button" aria-haspopup="dialog" aria-controls="menu" aria-label="Abrir menú"><span class="hamb" aria-hidden="true"></span></button>
@@ -1151,6 +1156,7 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
   </nav>
   <div class="menu-pie">
     <a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram @casa_edenn_</a>
+    <p><a href="/arrepentimiento">Botón de arrepentimiento</a> · <a href="/devoluciones">Cambios y devoluciones</a></p>
     <p>De regreso al Jardín. Al lugar de origen.</p>
   </div>
 </aside>
@@ -1337,7 +1343,7 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
     <div><h3>Ayuda</h3><ul><li><a href="#preguntas">Preguntas frecuentes</a></li><li><a href="#parte">Ser parte</a></li><li><a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Contacto</a></li></ul></div>
     <div><h3>Síguenos</h3><ul><li><a href="https://www.instagram.com/casa_edenn_/" target="_blank" rel="noopener">Instagram</a></li></ul></div>
   </div>
-  <div class="pie-legal"><span>© 2026 Edén</span><span>De regreso al Jardín. Al lugar de origen.</span></div>
+  <div class="pie-legal"><span>© 2026 Edén</span><a href="/arrepentimiento">Botón de arrepentimiento</a><a href="/devoluciones">Cambios y devoluciones</a><span>De regreso al Jardín. Al lugar de origen.</span></div>
 </footer>
 
 <div class="historia" id="devocionales" role="dialog" aria-modal="true" aria-label="Cartas del jardín" aria-hidden="true">

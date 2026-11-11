@@ -17,6 +17,9 @@ export type ProductoPublico = {
   verbo: string | null;
   /** Foto subida desde el back office (null = la web usa sus fotos de siempre). */
   foto_url: string | null;
+  /** Ficha de la Biblia: frase debajo del nombre y medidas (una por línea). Faltan si no corrió la migración 0012. */
+  frase?: string | null;
+  medidas?: string | null;
   activo: boolean;
   stock: number;
 };
@@ -37,6 +40,8 @@ export type PackPublico = {
 
 export type CatalogoPublico = {
   precio_set: number;
+  /** Aviso de la barra de arriba de la web (Ajustes). Falta si no corrió la migración 0012: la web deja el suyo. */
+  aviso_barra?: string | null;
   productos: ProductoPublico[];
   packs: PackPublico[];
   /** Envío por provincia (null = a coordinar) y desde qué monto es gratis. */
@@ -89,7 +94,7 @@ const COLUMNAS_BASE = "id, slug, nombre, tipo, diseno, precio, precio_anterior, 
 /** Lo que la web pública puede saber del catálogo: precio, stock y si está a la venta. Nunca costos. */
 export async function catalogoPublico(): Promise<CatalogoPublico> {
   const sb = supabaseServidor();
-  const [completo, { data: stock }, { data: ajustes }, packsRes, categorias] = await Promise.all([
+  const [completo, { data: stock }, { data: ajustes }, packsRes, categorias, fichas] = await Promise.all([
     sb.from("productos").select(`${COLUMNAS_BASE}, descripcion, verbo, foto_path`).order("orden"),
     sb.from("v_stock").select("producto_id, disponibles"),
     sb.from("ajustes").select("*").eq("id", 1).single(),
@@ -98,7 +103,12 @@ export async function catalogoPublico(): Promise<CatalogoPublico> {
       .select("slug, nombre, descripcion, precio, precio_anterior, etiqueta, foto_path, activo, orden, pack_items(cantidad, producto_id)")
       .order("orden"),
     categoriasDeProductos(sb),
+    // Aparte: sin la migración 0012 estas columnas no existen y el resto del catálogo tiene que seguir andando.
+    sb.from("productos").select("id, frase, medidas"),
   ]);
+  const textosFicha = fichas.error
+    ? null
+    : new Map((fichas.data ?? []).map((f) => [f.id as string, { frase: (f.frase as string | null) ?? null, medidas: (f.medidas as string | null) ?? null }]));
   let productos = completo.data as FilaProducto[] | null;
   if (completo.error) {
     // Mientras no se corra la migración 0006 la tienda sigue andando con los datos de siempre (sin fotos ni packs).
@@ -112,12 +122,14 @@ export async function catalogoPublico(): Promise<CatalogoPublico> {
 
   return {
     precio_set: (ajustes?.precio_set as number) ?? 0,
+    ...(ajustes && "aviso_barra" in ajustes ? { aviso_barra: (ajustes.aviso_barra as string | null) ?? null } : {}),
     productos: (productos ?? []).map(({ id, foto_path, descripcion, verbo, ...p }) => ({
       ...p,
       categoria: categorias.dePorId.get(id) ?? null,
       descripcion: descripcion ?? null,
       verbo: verbo ?? null,
       foto_url: urlFoto(foto_path ?? null),
+      ...(textosFicha ? (textosFicha.get(id) ?? { frase: null, medidas: null }) : {}),
       stock: disp.get(id) ?? 0,
     })),
     packs: packs.map(({ foto_path, pack_items, ...k }) => {

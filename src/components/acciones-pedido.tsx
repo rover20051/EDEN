@@ -68,7 +68,8 @@ export function AccionesPedido({
       break;
   }
 
-  const cancelable = ["pendiente_pago", "pagado", "en_preparacion"].includes(pedido.estado);
+  // Una venta ya cobrada se cierra registrando la devolución, para que quede cuánta plata volvió.
+  const cancelable = pedido.estado === "pendiente_pago" || (["pagado", "en_preparacion"].includes(pedido.estado) && (esSalida(pedido) || pedido.total === 0));
   const extras = (
     <>
       {pedido.estado === "pendiente_pago" && tieneComprobante(pedido) && (
@@ -89,9 +90,7 @@ export function AccionesPedido({
           confirmar={
             esSalida(pedido)
               ? "¿Cancelar esta salida sin cobro? Las piezas vuelven al stock y su costo deja de contarse como regalado."
-              : pedido.estado === "pendiente_pago"
-                ? "¿Cancelar el pedido? Se libera el stock."
-                : "El pedido ya está cobrado: cancelarlo lo marca como reembolsado. ¿Ya le devolviste la plata?"
+              : "¿Cancelar el pedido? Se libera el stock."
           }
         >
           {icono("cancel", "text-[15px]")}

@@ -19,6 +19,7 @@ type Publico = {
   cupon?: string | null;
   envio_cobrado: number;
   total: number;
+  devuelto?: number;
   created_at: string;
   pagado_at: string | null;
   preparacion_at: string | null;
@@ -84,8 +85,11 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
   const gratisDesde = (ajustes?.envio_gratis_desde as number | null | undefined) ?? null;
   const envioGratis = !p.envio_cobrado && gratisDesde !== null && p.subtotal - p.descuento_set - descuentoCupon >= gratisDesde;
 
+  const devuelto = p.devuelto ?? 0;
   const bajada =
-    p.estado === "cancelado"
+    p.estado === "cancelado" && devuelto > 0
+      ? `Te devolvimos ${ars(devuelto)}. Si pagaste con tarjeta, tu banco lo acredita según sus tiempos.`
+      : p.estado === "cancelado"
       ? "No recibimos el pago a tiempo, así que liberamos las piezas. Si querés, armá el pedido de nuevo o escribinos."
       : esperandoTransferencia
         ? "Tu pedido está reservado. Apenas recibamos el comprobante, empezamos a prepararlo."
@@ -262,6 +266,12 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
               <dt>Total</dt>
               <dd className="tabular-nums">{ars(p.total)}</dd>
             </div>
+            {devuelto > 0 && (
+              <div className="flex justify-between gap-4 text-musgo">
+                <dt>Te devolvimos</dt>
+                <dd className="shrink-0 tabular-nums">{ars(devuelto)}</dd>
+              </div>
+            )}
           </dl>
           {p.es_regalo && (
             <p className="mt-4 border-t border-borde pt-3 text-base italic">

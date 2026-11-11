@@ -10,7 +10,7 @@ import { FormTanda } from "./tanda";
 
 const tarjeta = "relative flex flex-col justify-between overflow-hidden rounded-2xl bg-surface-container-lowest p-3 shadow-sm";
 
-type FilaProducto = Omit<ProductoCatalogo, "stock" | "espera" | "foto_url" | "verbo" | "descripcion" | "foto_path" | "categoria_nombre"> &
+type FilaProducto = Omit<ProductoCatalogo, "stock" | "espera" | "foto_url" | "verbo" | "descripcion" | "foto_path" | "categoria_nombre" | "frase" | "medidas"> &
   Partial<Pick<ProductoCatalogo, "verbo" | "descripcion" | "foto_path">>;
 
 const BASE = "id, nombre, tipo, diseno, precio, precio_anterior, etiqueta, activo";
@@ -18,7 +18,7 @@ const BASE = "id, nombre, tipo, diseno, precio, precio_anterior, etiqueta, activ
 export default async function Productos({ searchParams }: PageProps<"/admin/productos">) {
   const { tanda } = await searchParams;
   const { supabase } = await requireAdmin();
-  const [completo, { data: stock }, { data: lotes }, packsRes, { data: espera }, categorias] = await Promise.all([
+  const [completo, { data: stock }, { data: lotes }, packsRes, { data: espera }, categorias, { data: fichas }] = await Promise.all([
     supabase.from("productos").select(`${BASE}, verbo, descripcion, foto_path`).order("orden"),
     supabase.from("v_stock").select("producto_id, disponibles"),
     supabase
@@ -29,7 +29,10 @@ export default async function Productos({ searchParams }: PageProps<"/admin/prod
     supabase.from("packs").select("id, slug, nombre, descripcion, precio, precio_anterior, etiqueta, foto_path, activo, orden, pack_items(producto_id, cantidad)").order("orden"),
     supabase.from("lista_espera").select("producto_id, email, nombre, created_at, avisado_at").order("created_at", { ascending: false }).limit(2000),
     categoriasDeProductos(supabase),
+    // Aparte: frase y medidas de la ficha llegan con la migración 0012; sin ella, la pantalla anda igual.
+    supabase.from("productos").select("id, frase, medidas"),
   ]);
+  const fichaDe = new Map((fichas ?? []).map((f) => [f.id as string, { frase: (f.frase as string | null) ?? null, medidas: (f.medidas as string | null) ?? null }]));
   // Sin la migración 0006 (fotos, packs, lista de espera) la pantalla sigue andando con lo de siempre.
   const sinMigracion = !!completo.error || !!packsRes.error;
   const productos = (completo.error ? (await supabase.from("productos").select(BASE).order("orden")).data : completo.data) as FilaProducto[] | null;
@@ -46,6 +49,8 @@ export default async function Productos({ searchParams }: PageProps<"/admin/prod
     categoria_nombre: categorias.dePorId.get(p.id)?.nombre ?? null,
     verbo: p.verbo ?? null,
     descripcion: p.descripcion ?? null,
+    frase: fichaDe.get(p.id)?.frase ?? null,
+    medidas: fichaDe.get(p.id)?.medidas ?? null,
     foto_path: p.foto_path ?? null,
     foto_url: urlFotoPublica(p.foto_path),
     stock: disp.get(p.id) ?? 0,

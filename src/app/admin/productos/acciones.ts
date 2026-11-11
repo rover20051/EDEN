@@ -6,7 +6,7 @@ import type { Resultado } from "@/app/admin/actions";
 import { requireAdmin } from "@/lib/auth";
 import { CATEGORIA_NUEVA, type TipoProducto } from "@/lib/categorias";
 import { aPesos } from "@/lib/format";
-import { MAX_FOTO_BYTES } from "@/lib/fotos";
+import { MAX_FOTO_BYTES, MIME_FOTO, tipoRealFoto } from "@/lib/fotos";
 
 /** Resultado con el id de lo que se creó (para ofrecer el paso siguiente, ej. cargar su primera tanda). */
 export type ResultadoAlta = (Resultado & { id?: string }) | null;
@@ -49,17 +49,6 @@ async function slugLibre(supabase: Supa, tabla: "productos" | "packs", nombre: s
 
 // ───────────── Fotos ─────────────
 
-/** Mira los primeros bytes (no confía en el nombre ni en el tipo que manda el navegador). */
-function tipoReal(b: Uint8Array): "jpg" | "png" | "webp" | null {
-  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "jpg";
-  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "png";
-  const ascii = (i: number, n: number) => String.fromCharCode(...b.slice(i, i + n));
-  if (ascii(0, 4) === "RIFF" && ascii(8, 4) === "WEBP") return "webp";
-  return null;
-}
-
-const MIME = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" } as const;
-
 /**
  * Sube la foto del formulario (campo "foto") al bucket público "productos".
  * Devuelve el path guardado, null si no vino foto, o un error legible.
@@ -69,12 +58,12 @@ async function subirFoto(supabase: Supa, form: FormData, carpeta: "productos" | 
   if (!(archivo instanceof File) || archivo.size === 0) return { path: null };
   if (archivo.size > MAX_FOTO_BYTES) return { error: "La foto pesa más de 5 MB" };
   const bytes = new Uint8Array(await archivo.arrayBuffer());
-  const ext = tipoReal(bytes);
+  const ext = tipoRealFoto(bytes);
   if (!ext) return { error: "La foto tiene que ser JPG, PNG o WebP" };
   const path = `${carpeta}/${slug}-${Date.now()}.${ext}`;
   const { error } = await supabase.storage
     .from("productos")
-    .upload(path, bytes, { contentType: MIME[ext], cacheControl: "31536000", upsert: false });
+    .upload(path, bytes, { contentType: MIME_FOTO[ext], cacheControl: "31536000", upsert: false });
   if (error) return { error: `No se pudo subir la foto: ${error.message}` };
   return { path };
 }
@@ -96,6 +85,27 @@ const camposProducto = {
   verbo: opcional(30, "El verbo puede tener hasta 30 letras"),
   descripcion: opcional(300, "La descripción puede tener hasta 300 letras"),
 };
+
+/** Texto de varias líneas: sin espacios de más ni renglones vacíos. */
+const renglones = (v: string) =>
+  v
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join("\n");
+
+const fichaSchema = z.object({
+  frase: z.string().transform(renglones).pipe(z.string().max(600, "La frase de la ficha puede tener hasta 600 letras")),
+  medidas: z.string().transform(renglones).pipe(z.string().max(200, "Las medidas pueden tener hasta 200 letras")),
+});
+
+/** Frase y medidas de la ficha: solo vienen en el formulario de las Biblias. Sin esos campos no se tocan. */
+function leerFicha(form: FormData): { ok: true; datos: { frase?: string | null; medidas?: string | null } } | { ok: false; error: string } {
+  if (!form.has("frase") && !form.has("medidas")) return { ok: true, datos: {} };
+  const parsed = fichaSchema.safeParse({ frase: String(form.get("frase") ?? ""), medidas: String(form.get("medidas") ?? "") });
+  if (!parsed.success) return { ok: false, error: primerError(parsed.error) };
+  return { ok: true, datos: { frase: parsed.data.frase || null, medidas: parsed.data.medidas || null } };
+}
 
 const nuevoProductoSchema = z.object({
   ...camposProducto,
@@ -146,6 +156,8 @@ export async function crearProducto(_prev: ResultadoAlta, form: FormData): Promi
   });
   if (!parsed.success) return fallo(primerError(parsed.error));
   const d = parsed.data;
+  const ficha = leerFicha(form);
+  if (!ficha.ok) return fallo(ficha.error);
 
   const { supabase } = await requireAdmin();
   const destino = await resolverCategoria(supabase, d.categoria, d.categoria_nueva);
@@ -177,6 +189,7 @@ export async function crearProducto(_prev: ResultadoAlta, form: FormData): Promi
       etiqueta: d.etiqueta,
       descripcion: d.descripcion,
       verbo: d.verbo ? d.verbo.toUpperCase() : null,
+      ...(destino.tipo === "biblia" ? ficha.datos : {}),
       foto_path: foto.path,
       activo: d.activo,
       orden: (ultimo?.orden ?? 0) + 1,
@@ -203,6 +216,8 @@ export async function editarProducto(_prev: ResultadoAlta, form: FormData): Prom
   });
   if (!parsed.success) return fallo(primerError(parsed.error));
   const d = parsed.data;
+  const ficha = leerFicha(form);
+  if (!ficha.ok) return fallo(ficha.error);
 
   const { supabase } = await requireAdmin();
   const { data: actual, error: e1 } = await supabase.from("productos").select("slug, foto_path").eq("id", d.id).single();
@@ -215,7 +230,7 @@ export async function editarProducto(_prev: ResultadoAlta, form: FormData): Prom
 
   const { error } = await supabase
     .from("productos")
-    .update({ nombre: d.nombre, descripcion: d.descripcion, verbo: d.verbo ? d.verbo.toUpperCase() : null, foto_path })
+    .update({ nombre: d.nombre, descripcion: d.descripcion, verbo: d.verbo ? d.verbo.toUpperCase() : null, ...ficha.datos, foto_path })
     .eq("id", d.id);
   if (error) {
     await borrarFoto(supabase, foto.path);

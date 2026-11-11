@@ -21,8 +21,8 @@ const campo = "w-full rounded-full bg-surface-container-lowest px-3 py-1.5 shado
 
 type DatosCliente = { alias_transferencia: string; email_contacto: string; whatsapp_contacto: string; precio_set: number };
 
-/** Datos para el cliente (diseño de Stitch): alias con "Copiar", contacto y el Set. */
-export function FormAjustes({ a, precioSueltos }: { a: DatosCliente; precioSueltos: number }) {
+/** Datos para el cliente (diseño de Stitch): alias con "Copiar", contacto, aviso de la barra de la web y el Set. */
+export function FormAjustes({ a, precioSueltos, avisoBarra }: { a: DatosCliente; precioSueltos: number; avisoBarra?: string }) {
   const { estado, onSubmit, pendiente } = useForm(guardarAjustes);
   const [alias, setAlias] = useState(a.alias_transferencia);
   const [copiado, setCopiado] = useState(false);
@@ -71,6 +71,22 @@ export function FormAjustes({ a, precioSueltos }: { a: DatosCliente; precioSuelt
         </label>
       </div>
 
+      {avisoBarra !== undefined && (
+        <label className="flex flex-col gap-1">
+          <span className={rotulo}>Aviso de la barra de arriba de la web</span>
+          <input
+            name="aviso_barra"
+            defaultValue={avisoBarra}
+            maxLength={120}
+            placeholder="Envíos gratis en Buenos Aires"
+            className={`${campo} font-body-sm text-body-sm text-on-surface`}
+          />
+          <span className="font-caption-italic text-caption-italic text-body-sm italic text-on-surface-variant">
+            Una línea corta, arriba de todo en la web. Vacío, la barra queda sin texto.
+          </span>
+        </label>
+      )}
+
       <div className="flex flex-col gap-1.5 rounded-2xl bg-surface-container p-space-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-space-xs">
@@ -79,7 +95,7 @@ export function FormAjustes({ a, precioSueltos }: { a: DatosCliente; precioSuelt
           </div>
           <span className={`rounded-full bg-surface-container-high px-2 py-0.5 font-label-sm text-label-sm ${set ? "text-secondary" : "text-outline"}`}>{set ? "Activo" : "Apagado"}</span>
         </div>
-        <p className="font-caption-italic text-caption-italic text-body-sm italic text-on-surface-variant">Cada Biblia + Journal del carrito se cobra a este precio, en la web y en los pedidos manuales. Con 0 no hay Set.</p>
+        <p className="font-caption-italic text-caption-italic text-body-sm italic text-on-surface-variant">Cada Biblia + Journal del carrito se cobra a este precio, en la web y en los pedidos manuales. Es el precio de “Armá tu set” en la web. Con 0 no hay Set y esa sección no aparece.</p>
         <div className="mt-0.5 grid grid-cols-1 gap-space-sm sm:grid-cols-2">
           <label className="flex flex-col justify-between rounded-2xl bg-surface-container-lowest p-2">
             <span className="font-label-sm text-label-sm text-outline">Precio final del Set</span>
