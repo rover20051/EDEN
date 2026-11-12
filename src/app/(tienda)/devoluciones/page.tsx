@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   description: "Cómo arrepentirte de una compra, cómo te devolvemos el dinero y qué hacer si tu pieza llegó con un problema.",
 };
 
+// El mail y el WhatsApp salen de Ajustes en cada visita (si no, quedan los del momento de publicar).
+export const dynamic = "force-dynamic";
+
 const titulo = "mt-10 text-3xl font-light";
 
 export default async function Devoluciones() {
