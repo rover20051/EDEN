@@ -35,10 +35,10 @@ export type Procesado =
   | { estado: "en_revision" | "desafio" | "rechazado" | "revisar"; pedidoId: string }
   | { estado: "ajeno" };
 
-type PedidoFila = { id: string; numero: number; token_publico: string; estado: string; total: number; vence_at: string | null };
+export type PedidoFila = { id: string; numero: number; token_publico: string; estado: string; total: number; vence_at: string | null };
 
 /** Aviso a las socias, una sola vez por pago y situación. */
-async function avisar(p: PedidoFila, tipo: string, texto: string) {
+export async function avisar(p: PedidoFila, tipo: string, texto: string) {
   if (await avisoYaSalio(p.id, tipo)) return;
   await mandarAviso({ pedidoId: p.id, tipo, texto });
 }
@@ -134,10 +134,10 @@ export async function procesarPagoMP(e: EntornoMP, idPago: string, soloToken?: s
   }
 }
 
-type Cargado = { ok: true; pedido: PedidoACobrar } | { ok: false; error: string };
+export type Cargado = { ok: true; pedido: PedidoACobrar } | { ok: false; error: string };
 
-/** El pedido con tarjeta, solo si sigue esperando el pago y la reserva no venció. */
-async function pedidoACobrar(token: string): Promise<Cargado> {
+/** El pedido con tarjeta, solo si sigue esperando el pago con ese medio y la reserva no venció. */
+export async function pedidoACobrar(token: string, medio: "mercadopago" | "nave"): Promise<Cargado> {
   const sb = supabaseServidor();
   const { data: p } = await sb
     .from("pedidos")
@@ -146,7 +146,7 @@ async function pedidoACobrar(token: string): Promise<Cargado> {
     .maybeSingle();
   if (!p) return { ok: false, error: "No encontramos el pedido." };
   if (p.estado !== "pendiente_pago") return { ok: false, error: "Este pedido ya no está esperando el pago. Mirá su estado en el link del pedido." };
-  if (p.medio_pago !== "mercadopago") return { ok: false, error: "Este pedido se paga por transferencia." };
+  if (p.medio_pago !== medio) return { ok: false, error: "Este pedido se paga por otro medio. Mirá su estado en el link del pedido." };
   if (p.vence_at && new Date(p.vence_at as string) < new Date()) {
     return { ok: false, error: "Pasó el tiempo para pagar y liberamos las piezas. Armá el pedido de nuevo desde la tienda." };
   }
@@ -199,7 +199,7 @@ export type Preparado = { ok: true; total: number; email: string | null; pendien
  * precargar y si ya hay un pago en marcha (un cupón sin pagar o un pago en revisión).
  */
 export async function prepararPagoMP(e: EntornoMP, token: string): Promise<Preparado> {
-  const c = await pedidoACobrar(token);
+  const c = await pedidoACobrar(token, "mercadopago");
   if (!c.ok) return c;
   return { ok: true, total: c.pedido.total, email: c.pedido.email, pendiente: await pendienteDe(e, c.pedido.id, token) };
 }
@@ -228,7 +228,7 @@ const RECHAZO_GENERAL = "Tu banco rechazó el pago. Probá con otra tarjeta o pa
 
 /** Cobra el pedido con lo elegido en los campos de Mercado Pago (tarjeta o cupón en efectivo) y deja el pedido como corresponde. */
 export async function pagarPedidoMP(e: EntornoMP, token: string, datos: DatosTarjetaMP | DatosEfectivoMP, sesion?: string): Promise<ResultadoTarjetaMP> {
-  const c = await pedidoACobrar(token);
+  const c = await pedidoACobrar(token, "mercadopago");
   if (!c.ok) return { estado: "rechazado", error: c.error };
   if (!("token" in datos)) return pagarEnEfectivo(e, c.pedido, datos);
   let pago;
@@ -269,7 +269,7 @@ async function pagarEnEfectivo(e: EntornoMP, p: PedidoACobrar, d: DatosEfectivoM
 
 /** El cliente prefiere no usar el cupón (por ejemplo, para pagar con tarjeta): se anula en Mercado Pago. */
 export async function anularCuponMP(e: EntornoMP, token: string, pagoId: string): Promise<{ ok: true } | { ok: false; error: string }> {
-  const c = await pedidoACobrar(token);
+  const c = await pedidoACobrar(token, "mercadopago");
   if (!c.ok) return c;
   try {
     const pago = await buscarPago(e, pagoId);

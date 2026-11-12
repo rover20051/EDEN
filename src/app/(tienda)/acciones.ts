@@ -4,7 +4,7 @@ import { after } from "next/server";
 import { z } from "zod";
 import { ars } from "@/lib/format";
 import { notificarPedidoNuevo } from "@/lib/mensajes";
-import { modoPago } from "@/lib/pagos";
+import { efectivoAparte, modoPago, pasarelaElegida } from "@/lib/pagos";
 import { esProvincia } from "@/lib/provincias";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { estadoVenta } from "@/lib/venta";
@@ -29,7 +29,7 @@ const checkoutSchema = z.object({
   codigo_postal: z.string().trim().max(10).refine((v) => !OBLIGATORIOS.codigo_postal(v), OBLIGATORIOS.codigo_postal("")!),
   nota: z.string().trim().max(500).optional(),
   origen: z.enum(ORIGENES).optional(),
-  medio_pago: z.enum(["transferencia", "tarjeta"]),
+  medio_pago: z.enum(["transferencia", "tarjeta", "efectivo"]),
   cupon: codigoCupon.optional(),
   regalo: z
     .object({ para: z.string().trim().max(80).optional(), mensaje: z.string().trim().max(300, "El mensaje puede tener hasta 300 letras").optional() })
@@ -42,7 +42,7 @@ const checkoutSchema = z.object({
 });
 export type DatosCheckout = z.input<typeof checkoutSchema>;
 export type ResultadoCheckout =
-  | { ok: true; token: string; numero: number; total: number; pagarConTarjeta: boolean }
+  | { ok: true; token: string; numero: number; total: number; pagarConTarjeta: boolean; soloEfectivo: boolean }
   | { ok: false; error: string };
 
 /** Traduce los errores de la base a algo que el cliente entienda. */
@@ -64,6 +64,12 @@ export async function confirmarPedido(datos: DatosCheckout): Promise<ResultadoCh
   if (d.medio_pago === "tarjeta" && !modo) {
     return { ok: false, error: "El pago con tarjeta se habilita muy pronto. Por ahora podés pagar por transferencia." };
   }
+  // Efectivo aparte: solo cuando la tarjeta se cobra con Nave (con Mercado Pago, el efectivo viene dentro de "tarjeta").
+  if (d.medio_pago === "efectivo" && !(await efectivoAparte())) {
+    return { ok: false, error: "El pago en efectivo no está disponible en este momento. Podés pagar por transferencia." };
+  }
+  // En la base, el pedido queda con la pasarela que lo cobra (también en el modo prueba, que simula la elegida).
+  const medioBase = d.medio_pago === "transferencia" ? "transferencia" : d.medio_pago === "efectivo" ? "mercadopago" : (await pasarelaElegida()) === "nave" ? "nave" : "mercadopago";
 
   const sb = supabaseServidor();
 
@@ -105,8 +111,7 @@ export async function confirmarPedido(datos: DatosCheckout): Promise<ResultadoCh
   const { data, error } = await sb.rpc("crear_pedido_web", {
     p: {
       cliente: { nombre: d.nombre, email: d.email, whatsapp: d.whatsapp, provincia: d.provincia, origen: d.origen ?? "" },
-      // En la base, el pedido con tarjeta queda con la pasarela que lo cobra (también el simulado del modo prueba).
-      medio_pago: d.medio_pago === "tarjeta" ? "mercadopago" : "transferencia",
+      medio_pago: medioBase,
       items,
       cupon: d.cupon,
       direccion_envio: [d.direccion, d.ciudad, d.provincia, d.codigo_postal && `CP ${d.codigo_postal}`].filter(Boolean).join(", "),
@@ -122,7 +127,7 @@ export async function confirmarPedido(datos: DatosCheckout): Promise<ResultadoCh
   }
   const pedido = data as { id: string; token: string; numero: number; total: number };
   after(() => notificarPedidoNuevo(pedido.id));
-  return { ok: true, token: pedido.token, numero: pedido.numero, total: pedido.total, pagarConTarjeta: d.medio_pago === "tarjeta" };
+  return { ok: true, token: pedido.token, numero: pedido.numero, total: pedido.total, pagarConTarjeta: d.medio_pago !== "transferencia", soloEfectivo: d.medio_pago === "efectivo" };
 }
 
 export type CuponPublico = { codigo: string; tipo: "porcentaje" | "monto"; valor: number; minimo: number };

@@ -142,23 +142,31 @@ function textoEnvio(envio: number | null | undefined) {
   return ars(envio);
 }
 
-type PedidoCreado = { token: string; numero: number; total: number };
+type PedidoCreado = { token: string; numero: number; total: number; soloEfectivo: boolean };
 
 export function Checkout({
   catalogo,
   modoTarjeta,
-  clavePublicaMP = "",
+  clavePublica = "",
+  entorno = "real",
+  efectivoAparte = false,
+  clavePublicaEfectivo = "",
 }: {
   catalogo: CatalogoPublico;
-  modoTarjeta: "mercadopago" | "prueba" | null;
-  clavePublicaMP?: string;
+  modoTarjeta: "mercadopago" | "nave" | "prueba" | null;
+  /** Llave pública de la pasarela de la tarjeta (Mercado Pago o Nave). */
+  clavePublica?: string;
+  entorno?: "real" | "prueba";
+  /** Tarjeta con Nave y efectivo con Mercado Pago: el efectivo es otra opción. */
+  efectivoAparte?: boolean;
+  clavePublicaEfectivo?: string;
 }) {
   const crudo = useSyncExternalStore(suscribir, leerCarrito, () => "[]");
   const regaloGuardado = useSyncExternalStore(suscribir, leerRegalo, () => false);
   const [regaloElegido, setRegalo] = useState<boolean | null>(null);
   const regalo = regaloElegido ?? regaloGuardado;
   const router = useRouter();
-  const [medio, setMedio] = useState<"tarjeta" | "transferencia">(modoTarjeta ? "tarjeta" : "transferencia");
+  const [medio, setMedio] = useState<"tarjeta" | "efectivo" | "transferencia">(modoTarjeta ? "tarjeta" : "transferencia");
   const [provincia, setProvincia] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [errores, setErrores] = useState<Partial<Record<CampoObligatorio, string>>>({});
@@ -180,7 +188,11 @@ export function Checkout({
         <p className="font-maquina text-xs uppercase tracking-[0.14em] text-tenue">Pedido {numeroPedido(creado.numero)}</p>
         <h1 className="mt-2 text-4xl font-light md:text-5xl">Último paso: el pago</h1>
         <p className="mb-8 mt-2 italic text-tenue">Ya reservamos tus piezas. Completá el pago y empezamos a prepararlas.</p>
-        <PagoTarjeta token={creado.token} total={creado.total} modo={modoTarjeta} clavePublica={clavePublicaMP} />
+        {creado.soloEfectivo ? (
+          <PagoTarjeta token={creado.token} total={creado.total} modo="mercadopago" clavePublica={clavePublicaEfectivo} entorno={entorno} soloEfectivo />
+        ) : (
+          <PagoTarjeta token={creado.token} total={creado.total} modo={modoTarjeta} clavePublica={clavePublica} entorno={entorno} />
+        )}
         <p className="mt-6 text-center text-base italic text-tenue">
           ¿Preferís pagar más tarde?{" "}
           <Link href={`/pedido/${creado.token}`} className="text-tinta underline underline-offset-4">
@@ -341,7 +353,7 @@ export function Checkout({
         localStorage.removeItem("eden-regalo");
       } catch {}
       if (r.pagarConTarjeta && modoTarjeta) {
-        setCreado({ token: r.token, numero: r.numero, total: r.total });
+        setCreado({ token: r.token, numero: r.numero, total: r.total, soloEfectivo: r.soloEfectivo });
         scrollTo({ top: 0 });
       } else router.push(`/pedido/${r.token}`);
     });
@@ -582,6 +594,16 @@ export function Checkout({
                       : "Muy pronto.",
                 deshabilitado: !modoTarjeta,
               },
+              ...(efectivoAparte
+                ? [
+                    {
+                      v: "efectivo" as const,
+                      titulo: "Efectivo",
+                      texto: "Te damos un cupón para pagar en Rapipago o Pago Fácil, con 3 días para usarlo.",
+                      deshabilitado: false,
+                    },
+                  ]
+                : []),
               {
                 v: "transferencia" as const,
                 titulo: "Transferencia",
@@ -677,7 +699,7 @@ function BotonConfirmar({ medio, total, pendiente, bloqueado }: { medio: string;
       disabled={pendiente || bloqueado}
       className="rounded-full bg-tinta px-7 py-3.5 text-[1.15rem] text-papel transition-colors hover:bg-raiz disabled:opacity-50"
     >
-      {pendiente ? "Confirmando…" : medio === "tarjeta" ? `Ir a pagar ${ars(total)}` : "Confirmar pedido"}
+      {pendiente ? "Confirmando…" : medio !== "transferencia" ? `Ir a pagar ${ars(total)}` : "Confirmar pedido"}
     </button>
   );
 }

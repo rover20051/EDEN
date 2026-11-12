@@ -5,7 +5,10 @@ import { ars } from "@/lib/format";
 import { configMensajeria } from "@/lib/mails/envio";
 import { PROVINCIAS } from "@/lib/provincias";
 import { SOCIOS } from "@/lib/textos";
-import { EditarAdmin, FormAdmin, FormAjustes } from "./forms";
+import { mpConfigurado } from "@/lib/mercadopago";
+import { naveConfigurado } from "@/lib/nave";
+import { pasarelaElegida } from "@/lib/pagos";
+import { EditarAdmin, FormAdmin, FormAjustes, FormPasarela } from "./forms";
 
 const PREVIA = "/admin/ajustes/mensajes?plantilla=";
 const MAILS = [
@@ -40,6 +43,23 @@ export default async function Ajustes() {
     // Aparte: el aviso de la barra llega con la migración 0012. Sin ella el campo no aparece.
     supabase.from("ajustes").select("aviso_barra").eq("id", 1).maybeSingle(),
   ]);
+  const pasarelaActual = await pasarelaElegida(); // null: la migración 0013 todavía no corrió
+  const pasarelas = [
+    {
+      id: "mercadopago" as const,
+      nombre: "Mercado Pago",
+      detalle: "Tarjeta y efectivo (Rapipago, Pago Fácil) dentro de la web. Comisión según el plazo que elija Nari en su cuenta; el dinero en cuenta no se ofrece.",
+      real: mpConfigurado("real"),
+      prueba: mpConfigurado("prueba"),
+    },
+    {
+      id: "nave" as const,
+      nombre: "Nave",
+      detalle: "Tarjeta dentro de la web, con la promo de bienvenida de Nave. No tiene efectivo: si Mercado Pago está listo, el efectivo se ofrece aparte con Mercado Pago.",
+      real: naveConfigurado("real"),
+      prueba: naveConfigurado("prueba"),
+    },
+  ];
   const avisoBarra = barra.error ? undefined : ((barra.data?.aviso_barra as string | null) ?? "");
   const cfg = configMensajeria();
   const mailsReales = cfg.mails.modo === "real" && cfg.mails.resend && cfg.mails.dominio;
@@ -73,6 +93,17 @@ export default async function Ajustes() {
           <article className={tarjeta}>
             {cabecera("Lo que ve quien compra", "Datos para el cliente", "payments")}
             {ajustes && <FormAjustes a={ajustes} precioSueltos={precioSueltos} avisoBarra={avisoBarra} />}
+          </article>
+
+          <article className={tarjeta}>
+            {cabecera("Cobro en la web", "Pasarela de tarjeta", "credit_card", "Las credenciales de cada una se cargan en Vercel (ver README). Con el link de prueba se usan siempre las de prueba.")}
+            {pasarelaActual ? (
+              <FormPasarela actual={pasarelaActual} pasarelas={pasarelas} />
+            ) : (
+              <p className="font-caption-italic text-caption-italic text-body-sm italic text-on-surface-variant">
+                Falta correr la migración 0013 en Supabase. Hasta entonces la tarjeta queda como &ldquo;Muy pronto&rdquo; en la web.
+              </p>
+            )}
           </article>
 
           <article className={tarjeta}>

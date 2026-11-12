@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PagoTarjeta } from "@/components/pago-tarjeta/pago-tarjeta";
 import { clavePublicaMP } from "@/lib/mercadopago";
+import { clavePublicaNave } from "@/lib/nave";
 import { ars, fechaHora, linkWhatsApp, numeroPedido } from "@/lib/format";
-import { entornoMP, modoPago, tarjetaHabilitada } from "@/lib/pagos";
+import { entornoPago, modoDelPedido } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { Camino } from "./camino";
 
@@ -61,7 +62,8 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
   ]);
   if (!data) notFound();
   const p = data as Publico;
-  const modo = await modoPago();
+  const { modo, soloEfectivo } = await modoDelPedido(p.medio_pago);
+  const entorno = await entornoPago();
 
   const paso = p.estado === "cancelado" ? -1 : ORDEN.indexOf(p.estado);
   const pasos = [
@@ -75,7 +77,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
   const esperandoTransferencia = pendiente && p.medio_pago === "transferencia";
   const esperandoTarjeta = pendiente && (p.medio_pago === "mercadopago" || p.medio_pago === "nave");
   const vencido = Boolean(p.vence_at && new Date(p.vence_at) < new Date());
-  const puedePagar = esperandoTarjeta && !vencido && (await tarjetaHabilitada()) && modo !== null;
+  const puedePagar = esperandoTarjeta && !vencido && modo !== null;
   const wa = linkWhatsApp(p.whatsapp_contacto, `Hola, les mando el comprobante del pedido ${numeroPedido(p.numero)}.`);
   const waAyuda = linkWhatsApp(p.whatsapp_contacto, `Hola, quiero completar el pago del pedido ${numeroPedido(p.numero)}.`);
 
@@ -171,7 +173,14 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
             <h2 className="mb-4 text-3xl font-light">Completar el pago</h2>
             {puedePagar && modo ? (
               <>
-                <PagoTarjeta token={token} total={p.total} modo={modo} clavePublica={clavePublicaMP(await entornoMP())} />
+                <PagoTarjeta
+                  token={token}
+                  total={p.total}
+                  modo={modo}
+                  clavePublica={modo === "mercadopago" ? clavePublicaMP(entorno) : modo === "nave" ? clavePublicaNave(entorno) : ""}
+                  entorno={entorno}
+                  soloEfectivo={soloEfectivo}
+                />
                 {p.vence_at && (
                   <p className="mt-4 text-base italic text-tenue">Reservamos tus piezas hasta el {fechaHora(p.vence_at)}.</p>
                 )}

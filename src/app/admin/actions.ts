@@ -8,6 +8,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { MAX_FOTO_BYTES, MIME_FOTO, tipoRealFoto } from "@/lib/fotos";
 import { aPesos } from "@/lib/format";
+import { credencialesListas } from "@/lib/pagos";
 import { avisarListaEspera, notificarDespacho, notificarDevolucion, notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
 import { createClient } from "@/lib/supabase/server";
 
@@ -324,6 +325,23 @@ export async function guardarAjustes(_prev: Resultado | null, form: FormData): P
   if (error) return fallo(error.message);
   revalidatePath("/admin", "layout");
   return ok("Guardado");
+}
+
+/**
+ * Con qué pasarela se cobra la tarjeta en la web (Mercado Pago o Nave). No deja elegir una cuyas credenciales reales no
+ * estén cargadas en Vercel: los clientes verían "Muy pronto" en vez de poder pagar.
+ */
+export async function guardarPasarela(_prev: Resultado | null, form: FormData): Promise<Resultado> {
+  const pasarela = String(form.get("pasarela") ?? "");
+  if (pasarela !== "mercadopago" && pasarela !== "nave") return fallo("Elegí con qué pasarela cobrar");
+  if (!credencialesListas(pasarela, "real")) {
+    return fallo(`Faltan las credenciales de ${pasarela === "nave" ? "Nave" : "Mercado Pago"} en Vercel. Con ellas cargadas (y publicado de nuevo) se puede elegir.`);
+  }
+  const { supabase } = await requireAdmin();
+  const { error } = await supabase.from("ajustes").update({ pasarela, updated_at: new Date().toISOString() }).eq("id", 1);
+  if (error) return fallo(error.message);
+  revalidatePath("/admin", "layout");
+  return ok(`Desde ahora la tarjeta se cobra con ${pasarela === "nave" ? "Nave" : "Mercado Pago"}`);
 }
 
 const adminSchema = z.object({

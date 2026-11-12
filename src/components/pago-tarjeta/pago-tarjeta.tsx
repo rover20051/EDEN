@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { ars } from "@/lib/format";
 import { pagarConTarjetaPrueba, pasarATransferencia } from "./acciones";
 import { PagoMercadoPago } from "./mercadopago";
+import { PagoNave } from "./nave";
 import {
   NOMBRE_MARCA,
   TARJETAS_PRUEBA,
@@ -20,13 +21,35 @@ import {
 
 /**
  * Pago con tarjeta de un pedido ya creado. El resto de la tienda solo conoce esta interfaz: `<PagoTarjeta token total modo />`.
- * - "mercadopago": los campos de pago de Mercado Pago, dentro de la tienda (`./mercadopago.tsx`).
+ * - "mercadopago": los campos de pago de Mercado Pago, dentro de la tienda (`./mercadopago.tsx`). Con `soloEfectivo`, solo el cupón.
+ * - "nave": el checkout embebido de Nave (`./nave.tsx`).
  * - "prueba": formulario de tarjeta simulado, sin pasarela configurada.
+ * `clavePublica` es la de la pasarela (la de Mercado Pago o la de Nave); `entorno`, si son las de prueba o las reales.
  */
-export function PagoTarjeta({ token, total, modo, clavePublica = "" }: { token: string; total: number; modo: "mercadopago" | "prueba"; clavePublica?: string }) {
+export function PagoTarjeta({
+  token,
+  total,
+  modo,
+  clavePublica = "",
+  entorno = "real",
+  soloEfectivo = false,
+}: {
+  token: string;
+  total: number;
+  modo: "mercadopago" | "nave" | "prueba";
+  clavePublica?: string;
+  entorno?: "real" | "prueba";
+  soloEfectivo?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-4">
-      {modo === "mercadopago" ? <PagoMercadoPago token={token} total={total} clavePublica={clavePublica} /> : <FormularioPrueba token={token} total={total} />}
+      {modo === "mercadopago" ? (
+        <PagoMercadoPago token={token} total={total} clavePublica={clavePublica} soloEfectivo={soloEfectivo} />
+      ) : modo === "nave" ? (
+        <PagoNave token={token} clavePublica={clavePublica} entorno={entorno} />
+      ) : (
+        <FormularioPrueba token={token} total={total} />
+      )}
       <CambiarATransferencia token={token} />
     </div>
   );

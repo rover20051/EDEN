@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { catalogoPublico } from "@/lib/catalogo";
 import { clavePublicaMP } from "@/lib/mercadopago";
-import { entornoMP, modoPago, tarjetaHabilitada } from "@/lib/pagos";
+import { clavePublicaNave } from "@/lib/nave";
+import { efectivoAparte, entornoPago, modoPago } from "@/lib/pagos";
 import { estadoVenta } from "@/lib/venta";
 import { Checkout } from "./checkout";
 
@@ -23,5 +24,16 @@ export default async function PaginaCheckout() {
   }
   const catalogo = await catalogoPublico();
   const modo = await modoPago();
-  return <Checkout catalogo={catalogo} modoTarjeta={(await tarjetaHabilitada()) && modo ? modo : null} clavePublicaMP={modo === "mercadopago" ? clavePublicaMP(await entornoMP()) : ""} />;
+  const entorno = await entornoPago();
+  const aparte = await efectivoAparte();
+  return (
+    <Checkout
+      catalogo={catalogo}
+      modoTarjeta={modo}
+      clavePublica={modo === "mercadopago" ? clavePublicaMP(entorno) : modo === "nave" ? clavePublicaNave(entorno) : ""}
+      entorno={entorno}
+      efectivoAparte={aparte}
+      clavePublicaEfectivo={aparte ? clavePublicaMP(entorno) : ""}
+    />
+  );
 }

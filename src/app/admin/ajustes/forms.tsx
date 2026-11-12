@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useState } from "react";
-import { agregarAdmin, editarAdmin, guardarAjustes, type Resultado } from "@/app/admin/actions";
+import { agregarAdmin, editarAdmin, guardarAjustes, guardarPasarela, type Resultado } from "@/app/admin/actions";
 import { Mensaje } from "@/components/accion";
 import { ars } from "@/lib/format";
 
@@ -129,6 +129,53 @@ export function FormAjustes({ a, precioSueltos, avisoBarra }: { a: DatosCliente;
         >
           <span className="ms text-[16px]">save</span>
           <span>{pendiente ? "Guardando…" : "Guardar datos"}</span>
+        </button>
+      </div>
+    </form>
+  );
+}
+
+type EstadoPasarela = { id: "mercadopago" | "nave"; nombre: string; detalle: string; real: boolean; prueba: boolean };
+
+/** Con qué pasarela se cobra la tarjeta en la web. Solo deja elegir una con sus credenciales reales cargadas. */
+export function FormPasarela({ actual, pasarelas }: { actual: "mercadopago" | "nave"; pasarelas: EstadoPasarela[] }) {
+  const { estado, onSubmit, pendiente } = useForm(guardarPasarela);
+  const [elegida, setElegida] = useState(actual);
+  return (
+    <form onSubmit={onSubmit} className="flex flex-col gap-2.5">
+      {pasarelas.map((p) => (
+        <label
+          key={p.id}
+          className={`flex cursor-pointer gap-3 rounded-2xl bg-surface-container-lowest p-3 shadow-sm ${elegida === p.id ? "ring-1 ring-secondary" : ""} ${p.real ? "" : "opacity-70"}`}
+        >
+          <input type="radio" name="pasarela" value={p.id} checked={elegida === p.id} onChange={() => setElegida(p.id)} className="mt-1 accent-secondary" />
+          <span className="flex min-w-0 flex-1 flex-col gap-1">
+            <span className="flex flex-wrap items-center justify-between gap-2">
+              <span className="font-headline-md text-headline-md text-primary">
+                {p.nombre}
+                {actual === p.id && <span className="ml-2 font-label-sm text-label-sm uppercase text-secondary">En uso</span>}
+              </span>
+              <span className="flex flex-wrap gap-1.5">
+                <span className={`rounded-full px-2 py-0.5 font-label-sm text-label-sm uppercase ${p.real ? "bg-tertiary-fixed text-tertiary" : "bg-error-container text-error"}`}>
+                  {p.real ? "Cobro real listo" : "Sin credenciales reales"}
+                </span>
+                <span className={`rounded-full px-2 py-0.5 font-label-sm text-label-sm uppercase ${p.prueba ? "bg-secondary-fixed/50 text-secondary" : "bg-surface-container-high text-outline"}`}>
+                  {p.prueba ? "Prueba lista" : "Sin credenciales de prueba"}
+                </span>
+              </span>
+            </span>
+            <span className="font-caption-italic text-caption-italic text-body-sm italic text-on-surface-variant">{p.detalle}</span>
+          </span>
+        </label>
+      ))}
+      <div className="flex items-center justify-end gap-3">
+        <Mensaje estado={estado} />
+        <button
+          disabled={pendiente || elegida === actual}
+          className="flex items-center gap-space-xs rounded-full bg-primary px-4 py-2 font-label-md text-label-md uppercase tracking-wider text-surface shadow-sm transition-all hover:bg-primary-container disabled:opacity-50"
+        >
+          <span className="ms text-[16px]">swap_horiz</span>
+          <span>{pendiente ? "Cambiando…" : "Cambiar pasarela"}</span>
         </button>
       </div>
     </form>

@@ -41,10 +41,14 @@ const ESTILO = {
   },
 };
 const LETRA = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap";
+const EFECTIVO = ["rapipago", "pagofacil"] as ("rapipago" | "pagofacil")[];
+const VISUAL = { style: ESTILO, font: LETRA, hideFormTitle: true };
 const PERSONALIZACION = {
-  paymentMethods: { creditCard: "all" as const, debitCard: "all" as const, prepaidCard: "all" as const, ticket: ["rapipago", "pagofacil"] },
-  visual: { style: ESTILO, font: LETRA, hideFormTitle: true },
+  paymentMethods: { creditCard: "all" as const, debitCard: "all" as const, prepaidCard: "all" as const, ticket: EFECTIVO },
+  visual: VISUAL,
 };
+// Con la tarjeta cobrada por Nave, Mercado Pago solo ofrece efectivo.
+const SOLO_EFECTIVO = { paymentMethods: { ticket: EFECTIVO }, visual: VISUAL };
 
 let claveIniciada = "";
 function iniciar(clave: string) {
@@ -61,7 +65,7 @@ type Fase =
   | { tipo: "revision" }
   | { tipo: "sin_pago"; error: string };
 
-export function PagoMercadoPago({ token, total, clavePublica }: { token: string; total: number; clavePublica: string }) {
+export function PagoMercadoPago({ token, total, clavePublica, soloEfectivo = false }: { token: string; total: number; clavePublica: string; soloEfectivo?: boolean }) {
   const router = useRouter();
   const pathname = usePathname();
   const [fase, setFase] = useState<Fase>({ tipo: "cargando" });
@@ -152,6 +156,7 @@ export function PagoMercadoPago({ token, total, clavePublica }: { token: string;
       <CuponEfectivo
         cupon={fase.cupon}
         error={error}
+        conTarjeta={!soloEfectivo}
         anular={async () => {
           setError(null);
           const r = await anularCuponMercadoPago(token, fase.cupon.pagoId);
@@ -198,13 +203,13 @@ export function PagoMercadoPago({ token, total, clavePublica }: { token: string;
           Preparando el pago…
         </div>
       ) : (
-        <Payment key={intento} initialization={inicializacion} customization={PERSONALIZACION} onSubmit={alEnviar} onError={alFallar} locale="es-AR" />
+        <Payment key={intento} initialization={inicializacion} customization={soloEfectivo ? SOLO_EFECTIVO : PERSONALIZACION} onSubmit={alEnviar} onError={alFallar} locale="es-AR" />
       )}
     </div>
   );
 }
 
-function CuponEfectivo({ cupon, error, anular }: { cupon: Cupon; error: string | null; anular: () => Promise<void> }) {
+function CuponEfectivo({ cupon, error, anular, conTarjeta }: { cupon: Cupon; error: string | null; anular: () => Promise<void>; conTarjeta: boolean }) {
   const [anulando, setAnulando] = useState(false);
   return (
     <div className="border border-borde bg-nota p-6 shadow-[0_18px_28px_-24px_rgba(44,34,28,.45)]">
@@ -227,18 +232,20 @@ function CuponEfectivo({ cupon, error, anular }: { cupon: Cupon; error: string |
           {error}
         </p>
       )}
-      <button
-        type="button"
-        disabled={anulando}
-        onClick={async () => {
-          setAnulando(true);
-          await anular();
-          setAnulando(false);
-        }}
-        className="mt-4 text-base underline underline-offset-4 hover:text-oro disabled:opacity-50"
-      >
-        {anulando ? "Anulando el cupón…" : "Prefiero pagar con tarjeta"}
-      </button>
+      {conTarjeta && (
+        <button
+          type="button"
+          disabled={anulando}
+          onClick={async () => {
+            setAnulando(true);
+            await anular();
+            setAnulando(false);
+          }}
+          className="mt-4 text-base underline underline-offset-4 hover:text-oro disabled:opacity-50"
+        >
+          {anulando ? "Anulando el cupón…" : "Prefiero pagar con tarjeta"}
+        </button>
+      )}
     </div>
   );
 }

@@ -30,12 +30,13 @@ type Detalle = Omit<PedidoFila, "cliente" | "items" | "pagos"> & {
   pagos: (PedidoFila["pagos"][number] & { bruto: number; comision: number; neto: number; acreditacion_esperada: string | null })[];
 };
 
-type Evento = { id: number; tipo: string; detalle: { a?: Estado }; actor: string; created_at: string };
+type Evento = { id: number; tipo: string; detalle: { a?: Estado; motivo?: string }; actor: string; created_at: string };
 
 const EVENTOS: Record<string, string> = {
   creado: "Pedido creado",
   comprobante_rechazado: "Comprobante rechazado",
-  vencimiento_extendido: "Espera extendida 24 h",
+  vencimiento_extendido: "Reserva extendida",
+  nave_intencion_creada: "Pago con Nave preparado",
   devolucion: "Devolución registrada",
 };
 
@@ -84,7 +85,7 @@ export default async function DetallePedido({ params }: PageProps<"/admin/pedido
   }, 0);
   const descuentoManual = Math.max(0, p.descuento - (p.descuento_cupon ?? 0));
 
-  const etiquetaEvento = (e: Evento) => (e.tipo === "estado" && e.detalle.a ? ESTADOS[e.detalle.a].label : (EVENTOS[e.tipo] ?? e.tipo));
+  const etiquetaEvento = (e: Evento) => (e.tipo === "estado" && e.detalle.a ? ESTADOS[e.detalle.a].label : e.tipo === "vencimiento_extendido" && e.detalle.motivo ? `Reserva extendida: ${e.detalle.motivo}` : (EVENTOS[e.tipo] ?? e.tipo));
   const seccion = "rounded-2xl bg-surface-container-low p-3.5 shadow-sm";
   const cabecera = "mb-2.5 flex items-center justify-between border-b border-primary/10 pb-1.5";
   const rotulo = "font-label-sm text-label-sm uppercase tracking-[0.12em] text-outline";
@@ -446,11 +447,11 @@ export default async function DetallePedido({ params }: PageProps<"/admin/pedido
           <section className={seccion}>
             <div className={`${cabecera} mb-2`}>
               <span className={rotulo}>Historial</span>
-              <span className="font-caption-italic text-caption-italic italic text-outline">{(eventos ?? []).length} registros</span>
+              <span className="font-caption-italic text-caption-italic italic text-outline">{(eventos ?? []).filter((e) => e.tipo !== "nave_intencion").length} registros</span>
             </div>
             <ol className="relative ml-3 flex flex-col gap-2 border-l-2 border-primary/10 py-0.5 pl-3">
               {((eventos ?? []) as Evento[])
-                .slice()
+                .filter((e) => e.tipo !== "nave_intencion") // registro interno: sirve para ubicar el aviso de Nave, no para leer
                 .reverse()
                 .map((e, i) => (
                   <li key={e.id} className="flex flex-col">
