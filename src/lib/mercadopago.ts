@@ -5,8 +5,8 @@ import { sitio } from "@/lib/mails/plantillas";
 /**
  * Mercado Pago con Checkout Bricks: la tarjeta se carga dentro de la tienda, en los campos seguros de Mercado Pago
  * (la tienda recibe un token, nunca los datos de la tarjeta) y el cobro sale del servidor (`crearPago`).
- * Solo tarjetas: dinero en cuenta y Cuotas sin Tarjeta no se ofrecen (pasan por la página de Mercado Pago, que no deja
- * excluir el dinero en cuenta, y quien tiene plata ahí puede transferir sin comisión).
+ * Tarjetas y efectivo (cupón para Rapipago o Pago Fácil). Dinero en cuenta y Cuotas sin Tarjeta no se ofrecen (pasan por
+ * la página de Mercado Pago, que no deja excluir el dinero en cuenta, y quien tiene plata ahí puede transferir sin comisión).
  *
  * - MP_ACCESS_TOKEN (solo servidor) y MP_PUBLIC_KEY (va al navegador): credenciales de la aplicación de la cuenta que cobra.
  *   Con las de prueba ("TEST-…") todo es simulado; con las de producción se cobra de verdad.
@@ -32,7 +32,7 @@ export class ErrorMP extends Error {
 
 async function llamar<T>(
   ruta: string,
-  init: { method?: "GET" | "POST"; body?: unknown; idempotencia?: string; sesion?: string } = {},
+  init: { method?: "GET" | "POST" | "PUT"; body?: unknown; idempotencia?: string; sesion?: string } = {},
 ): Promise<T> {
   const res = await fetch(API + ruta, {
     method: init.method ?? "GET",
@@ -83,8 +83,18 @@ export type DatosTarjetaMP = {
   payer: { email?: string; identification?: { type: string; number: string } };
 };
 
-export type PagoCreado = Pick<PagoMP, "id" | "status" | "status_detail"> & {
+export type PagoCreado = Pick<PagoMP, "id" | "status" | "status_detail" | "payment_type_id" | "date_of_expiration" | "transaction_details"> & {
   three_ds_info?: { external_resource_url: string; creq: string } | null;
+};
+
+/** Medios en efectivo que ofrece la tienda (cupón de Mercado Pago). */
+export const EFECTIVO = { rapipago: "Rapipago", pagofacil: "Pago Fácil" } as const;
+export type MedioEfectivo = keyof typeof EFECTIVO;
+
+/** Lo que devuelven los campos de Mercado Pago al elegir pagar en efectivo. */
+export type DatosEfectivoMP = {
+  payment_method_id: MedioEfectivo;
+  payer: { email?: string; first_name?: string; last_name?: string; identification?: { type: string; number: string } };
 };
 
 /**
@@ -120,6 +130,57 @@ export async function crearPago(p: PedidoACobrar, t: DatosTarjetaMP, sesion?: st
   });
 }
 
+/**
+ * Cupón para pagar en efectivo: Mercado Pago lo deja "pending" hasta que se paga en el local, y lo cancela solo al vencer.
+ * La clave de idempotencia cambia por minuto: un doble clic devuelve el mismo cupón.
+ */
+export async function crearPagoEfectivo(p: PedidoACobrar, d: DatosEfectivoMP, vence: Date): Promise<PagoCreado> {
+  const [nombre, ...apellido] = p.nombre.trim().split(/\s+/);
+  return llamar<PagoCreado>("/v1/payments", {
+    method: "POST",
+    idempotencia: `${p.id}:efectivo:${d.payment_method_id}:${Math.floor(Date.now() / 60_000)}`,
+    body: {
+      transaction_amount: p.total,
+      description: `Edén · Pedido ${numeroPedido(p.numero)}`,
+      payment_method_id: d.payment_method_id,
+      payer: {
+        email: d.payer.email?.trim() || p.email || undefined,
+        first_name: d.payer.first_name?.trim() || nombre,
+        last_name: d.payer.last_name?.trim() || apellido.join(" ") || undefined,
+        identification: d.payer.identification,
+      },
+      date_of_expiration: fechaMP(vence),
+      external_reference: p.id,
+      notification_url: notificaciones(),
+      additional_info: {
+        items: [{ id: numeroPedido(p.numero), title: `Edén · Pedido ${numeroPedido(p.numero)}`, description: p.productos.join(", ").slice(0, 250), category_id: "others", quantity: 1, unit_price: p.total }],
+      },
+      metadata: { pedido: numeroPedido(p.numero) },
+    },
+  });
+}
+
+/** Los pagos de un pedido en Mercado Pago, del más nuevo al más viejo. */
+export async function pagosDelPedido(pedidoId: string): Promise<PagoMP[]> {
+  const q = new URLSearchParams({ external_reference: pedidoId, sort: "date_created", criteria: "desc", limit: "20" });
+  const r = await llamar<{ results?: PagoMP[] }>(`/v1/payments/search?${q}`);
+  return r.results ?? [];
+}
+
+/** Cancela un pago pendiente (por ejemplo, un cupón que ya no se va a usar). */
+export const cancelarPago = (id: string | number) => llamar<PagoMP>(`/v1/payments/${encodeURIComponent(String(id))}`, { method: "PUT", body: { status: "cancelled" } });
+
+export type Cupon = { pagoId: string; url: string; vence: string; medio: string };
+
+/** El cupón de un pago en efectivo que todavía se puede pagar. */
+export function cuponDe(pago: Pick<PagoMP, "id" | "status" | "payment_type_id" | "payment_method_id" | "date_of_expiration" | "transaction_details">): Cupon | null {
+  const url = pago.transaction_details?.external_resource_url;
+  if (pago.payment_type_id !== "ticket" || pago.status !== "pending" || !url) return null;
+  if (pago.date_of_expiration && new Date(pago.date_of_expiration) < new Date()) return null;
+  const medio = EFECTIVO[pago.payment_method_id as MedioEfectivo] ?? "Rapipago o Pago Fácil";
+  return { pagoId: String(pago.id), url, vence: pago.date_of_expiration ?? "", medio };
+}
+
 export type PagoMP = {
   id: number;
   status: "pending" | "approved" | "authorized" | "in_process" | "in_mediation" | "rejected" | "cancelled" | "refunded" | "charged_back";
@@ -129,9 +190,11 @@ export type PagoMP = {
   currency_id: string;
   money_release_date: string | null;
   payment_type_id: string;
+  payment_method_id: string;
   installments: number;
+  date_of_expiration: string | null;
   fee_details?: { type: string; amount: number; fee_payer: string }[];
-  transaction_details?: { net_received_amount?: number };
+  transaction_details?: { net_received_amount?: number; external_resource_url?: string | null };
 };
 
 /** El pago tal como lo tiene Mercado Pago (la única fuente que vale para confirmar). */

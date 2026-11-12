@@ -573,8 +573,13 @@ export function Checkout({
             {[
               {
                 v: "tarjeta" as const,
-                titulo: "Tarjeta de crédito o débito",
-                texto: modoTarjeta ? "Pagás acá mismo, sin salir de la página." : "Muy pronto.",
+                titulo: modoTarjeta === "mercadopago" ? "Tarjeta o efectivo" : "Tarjeta de crédito o débito",
+                texto:
+                  modoTarjeta === "mercadopago"
+                    ? "Con tarjeta pagás acá mismo, sin salir de la página. En efectivo te damos un cupón para pagar en Rapipago o Pago Fácil."
+                    : modoTarjeta
+                      ? "Pagás acá mismo, sin salir de la página."
+                      : "Muy pronto.",
                 deshabilitado: !modoTarjeta,
               },
               {

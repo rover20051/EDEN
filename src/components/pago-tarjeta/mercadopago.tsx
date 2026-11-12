@@ -3,13 +3,16 @@
 import { initMercadoPago, Payment, StatusScreen } from "@mercadopago/sdk-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { consultarPagoMercadoPago, pagarConMercadoPago, prepararMercadoPago } from "./acciones";
+import { fechaHora } from "@/lib/format";
+import type { Cupon } from "@/lib/mercadopago";
+import { anularCuponMercadoPago, consultarPagoMercadoPago, pagarConMercadoPago, prepararMercadoPago } from "./acciones";
 
 /**
- * Pago con tarjeta de Mercado Pago dentro de la tienda (Checkout Bricks). La tarjeta se carga en los campos seguros de
- * Mercado Pago, con los colores y la letra de Edén; la tienda recibe un token y cobra desde el servidor.
- * Solo tarjetas (crédito, débito y prepaga): dinero en cuenta no, porque quien tiene plata en Mercado Pago puede
- * transferir sin comisión. Si el banco pide validar (3DS), el desafío se muestra acá mismo.
+ * Pago con Mercado Pago dentro de la tienda (Checkout Bricks), con los colores y la letra de Edén.
+ * - Tarjeta (crédito, débito y prepaga): se carga en los campos seguros de Mercado Pago; la tienda recibe un token y
+ *   cobra desde el servidor. Si el banco pide validar (3DS), el desafío se muestra acá mismo.
+ * - Efectivo: cupón para pagar en Rapipago o Pago Fácil. Queda a la vista (y llega por mail) hasta que se paga o vence.
+ * Dinero en cuenta no: quien tiene plata en Mercado Pago puede transferir sin comisión.
  */
 
 // Colores de la web (src/app/globals.css). Mercado Pago no lee variables CSS: van los valores.
@@ -39,7 +42,7 @@ const ESTILO = {
 };
 const LETRA = "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap";
 const PERSONALIZACION = {
-  paymentMethods: { creditCard: "all" as const, debitCard: "all" as const, prepaidCard: "all" as const },
+  paymentMethods: { creditCard: "all" as const, debitCard: "all" as const, prepaidCard: "all" as const, ticket: ["rapipago", "pagofacil"] },
   visual: { style: ESTILO, font: LETRA, hideFormTitle: true },
 };
 
@@ -54,6 +57,7 @@ type Fase =
   | { tipo: "cargando" }
   | { tipo: "formulario"; email: string | null }
   | { tipo: "desafio"; pagoId: string; url: string; creq: string }
+  | { tipo: "cupon"; cupon: Cupon }
   | { tipo: "revision" }
   | { tipo: "sin_pago"; error: string };
 
@@ -78,11 +82,16 @@ export function PagoMercadoPago({ token, total, clavePublica }: { token: string;
       if (!vivo) return;
       if (!r.ok) return setFase({ tipo: "sin_pago", error: r.error });
       preparado.current = { email: r.email };
+      // Ya hay un pago en marcha para este pedido: se muestra eso en vez del formulario.
+      if (r.pendiente?.tipo === "aprobado") return irAlPedido();
+      if (r.pendiente?.tipo === "cupon") return setFase({ tipo: "cupon", cupon: r.pendiente.cupon });
+      if (r.pendiente?.tipo === "revision") return setFase({ tipo: "revision" });
       setFase({ tipo: "formulario", ...preparado.current });
     });
     return () => {
       vivo = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- irAlPedido cambia con la ruta; esto corre una vez por pedido
   }, [clavePublica, token]);
 
   // Después del desafío del banco: se consulta el pago cada 3 segundos, hasta 3 minutos.
@@ -95,6 +104,7 @@ export function PagoMercadoPago({ token, total, clavePublica }: { token: string;
       if (r.estado === "esperando" && vueltas < 60) return;
       clearInterval(id);
       if (r.estado === "aprobado") return irAlPedido();
+      if (r.estado === "cupon") return setFase({ tipo: "cupon", cupon: r.cupon });
       if (r.estado === "en_revision" || r.estado === "esperando" || r.estado === "desafio") return setFase({ tipo: "revision" });
       setError(r.error);
       volverAlFormulario();
@@ -118,6 +128,7 @@ export function PagoMercadoPago({ token, total, clavePublica }: { token: string;
       const r = await pagarConMercadoPago(token, formData, sesion);
       if (r.estado === "aprobado") return irAlPedido();
       if (r.estado === "desafio") return setFase({ tipo: "desafio", pagoId: r.pagoId, url: r.url, creq: r.creq });
+      if (r.estado === "cupon") return setFase({ tipo: "cupon", cupon: r.cupon });
       if (r.estado === "en_revision") return setFase({ tipo: "revision" });
       setError(r.error);
       volverAlFormulario();
@@ -134,6 +145,20 @@ export function PagoMercadoPago({ token, total, clavePublica }: { token: string;
       <p role="alert" className="border border-borde bg-nota p-6 italic text-error">
         {fase.error}
       </p>
+    );
+  }
+  if (fase.tipo === "cupon") {
+    return (
+      <CuponEfectivo
+        cupon={fase.cupon}
+        error={error}
+        anular={async () => {
+          setError(null);
+          const r = await anularCuponMercadoPago(token, fase.cupon.pagoId);
+          if (!r.ok) return setError(r.error);
+          volverAlFormulario();
+        }}
+      />
     );
   }
   if (fase.tipo === "revision") {
@@ -174,6 +199,45 @@ export function PagoMercadoPago({ token, total, clavePublica }: { token: string;
       ) : (
         <Payment key={intento} initialization={inicializacion} customization={PERSONALIZACION} onSubmit={alEnviar} onError={alFallar} locale="es-AR" />
       )}
+    </div>
+  );
+}
+
+function CuponEfectivo({ cupon, error, anular }: { cupon: Cupon; error: string | null; anular: () => Promise<void> }) {
+  const [anulando, setAnulando] = useState(false);
+  return (
+    <div className="border border-borde bg-nota p-6 shadow-[0_18px_28px_-24px_rgba(44,34,28,.45)]">
+      <h3 className="font-maquina text-xs uppercase tracking-[0.14em] text-tenue">Pagá en efectivo en {cupon.medio}</h3>
+      <p className="mt-3">Mostrá el cupón en cualquier local de {cupon.medio}, en el celular o impreso, y pagá en efectivo.</p>
+      {cupon.vence && <p className="mt-2 italic text-tenue">El cupón vence el {fechaHora(cupon.vence)}.</p>}
+      <a
+        href={cupon.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-5 inline-block rounded-full bg-tinta px-7 py-3.5 text-[1.1rem] text-papel transition-colors hover:bg-raiz"
+      >
+        Ver e imprimir el cupón
+      </a>
+      <p className="mt-4 text-base italic text-tenue">
+        Cuando pagues, Mercado Pago nos avisa solo y te llega un mail con la confirmación. También te mandamos este cupón por mail.
+      </p>
+      {error && (
+        <p role="alert" className="mt-3 italic text-error">
+          {error}
+        </p>
+      )}
+      <button
+        type="button"
+        disabled={anulando}
+        onClick={async () => {
+          setAnulando(true);
+          await anular();
+          setAnulando(false);
+        }}
+        className="mt-4 text-base underline underline-offset-4 hover:text-oro disabled:opacity-50"
+      >
+        {anulando ? "Anulando el cupón…" : "Prefiero pagar con tarjeta"}
+      </button>
     </div>
   );
 }

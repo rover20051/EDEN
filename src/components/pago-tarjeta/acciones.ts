@@ -4,7 +4,8 @@ import { randomUUID } from "node:crypto";
 import { after } from "next/server";
 import { z } from "zod";
 import { notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
-import { estadoPagoMP, pagarPedidoMP, prepararPagoMP, type Preparado, type ResultadoTarjetaMP } from "@/lib/cobro-mp";
+import { anularCuponesDelPedido, anularCuponMP, estadoPagoMP, pagarPedidoMP, prepararPagoMP, type Preparado, type ResultadoTarjetaMP } from "@/lib/cobro-mp";
+import { mpConfigurado } from "@/lib/mercadopago";
 import { modoPago } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { TARJETAS_PRUEBA, soloDigitos, validarTarjeta, type DatosTarjeta } from "./tarjeta";
@@ -66,7 +67,7 @@ export async function pagarConTarjetaPrueba(token: string, datos: DatosTarjeta):
   return { ok: true };
 }
 
-const NO_DISPONIBLE = "El pago con tarjeta no está disponible en este momento. Podés pagar por transferencia.";
+const NO_DISPONIBLE = "El pago con Mercado Pago no está disponible en este momento. Podés pagar por transferencia.";
 
 /** Datos para mostrar los campos de pago de Mercado Pago en el pedido. */
 export async function prepararMercadoPago(token: string): Promise<Preparado> {
@@ -86,13 +87,36 @@ const tarjetaMPSchema = z.object({
   }),
 });
 
-/** Cobra con la tarjeta cargada en los campos de Mercado Pago (llega tokenizada: la tienda nunca ve sus datos). */
+const identificacion = z.object({ type: z.string().max(10), number: z.string().max(20) });
+const efectivoMPSchema = z.object({
+  payment_method_id: z.enum(["rapipago", "pagofacil"]),
+  payer: z.object({
+    email: z.string().max(200).optional(),
+    first_name: z.string().max(80).optional(),
+    last_name: z.string().max(80).optional(),
+    identification: identificacion.optional(),
+  }),
+});
+
+/**
+ * Cobra con lo elegido en los campos de Mercado Pago: la tarjeta llega tokenizada (la tienda nunca ve sus datos);
+ * con efectivo, se genera el cupón para Rapipago o Pago Fácil.
+ */
 export async function pagarConMercadoPago(token: string, datos: unknown, sesion?: string | null): Promise<ResultadoTarjetaMP> {
   if ((await modoPago()) !== "mercadopago") return { estado: "rechazado", error: NO_DISPONIBLE };
   if (!z.uuid().safeParse(token).success) return { estado: "rechazado", error: "No encontramos el pedido." };
+  const efectivo = efectivoMPSchema.safeParse(datos);
+  if (efectivo.success) return pagarPedidoMP(token, efectivo.data);
   const d = tarjetaMPSchema.safeParse(datos);
   if (!d.success) return { estado: "rechazado", error: "Revisá los datos de la tarjeta." };
   return pagarPedidoMP(token, d.data, typeof sesion === "string" && /^[\w-]{1,100}$/.test(sesion) ? sesion : undefined);
+}
+
+/** Anula el cupón en efectivo para elegir otro medio (por ejemplo, tarjeta). */
+export async function anularCuponMercadoPago(token: string, pagoId: string): Promise<ResultadoPago> {
+  if ((await modoPago()) !== "mercadopago") return { ok: false, error: NO_DISPONIBLE };
+  if (!z.uuid().safeParse(token).success || !/^\d{1,20}$/.test(pagoId)) return { ok: false, error: "No encontramos el cupón." };
+  return anularCuponMP(token, pagoId);
 }
 
 /** Después de validar con el banco (3DS): cómo quedó el pago. */
@@ -103,7 +127,7 @@ export async function consultarPagoMercadoPago(token: string, pagoId: string) {
 }
 
 /**
- * El cliente eligió tarjeta pero prefiere transferir (por ejemplo, después de un rechazo): el mismo pedido pasa a
+ * El cliente eligió Mercado Pago pero prefiere transferir (por ejemplo, después de un rechazo): el mismo pedido pasa a
  * transferencia, con el plazo de la transferencia para mandar el comprobante. Las piezas siguen reservadas.
  */
 export async function pasarATransferencia(token: string): Promise<ResultadoPago> {
@@ -127,6 +151,8 @@ export async function pasarATransferencia(token: string): Promise<ResultadoPago>
   }
   if (!pedido) return { ok: false, error: "Este pedido ya no está esperando el pago con tarjeta. Mirá su estado en el link del pedido." };
   await sb.from("pagos").update({ medio: "transferencia" }).eq("pedido_id", pedido.id).eq("estado", "pendiente");
+  // Si había sacado un cupón para pagar en efectivo, se anula: así no puede pagar dos veces.
+  if (mpConfigurado()) await anularCuponesDelPedido(pedido.id as string);
   // Le llega el mail con los datos para transferir (con tarjeta no se mandó ninguno).
   after(() => notificarPedidoNuevo(pedido.id as string));
   return { ok: true };

@@ -2,15 +2,35 @@ import "server-only";
 import { after } from "next/server";
 import { ars, numeroPedido } from "@/lib/format";
 import { avisoYaSalio, mandarAviso } from "@/lib/mails/envio";
-import { notificarPagoConfirmado } from "@/lib/mensajes";
-import { acreditacionDe, buscarPago, comisionDe, crearPago, ErrorMP, type DatosTarjetaMP, type PagoMP, type PedidoACobrar } from "@/lib/mercadopago";
+import { notificarCuponEfectivo, notificarPagoConfirmado } from "@/lib/mensajes";
+import {
+  acreditacionDe,
+  buscarPago,
+  cancelarPago,
+  comisionDe,
+  crearPago,
+  crearPagoEfectivo,
+  cuponDe,
+  ErrorMP,
+  pagosDelPedido,
+  type Cupon,
+  type DatosEfectivoMP,
+  type DatosTarjetaMP,
+  type PagoMP,
+  type PedidoACobrar,
+} from "@/lib/mercadopago";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 
 /** Mientras Mercado Pago revisa un pago (puede tardar hasta 2 días hábiles), la reserva no se libera. */
 const HORAS_EN_REVISION = 72;
+/** Cupón en efectivo: Mercado Pago recomienda que dure al menos 3 días (el pago tarda hasta 2 horas hábiles en acreditarse). */
+const HORAS_CUPON = 72;
+/** La reserva dura lo que el cupón más este margen, por si lo pagan sobre la hora y el aviso llega después. */
+const MARGEN_EFECTIVO_HORAS = 24;
 
 export type Procesado =
   | { estado: "aprobado"; pedidoId: string; nuevo: boolean }
+  | { estado: "cupon"; pedidoId: string; cupon: Cupon }
   | { estado: "en_revision" | "desafio" | "rechazado" | "revisar"; pedidoId: string }
   | { estado: "ajeno" };
 
@@ -78,14 +98,24 @@ export async function procesarPagoMP(idPago: string, soloToken?: string): Promis
     case "authorized": {
       // Esperando que el cliente valide con su banco (3DS): si no lo hace en segundos, Mercado Pago lo rechaza solo.
       if (pago.status_detail === "pending_challenge") return { estado: "desafio", pedidoId: p.id };
+      // Efectivo: el cupón espera que lo paguen en Rapipago o Pago Fácil. Si ya venció, es como un rechazo.
+      const cupon = cuponDe(pago);
+      if (pago.payment_type_id === "ticket" && !cupon) return { estado: "rechazado", pedidoId: p.id };
       if (p.estado === "pendiente_pago") {
-        const hasta = new Date(Date.now() + HORAS_EN_REVISION * 3600_000);
+        const hasta = cupon?.vence
+          ? new Date(new Date(cupon.vence).getTime() + MARGEN_EFECTIVO_HORAS * 3600_000)
+          : new Date(Date.now() + HORAS_EN_REVISION * 3600_000);
         if (!p.vence_at || new Date(p.vence_at) < hasta) {
           await sb.from("pedidos").update({ vence_at: hasta.toISOString() }).eq("id", p.id).eq("estado", "pendiente_pago");
-          await sb.from("eventos").insert({ pedido_id: p.id, tipo: "vencimiento_extendido", detalle: { horas: HORAS_EN_REVISION, motivo: "pago en revisión en Mercado Pago", pago: pago.id } });
+          await sb.from("eventos").insert({
+            pedido_id: p.id,
+            tipo: "vencimiento_extendido",
+            detalle: { hasta: hasta.toISOString(), motivo: cupon ? `cupón para pagar en efectivo (${cupon.medio})` : "pago en revisión en Mercado Pago", pago: pago.id },
+          });
         }
+        if (cupon) after(() => notificarCuponEfectivo(p.id, cupon));
       }
-      return { estado: "en_revision", pedidoId: p.id };
+      return cupon ? { estado: "cupon", pedidoId: p.id, cupon } : { estado: "en_revision", pedidoId: p.id };
     }
     case "refunded":
     case "charged_back":
@@ -136,17 +166,46 @@ async function pedidoACobrar(token: string): Promise<Cargado> {
   };
 }
 
-export type Preparado = { ok: true; total: number; email: string | null } | { ok: false; error: string };
+/** Un pago del pedido que ya está en marcha en Mercado Pago: no hay que mostrar el formulario otra vez. */
+export type Pendiente = { tipo: "cupon"; cupon: Cupon } | { tipo: "revision" } | { tipo: "aprobado" };
 
-/** Lo que necesitan los campos de pago para mostrarse: que el pedido siga esperando el pago, el monto y el mail para precargar. */
+async function pendienteDe(pedidoId: string, token: string): Promise<Pendiente | null> {
+  let pagos: PagoMP[];
+  try {
+    pagos = await pagosDelPedido(pedidoId);
+  } catch (e) {
+    console.error("[mercadopago] pagosDelPedido", e);
+    return null; // sin la búsqueda, el formulario se muestra igual
+  }
+  for (const pago of pagos) {
+    if (pago.status === "approved") {
+      // Aprobado pero el aviso no llegó (o llegó antes de tiempo): se procesa ahora.
+      if ((await procesarPagoMP(String(pago.id), token)).estado === "aprobado") return { tipo: "aprobado" };
+      continue;
+    }
+    const cupon = cuponDe(pago);
+    if (cupon) return { tipo: "cupon", cupon };
+    const enCurso = pago.status === "in_process" || pago.status === "authorized" || pago.status === "pending";
+    if (enCurso && pago.payment_type_id !== "ticket" && pago.status_detail !== "pending_challenge") return { tipo: "revision" };
+  }
+  return null;
+}
+
+export type Preparado = { ok: true; total: number; email: string | null; pendiente: Pendiente | null } | { ok: false; error: string };
+
+/**
+ * Lo que necesitan los campos de pago para mostrarse: que el pedido siga esperando el pago, el monto, el mail para
+ * precargar y si ya hay un pago en marcha (un cupón sin pagar o un pago en revisión).
+ */
 export async function prepararPagoMP(token: string): Promise<Preparado> {
   const c = await pedidoACobrar(token);
   if (!c.ok) return c;
-  return { ok: true, total: c.pedido.total, email: c.pedido.email };
+  return { ok: true, total: c.pedido.total, email: c.pedido.email, pendiente: await pendienteDe(c.pedido.id, token) };
 }
 
 export type ResultadoTarjetaMP =
   | { estado: "aprobado" }
+  | { estado: "cupon"; cupon: Cupon }
   | { estado: "desafio"; pagoId: string; url: string; creq: string }
   | { estado: "en_revision" }
   | { estado: "rechazado"; error: string };
@@ -166,10 +225,11 @@ const RECHAZOS: Record<string, string> = {
 };
 const RECHAZO_GENERAL = "Tu banco rechazó el pago. Probá con otra tarjeta o pagá por transferencia.";
 
-/** Cobra el pedido con la tarjeta cargada en los campos de Mercado Pago y deja el pedido como corresponde. */
-export async function pagarPedidoMP(token: string, datos: DatosTarjetaMP, sesion?: string): Promise<ResultadoTarjetaMP> {
+/** Cobra el pedido con lo elegido en los campos de Mercado Pago (tarjeta o cupón en efectivo) y deja el pedido como corresponde. */
+export async function pagarPedidoMP(token: string, datos: DatosTarjetaMP | DatosEfectivoMP, sesion?: string): Promise<ResultadoTarjetaMP> {
   const c = await pedidoACobrar(token);
   if (!c.ok) return { estado: "rechazado", error: c.error };
+  if (!("token" in datos)) return pagarEnEfectivo(c.pedido, datos);
   let pago;
   try {
     pago = await crearPago(c.pedido, datos, sesion);
@@ -186,11 +246,57 @@ export async function pagarPedidoMP(token: string, datos: DatosTarjetaMP, sesion
   return resultadoDe(await procesarPagoMP(String(pago.id), token));
 }
 
+/** Genera el cupón para pagar en efectivo. Si ya hay uno vigente para el pedido, devuelve ese. */
+async function pagarEnEfectivo(p: PedidoACobrar, d: DatosEfectivoMP): Promise<ResultadoTarjetaMP> {
+  const ya = await pendienteDe(p.id, p.token);
+  if (ya?.tipo === "cupon") return { estado: "cupon", cupon: ya.cupon };
+  if (ya?.tipo === "aprobado") return { estado: "aprobado" };
+  if (ya?.tipo === "revision") return { estado: "en_revision" };
+  let pago;
+  try {
+    pago = await crearPagoEfectivo(p, d, new Date(Date.now() + HORAS_CUPON * 3600_000));
+  } catch (e) {
+    console.error("[mercadopago] crearPagoEfectivo", e);
+    const datosMal = e instanceof ErrorMP && e.status === 400;
+    return { estado: "rechazado", error: datosMal ? "Revisá tu nombre y DNI y probá de nuevo." : "No pudimos generar el cupón. Probá de nuevo en un momento." };
+  }
+  const r = await procesarPagoMP(String(pago.id), p.token);
+  if (r.estado === "cupon") return { estado: "cupon", cupon: r.cupon };
+  if (r.estado === "rechazado") return { estado: "rechazado", error: "No pudimos generar el cupón. Probá de nuevo o elegí otro medio." };
+  return resultadoDe(r);
+}
+
+/** El cliente prefiere no usar el cupón (por ejemplo, para pagar con tarjeta): se anula en Mercado Pago. */
+export async function anularCuponMP(token: string, pagoId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const c = await pedidoACobrar(token);
+  if (!c.ok) return c;
+  try {
+    const pago = await buscarPago(pagoId);
+    if (pago.external_reference !== c.pedido.id) return { ok: false, error: "No encontramos ese cupón." };
+    if (cuponDe(pago)) await cancelarPago(pagoId);
+    return { ok: true };
+  } catch (e) {
+    if (e instanceof ErrorMP && e.status === 404) return { ok: false, error: "No encontramos ese cupón." };
+    console.error("[mercadopago] anularCuponMP", e);
+    return { ok: false, error: "No pudimos anular el cupón. Probá de nuevo en un momento." };
+  }
+}
+
+/** Anula los cupones sin pagar de un pedido (cuando pasa a transferencia). Si falla, solo queda registrado. */
+export async function anularCuponesDelPedido(pedidoId: string) {
+  try {
+    for (const pago of await pagosDelPedido(pedidoId)) if (cuponDe(pago)) await cancelarPago(pago.id);
+  } catch (e) {
+    console.error("[mercadopago] anularCuponesDelPedido", e);
+  }
+}
+
 /** Estado de un pago después del desafío del banco (los campos lo consultan cada pocos segundos). */
 export async function estadoPagoMP(token: string, pagoId: string): Promise<ResultadoTarjetaMP | { estado: "esperando" }> {
   const r = await procesarPagoMP(pagoId, token);
   if (r.estado === "ajeno") return { estado: "rechazado", error: "No encontramos ese pago." };
   if (r.estado === "desafio") return { estado: "esperando" };
+  if (r.estado === "cupon") return { estado: "cupon", cupon: r.cupon };
   if (r.estado === "rechazado") {
     const pago = await buscarPago(pagoId);
     return { estado: "rechazado", error: RECHAZOS[pago.status_detail] ?? RECHAZO_GENERAL };
@@ -200,6 +306,7 @@ export async function estadoPagoMP(token: string, pagoId: string): Promise<Resul
 
 function resultadoDe(r: Procesado): ResultadoTarjetaMP {
   if (r.estado === "aprobado") return { estado: "aprobado" };
+  if (r.estado === "cupon") return { estado: "cupon", cupon: r.cupon };
   if (r.estado === "en_revision" || r.estado === "revisar" || r.estado === "desafio") return { estado: "en_revision" };
   return { estado: "rechazado", error: RECHAZO_GENERAL };
 }

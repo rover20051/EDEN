@@ -13,6 +13,7 @@ export const metadata = { title: "Mails y avisos · Edén" };
 
 const TIPOS: Record<string, string> = {
   pedido_recibido: "Pedido recibido",
+  cupon_efectivo: "Cupón en efectivo",
   reserva_vencida: "Venció la reserva",
   pago_confirmado: "Pago confirmado",
   en_camino: "En camino",

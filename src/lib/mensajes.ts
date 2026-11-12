@@ -5,6 +5,7 @@ import { textosDeMail } from "@/lib/mails/textos";
 import { escapar } from "@/lib/mails/html";
 import {
   mailArrepentimiento,
+  mailCuponEfectivo,
   mailDevolucion,
   mailEnCamino,
   mailListaEspera, mailReservaVencida,
@@ -194,6 +195,19 @@ export async function notificarPedidoNuevo(pedidoId: string): Promise<void> {
     await mandarAviso({ pedidoId: p.id, tipo: "aviso_pedido", texto: textoAvisoPedido(p, cargo) });
   } catch (e) {
     console.error("[mensajes] notificarPedidoNuevo", e);
+  }
+}
+
+/** Cupón de Mercado Pago para pagar en efectivo: mail al cliente con el link para volver a verlo (una sola vez por pedido). */
+export async function notificarCuponEfectivo(pedidoId: string, cupon: { medio: string; vence: string }): Promise<void> {
+  try {
+    const d = await cargar(pedidoId);
+    if (!d?.p.email || d.p.tipo === "salida") return;
+    if (await yaRegistrado(pedidoId, "cupon_efectivo", "mail")) return;
+    const mail = mailCuponEfectivo(d.p, cupon, d.c, await textosDeMail("cupon_efectivo"));
+    await mandarMail({ pedidoId, tipo: "cupon_efectivo", para: d.p.email, asunto: mail.asunto, html: mail.html });
+  } catch (e) {
+    console.error("[mensajes] notificarCuponEfectivo", e);
   }
 }
 

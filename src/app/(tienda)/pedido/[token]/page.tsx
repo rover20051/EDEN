@@ -178,7 +178,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
               </>
             ) : (
               <p className="border border-borde bg-nota p-6">
-                El pago con tarjeta no está disponible en este momento.
+                El pago con tarjeta o efectivo no está disponible en este momento.
                 {waAyuda && (
                   <>
                     {" "}

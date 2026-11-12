@@ -37,6 +37,7 @@ export type TextosMail = { asunto?: string | null; titulo?: string | null; bajad
 /** Qué se puede escribir entre llaves en cada mail. */
 export const VARIABLES: Record<Plantilla, string[]> = {
   pedido_recibido: ["nombre", "pedido"],
+  cupon_efectivo: ["nombre", "pedido"],
   pago_confirmado: ["nombre", "pedido"],
   en_camino: ["nombre", "pedido"],
   lista_espera: ["nombre", "producto"],
@@ -58,6 +59,7 @@ function armar(t: TextosMail | undefined, vars: Record<string, string>, m: Param
 
 export const PLANTILLAS = {
   pedido_recibido: "Recibimos tu pedido (transferencia)",
+  cupon_efectivo: "Tu cupón para pagar en efectivo",
   pago_confirmado: "Confirmamos tu pago",
   en_camino: "Tu pedido está en camino",
   lista_espera: "Volvió un producto",
@@ -180,6 +182,40 @@ export function mailPedidoRecibido(p: PedidoMail, c: ContactoMail, t?: TextosMai
       arrepentimiento: linkArrepentimiento(),
       motivo: "Recibiste este mail porque hiciste un pedido en Edén.",
     });
+}
+
+// ───────────── Cupón para pagar en efectivo ─────────────
+
+/** Cupón de Mercado Pago para pagar en Rapipago o Pago Fácil. */
+export type CuponMail = { medio: string; vence: string };
+
+export function mailCuponEfectivo(p: PedidoMail, cupon: CuponMail, c: ContactoMail, t?: TextosMail): Mail {
+  const nombre = primerNombre(p.nombre);
+  const num = numeroPedido(p.numero);
+  const asunto = `Tu cupón para pagar el pedido ${num} · Edén`;
+  const vence = cupon.vence ? fechaHora(cupon.vence) : null;
+
+  const efectivo = caja(
+    `${rotulo(`Pagá en efectivo en ${escapar(cupon.medio)}`)}
+     <div style="margin:8px 0 16px;font-family:${SERIF};font-size:38px;line-height:1;color:${COLOR.raiz};">${escapar(ars(p.total))}</div>
+     ${dato("Cómo", `Mostrá el cupón en cualquier local de ${escapar(cupon.medio)}, en el celular o impreso, y pagá en efectivo.`)}
+     ${vence ? dato("Vence", `El ${escapar(vence)}. Después el cupón deja de servir y liberamos las piezas.`) : ""}
+     ${dato("Después", "Mercado Pago nos avisa solo y te llega un mail con la confirmación. No hace falta mandarnos el comprobante.")}`,
+  );
+
+  const cuerpo = [efectivo, espacio(24), boton(linkSeguimiento(p.token), "Ver el cupón"), espacio(28), regalo(p), resumen(p), espacio(8)].join("");
+
+  return armar(t, { nombre, pedido: num }, {
+    asunto,
+    preheader: `Pagá ${ars(p.total)} en ${cupon.medio}${vence ? ` antes del ${vence}` : ""}.`,
+    ceja: "Pedido recibido",
+    titulo: `¡Gracias, ${nombre}!`,
+    bajada: "Tu pedido quedó reservado. Lo confirmamos apenas pagues el cupón.",
+    cuerpo,
+    contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
+    arrepentimiento: linkArrepentimiento(),
+    motivo: "Recibiste este mail porque hiciste un pedido en Edén.",
+  });
 }
 
 // ───────────── Pago confirmado ─────────────
@@ -436,6 +472,8 @@ export function vistaPrevia(plantilla: Plantilla, c: ContactoMail, t?: TextosMai
   switch (plantilla) {
     case "pedido_recibido":
       return mailPedidoRecibido({ ...p, es_regalo: false }, c, t);
+    case "cupon_efectivo":
+      return mailCuponEfectivo({ ...p, es_regalo: false, medio_pago: "mercadopago" }, { medio: "Rapipago", vence: p.vence_at ?? "" }, c, t);
     case "pago_confirmado":
       return mailPagoConfirmado(p, c, t);
     case "en_camino":
