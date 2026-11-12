@@ -150,14 +150,14 @@ export default async function Hoy() {
 
         <div className={tarjeta}>
           <div className="flex items-center justify-between">
-            <span className="font-label-sm text-label-sm uppercase text-outline">Nave por acreditar</span>
+            <span className="font-label-sm text-label-sm uppercase text-outline">Por acreditar</span>
             {icono("hourglass_top", "text-[16px] text-secondary")}
           </div>
           <div className="mt-1 flex items-baseline justify-between">
             <span className="font-headline-lg text-[22px] font-medium leading-none tracking-[0.02em] text-primary">{ars(porAcreditar)}</span>
             {proxima && <span className="font-label-sm text-label-sm text-outline">próx. {proxima.split("-").reverse().slice(0, 2).join("/")}</span>}
           </div>
-          <div className="font-caption-italic text-[13px] italic text-outline">Cobros con tarjeta y QR</div>
+          <div className="font-caption-italic text-[13px] italic text-outline">Cobros con Mercado Pago</div>
         </div>
 
         <div className={tarjeta}>

@@ -4,6 +4,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { ars } from "@/lib/format";
 import { pagarConTarjetaPrueba, pasarATransferencia } from "./acciones";
+import { PagoMercadoPago } from "./mercadopago";
 import {
   NOMBRE_MARCA,
   TARJETAS_PRUEBA,
@@ -18,21 +19,14 @@ import {
 } from "./tarjeta";
 
 /**
- * Pago con tarjeta embebido en la tienda. El resto de la tienda solo conoce esta interfaz:
- * `<PagoTarjeta token total modo />`. Cuando Nave esté conectado, el modo "nave" monta acá su checkout
- * embebido y todo lo demás (checkout, página del pedido) queda igual.
+ * Pago con tarjeta de un pedido ya creado. El resto de la tienda solo conoce esta interfaz: `<PagoTarjeta token total modo />`.
+ * - "mercadopago": los campos de pago de Mercado Pago, dentro de la tienda (`./mercadopago.tsx`).
+ * - "prueba": formulario de tarjeta simulado, sin pasarela configurada.
  */
-export function PagoTarjeta({ token, total, modo }: { token: string; total: number; modo: "nave" | "prueba" }) {
+export function PagoTarjeta({ token, total, modo, clavePublica = "" }: { token: string; total: number; modo: "mercadopago" | "prueba"; clavePublica?: string }) {
   return (
     <div className="flex flex-col gap-4">
-      {modo === "nave" ? (
-        // TODO fase Nave: montar el checkout embebido de Nave con la intención de pago de este pedido.
-        <div className="border border-borde bg-nota p-6 italic text-tenue">
-          El pago con tarjeta se habilita muy pronto. Escribinos y te ayudamos a completar tu pedido.
-        </div>
-      ) : (
-        <FormularioPrueba token={token} total={total} />
-      )}
+      {modo === "mercadopago" ? <PagoMercadoPago token={token} total={total} clavePublica={clavePublica} /> : <FormularioPrueba token={token} total={total} />}
       <CambiarATransferencia token={token} />
     </div>
   );

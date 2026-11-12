@@ -144,13 +144,21 @@ function textoEnvio(envio: number | null | undefined) {
 
 type PedidoCreado = { token: string; numero: number; total: number };
 
-export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico; modoTarjeta: "nave" | "prueba" | null }) {
+export function Checkout({
+  catalogo,
+  modoTarjeta,
+  clavePublicaMP = "",
+}: {
+  catalogo: CatalogoPublico;
+  modoTarjeta: "mercadopago" | "prueba" | null;
+  clavePublicaMP?: string;
+}) {
   const crudo = useSyncExternalStore(suscribir, leerCarrito, () => "[]");
   const regaloGuardado = useSyncExternalStore(suscribir, leerRegalo, () => false);
   const [regaloElegido, setRegalo] = useState<boolean | null>(null);
   const regalo = regaloElegido ?? regaloGuardado;
   const router = useRouter();
-  const [medio, setMedio] = useState<"nave" | "transferencia">(modoTarjeta ? "nave" : "transferencia");
+  const [medio, setMedio] = useState<"tarjeta" | "transferencia">(modoTarjeta ? "tarjeta" : "transferencia");
   const [provincia, setProvincia] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [errores, setErrores] = useState<Partial<Record<CampoObligatorio, string>>>({});
@@ -172,7 +180,7 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
         <p className="font-maquina text-xs uppercase tracking-[0.14em] text-tenue">Pedido {numeroPedido(creado.numero)}</p>
         <h1 className="mt-2 text-4xl font-light md:text-5xl">Último paso: el pago</h1>
         <p className="mb-8 mt-2 italic text-tenue">Ya reservamos tus piezas. Completá el pago y empezamos a prepararlas.</p>
-        <PagoTarjeta token={creado.token} total={creado.total} modo={modoTarjeta} />
+        <PagoTarjeta token={creado.token} total={creado.total} modo={modoTarjeta} clavePublica={clavePublicaMP} />
         <p className="mt-6 text-center text-base italic text-tenue">
           ¿Preferís pagar más tarde?{" "}
           <Link href={`/pedido/${creado.token}`} className="text-tinta underline underline-offset-4">
@@ -332,7 +340,7 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
         localStorage.removeItem("eden-carrito");
         localStorage.removeItem("eden-regalo");
       } catch {}
-      if (r.pagarConTarjeta) {
+      if (r.pagarConTarjeta && modoTarjeta) {
         setCreado({ token: r.token, numero: r.numero, total: r.total });
         scrollTo({ top: 0 });
       } else router.push(`/pedido/${r.token}`);
@@ -564,15 +572,15 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
             <legend className="sr-only">Medio de pago</legend>
             {[
               {
-                v: "nave" as const,
-                titulo: "Tarjeta de crédito, débito o MODO",
+                v: "tarjeta" as const,
+                titulo: "Tarjeta de crédito o débito",
                 texto: modoTarjeta ? "Pagás acá mismo, sin salir de la página." : "Muy pronto.",
                 deshabilitado: !modoTarjeta,
               },
               {
                 v: "transferencia" as const,
-                titulo: "Transferencia bancaria",
-                texto: "Te mostramos los datos y nos mandás el comprobante. Reservamos tu pedido durante 48 horas.",
+                titulo: "Transferencia",
+                texto: "Desde tu banco o tu billetera virtual, también Mercado Pago. Te mostramos los datos y nos mandás el comprobante. Reservamos tu pedido durante 48 horas.",
                 deshabilitado: false,
               },
             ].map((o) => (
@@ -593,7 +601,7 @@ export function Checkout({ catalogo, modoTarjeta }: { catalogo: CatalogoPublico;
                 <span>
                   <span className="block">
                     {o.titulo}
-                    {o.v === "nave" && modoTarjeta === "prueba" && (
+                    {o.v === "tarjeta" && modoTarjeta === "prueba" && (
                       <span className="ml-2 inline-block bg-chip-oro px-1.5 py-0.5 align-middle font-maquina text-[0.62rem] uppercase tracking-[0.12em] text-raiz">
                         Modo prueba
                       </span>
@@ -664,7 +672,7 @@ function BotonConfirmar({ medio, total, pendiente, bloqueado }: { medio: string;
       disabled={pendiente || bloqueado}
       className="rounded-full bg-tinta px-7 py-3.5 text-[1.15rem] text-papel transition-colors hover:bg-raiz disabled:opacity-50"
     >
-      {pendiente ? "Confirmando…" : medio === "nave" ? `Ir a pagar ${ars(total)}` : "Confirmar pedido"}
+      {pendiente ? "Confirmando…" : medio === "tarjeta" ? `Ir a pagar ${ars(total)}` : "Confirmar pedido"}
     </button>
   );
 }

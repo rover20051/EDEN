@@ -20,7 +20,7 @@ import { CANALES, MEDIOS, SOCIOS } from "@/lib/textos";
 
 // Mails al cliente y avisos de venta a las socias (también por mail). Todo queda registrado en la tabla "mensajes".
 // Ninguna función tira error: si algo falla se registra y el flujo de compra sigue.
-// Son idempotentes: si la misma acción se repite (ej. el webhook de Nave llega dos veces), no se manda dos veces.
+// Son idempotentes: si la misma acción se repite (ej. el aviso de Mercado Pago llega dos veces), no se manda dos veces.
 
 type Pedido = PedidoMail & {
   id: string;
@@ -188,7 +188,7 @@ export async function notificarPedidoNuevo(pedidoId: string): Promise<void> {
     }
 
     // Pedido con tarjeta sin pagar todavía: no es una venta. El aviso llega cuando se aprueba el pago.
-    if (pendiente && p.medio_pago === "nave") return;
+    if (pendiente && (p.medio_pago === "mercadopago" || p.medio_pago === "nave")) return;
     if (await avisoYaSalio(p.id, "aviso_pedido")) return;
     const cargo = web ? null : await quienCargo(p.created_by);
     await mandarAviso({ pedidoId: p.id, tipo: "aviso_pedido", texto: textoAvisoPedido(p, cargo) });

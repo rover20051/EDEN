@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { catalogoPublico } from "@/lib/catalogo";
+import { clavePublicaMP } from "@/lib/mercadopago";
 import { modoPago, tarjetaHabilitada } from "@/lib/pagos";
 import { estadoVenta } from "@/lib/venta";
 import { Checkout } from "./checkout";
@@ -22,5 +23,5 @@ export default async function PaginaCheckout() {
   }
   const catalogo = await catalogoPublico();
   const modo = await modoPago();
-  return <Checkout catalogo={catalogo} modoTarjeta={(await tarjetaHabilitada()) && modo ? modo : null} />;
+  return <Checkout catalogo={catalogo} modoTarjeta={(await tarjetaHabilitada()) && modo ? modo : null} clavePublicaMP={modo === "mercadopago" ? clavePublicaMP() : ""} />;
 }

@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { after } from "next/server";
 import { z } from "zod";
 import { notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
+import { estadoPagoMP, pagarPedidoMP, prepararPagoMP, type Preparado, type ResultadoTarjetaMP } from "@/lib/cobro-mp";
 import { modoPago } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { TARJETAS_PRUEBA, soloDigitos, validarTarjeta, type DatosTarjeta } from "./tarjeta";
@@ -21,7 +22,7 @@ const TARJETAS = `${TARJETAS_PRUEBA.aprobada.replace(/(\d{4})(?=\d)/g, "$1 ")} (
 
 /**
  * Pago con tarjeta del modo prueba: no se cobra nada y los datos de la tarjeta no se guardan ni se registran
- * (se validan acá y se descartan). La tarjeta aprobada confirma el pago igual que lo haría el webhook de Nave.
+ * (se validan acá y se descartan). La tarjeta aprobada confirma el pago igual que lo haría el aviso de Mercado Pago.
  */
 export async function pagarConTarjetaPrueba(token: string, datos: DatosTarjeta): Promise<ResultadoPago> {
   if ((await modoPago()) !== "prueba") return { ok: false, error: "El pago con tarjeta todavía no está disponible." };
@@ -43,7 +44,7 @@ export async function pagarConTarjetaPrueba(token: string, datos: DatosTarjeta):
     if (pedido.estado !== "cancelado") return { ok: true };
     return { ok: false, error: "Este pedido se canceló porque pasó el tiempo para pagar. Armalo de nuevo desde la tienda." };
   }
-  if (pedido.medio_pago !== "nave") return { ok: false, error: "Este pedido se paga por transferencia." };
+  if (pedido.medio_pago !== "mercadopago" && pedido.medio_pago !== "nave") return { ok: false, error: "Este pedido se paga por transferencia." };
   if (pedido.vence_at && new Date(pedido.vence_at as string) < new Date()) {
     return { ok: false, error: "Pasó el tiempo para pagar y liberamos las piezas. Armá el pedido de nuevo desde la tienda." };
   }
@@ -55,7 +56,7 @@ export async function pagarConTarjetaPrueba(token: string, datos: DatosTarjeta):
   if (numero === TARJETAS_PRUEBA.rechazada) return { ok: false, error: "Tu banco rechazó el pago. Probá con otra tarjeta." };
   if (numero !== TARJETAS_PRUEBA.aprobada) return { ok: false, error: `En modo prueba usá la tarjeta ${TARJETAS}.` };
 
-  const { data, error } = await sb.rpc("aprobar_pago_externo", { p_token: token, p_id_externo: `prueba-${randomUUID()}` });
+  const { data, error } = await sb.rpc("aprobar_pago_externo", { p_token: token, p_id_externo: `prueba-${randomUUID()}`, p_medio: pedido.medio_pago });
   if (error) {
     console.error("aprobar_pago_externo", error.message);
     return { ok: false, error: "No pudimos confirmar el pago. Probá de nuevo en un momento." };
@@ -63,6 +64,42 @@ export async function pagarConTarjetaPrueba(token: string, datos: DatosTarjeta):
   const r = data as { id: string; nuevo: boolean };
   if (r.nuevo) after(() => notificarPagoConfirmado(r.id));
   return { ok: true };
+}
+
+const NO_DISPONIBLE = "El pago con tarjeta no está disponible en este momento. Podés pagar por transferencia.";
+
+/** Datos para mostrar los campos de pago de Mercado Pago en el pedido. */
+export async function prepararMercadoPago(token: string): Promise<Preparado> {
+  if ((await modoPago()) !== "mercadopago") return { ok: false, error: NO_DISPONIBLE };
+  if (!z.uuid().safeParse(token).success) return { ok: false, error: "No encontramos el pedido." };
+  return prepararPagoMP(token);
+}
+
+const tarjetaMPSchema = z.object({
+  token: z.string().min(8).max(200),
+  payment_method_id: z.string().min(2).max(40),
+  issuer_id: z.union([z.string().max(20), z.number()]).nullish(),
+  installments: z.number().int().min(1).max(36),
+  payer: z.object({
+    email: z.string().max(200).optional(),
+    identification: z.object({ type: z.string().max(10), number: z.string().max(20) }).optional(),
+  }),
+});
+
+/** Cobra con la tarjeta cargada en los campos de Mercado Pago (llega tokenizada: la tienda nunca ve sus datos). */
+export async function pagarConMercadoPago(token: string, datos: unknown, sesion?: string | null): Promise<ResultadoTarjetaMP> {
+  if ((await modoPago()) !== "mercadopago") return { estado: "rechazado", error: NO_DISPONIBLE };
+  if (!z.uuid().safeParse(token).success) return { estado: "rechazado", error: "No encontramos el pedido." };
+  const d = tarjetaMPSchema.safeParse(datos);
+  if (!d.success) return { estado: "rechazado", error: "Revisá los datos de la tarjeta." };
+  return pagarPedidoMP(token, d.data, typeof sesion === "string" && /^[\w-]{1,100}$/.test(sesion) ? sesion : undefined);
+}
+
+/** Después de validar con el banco (3DS): cómo quedó el pago. */
+export async function consultarPagoMercadoPago(token: string, pagoId: string) {
+  if ((await modoPago()) !== "mercadopago") return { estado: "rechazado" as const, error: NO_DISPONIBLE };
+  if (!z.uuid().safeParse(token).success || !/^\d{1,20}$/.test(pagoId)) return { estado: "rechazado" as const, error: "No encontramos el pago." };
+  return estadoPagoMP(token, pagoId);
 }
 
 /**
@@ -80,7 +117,7 @@ export async function pasarATransferencia(token: string): Promise<ResultadoPago>
     .update({ medio_pago: "transferencia", vence_at: new Date(Date.now() + horas * 3600_000).toISOString() })
     .eq("token_publico", token)
     .eq("estado", "pendiente_pago")
-    .eq("medio_pago", "nave")
+    .in("medio_pago", ["mercadopago", "nave"])
     .gt("vence_at", new Date().toISOString())
     .select("id")
     .maybeSingle();

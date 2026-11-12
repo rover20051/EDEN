@@ -12,7 +12,7 @@ Requiere Node 22.12 o más nuevo.
 
 1. `npm install`
 2. Copiar `.env.example` a `.env.local` y completar las claves de Supabase. Se piden por privado: nunca van al repo.
-3. Sumar `PAGOS_PRUEBA=1` para probar la compra sin pasarela: la tarjeta `4242 4242 4242 4242` aprueba y `4000 0000 0000 0002` rechaza. No se cobra nada.
+3. Sumar `PAGOS_PRUEBA=1` para probar la compra sin pasarela: la tarjeta `4242 4242 4242 4242` aprueba y `4000 0000 0000 0002` rechaza. No se cobra nada. Con `MP_ACCESS_TOKEN` (credenciales de prueba `TEST-…`), en cambio, se paga en el Mercado Pago de prueba.
 4. `npm run dev` → http://localhost:3000 (web) y http://localhost:3000/admin (back office).
 
 Con esas claves se trabaja sobre la base real: lo que se compre o cargue queda ahí.
@@ -27,6 +27,18 @@ Para probarla antes, entrar a `/api/prueba?clave=<TIENDA_CLAVE_PRUEBA>`: se pued
 
 Antes de vender de verdad: borrar los pedidos de prueba y `TIENDA_CLAVE_PRUEBA`, para que nadie pueda pagar con la tarjeta de prueba.
 
+## Cobro con tarjeta
+
+La pasarela se elige en `ajustes.pasarela` (`mercadopago` o `nave`). Nave todavía no está conectada: elegida, la tarjeta queda como "Muy pronto".
+
+**Mercado Pago (Checkout Bricks).** La tarjeta se carga en el paso de pago de la tienda, en los campos seguros de Mercado Pago con los colores y la letra de Edén: la tienda recibe un token, nunca los datos de la tarjeta, y cobra desde el servidor (`src/lib/mercadopago.ts`). Si el banco pide validar (3DS), el desafío aparece en la misma página. Solo tarjetas (crédito, débito y prepaga): dinero en cuenta y Cuotas sin Tarjeta no se ofrecen, porque pasan por la página de Mercado Pago, que no deja excluir el dinero en cuenta, y quien tiene plata ahí puede transferir sin comisión. El pedido queda pagado solo con lo que responde la API de Mercado Pago (al cobrar, después del desafío o por su aviso a `/api/mercadopago`), nunca con lo que mande el navegador.
+
+- `MP_ACCESS_TOKEN` (solo servidor) y `MP_PUBLIC_KEY` en Vercel: credenciales de la aplicación de la cuenta que cobra, en Mercado Pago Developers → Tus integraciones → Credenciales. Con las de prueba (`TEST-…`) los cobros son simulados; con las de producción, reales.
+- El pedido con tarjeta reserva las piezas `horas_vencimiento_nave` horas (2 por defecto). Si Mercado Pago deja el pago en revisión, la reserva se estira 72 h. No se ofrece efectivo (Rapipago/Pago Fácil): tarda días en acreditarse.
+- Les llega un aviso a las socias si un pago se aprueba para un pedido ya cancelado, si el monto no coincide, o si el pago se devuelve, se reclama o se desconoce.
+- La comisión real y la fecha en que se libera la plata de cada pago se guardan en el pago (Plata). El plazo (al instante, 10, 18 o 35 días) se elige en la cuenta de Mercado Pago.
+- Devoluciones: primero desde Mercado Pago ("Devolver dinero" en ese cobro) y después se registran en el pedido.
+
 ## Avisos de venta en el celular
 
 Se activan desde la campanita del back office, en cada dispositivo. Requieren HTTPS: en un celular funcionan con la web ya publicada.
@@ -37,7 +49,7 @@ Si un aviso no le llega a una cuenta, le llega por mail.
 
 ## Base nueva desde cero
 
-Solo si se instala otra base. En Supabase → SQL Editor, correr en orden `supabase/migrations/0001` a `0010` y `supabase/seed.sql`. El primer admin va a mano, porque el repo es público:
+Solo si se instala otra base. En Supabase → SQL Editor, correr en orden `supabase/migrations/0001` a `0013` y `supabase/seed.sql`. El primer admin va a mano, porque el repo es público:
 
     insert into admins (email, nombre, socio) values ('tu@mail.com', 'Tu nombre', 'fede');
 
@@ -66,7 +78,6 @@ Todo lo que depende del dominio sale de variables, así que el cambio es de conf
 
 - La suscripción a las cartas de la web usa Netlify Forms: todavía no guarda los mails.
 - Devoluciones: se registran en cada pedido; la plata se devuelve afuera (banco o panel de cobros). El botón de arrepentimiento (`/arrepentimiento`, exigido por la Disposición 954/2025) entrega un código en el momento y avisa a las socias.
-- Nave: falta conectar el checkout embebido y su webhook, que tiene que llamar a `aprobar_pago_externo`.
 
 ## Notas técnicas
 

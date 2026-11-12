@@ -957,7 +957,10 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
 .pieza .agregar.hecho{background:none;color:var(--oro)}
 .pieza .pie{gap:.4rem 1rem}
 /* Entrar y suscribirse: palabras, no botones */
-#entrar{font-style:italic;font-size:1.25rem}
+#entrar,#entrar:not(.lleno){font-style:normal;font-size:1.1rem;border:1px solid currentColor;border-radius:999px;padding:.55rem 1.5rem .65rem;text-decoration:none;color:var(--tinta);background:transparent;transition:background .25s,color .25s}
+#entrar:hover{background:var(--tinta);color:var(--papel);text-decoration:none}
+#entrar:focus-visible{outline:none;color:var(--tinta)}
+#entrar:hover:focus-visible{color:var(--papel)}
 .campo .boton.lleno{background:none;color:var(--tinta);border:0;padding:0;font-style:italic;font-size:1.1rem}
 .boton:not(.lleno):focus-visible,.campo .boton.lleno:focus-visible{outline:none;color:var(--oro);text-decoration-color:var(--oro)}
 .campo .boton.lleno:focus-visible{text-decoration:underline;text-underline-offset:.32em}
@@ -1008,6 +1011,21 @@ button.cj-nota:hover .cj-nota-abrir{transform:translateX(4px)}
 /* «Sumar journal» / «Convertir en set»: óvalo que se vuelve café al tocarlo */
 .cajon-pie .promo-btn{width:100%;justify-self:stretch;border:1px solid var(--tinta);border-radius:999px;padding:.6rem 1rem .65rem;text-decoration:none;color:var(--tinta);background:none;transition:background .25s,color .25s}
 .cajon-pie .promo-btn:hover,.cajon-pie .promo-btn:active,.cajon-pie .promo-btn:focus-visible{background:var(--tinta);color:var(--papel);text-decoration:none}
+/* Ficha: la foto principal entra completa en la pantalla (junto con flechas y miniaturas) */
+.fb-galeria{width:100%;max-width:max(15rem,calc((100dvh - 18rem) * .75));justify-self:end}
+.fb-galeria{grid-template-columns:minmax(0,1fr)}
+.fb-galeria > *{min-width:0}
+.fb-foto .fb-ampliar{height:auto}
+.fb-foto .fb-ampliar img{height:auto;aspect-ratio:3/4}
+.fb-foto{background:none}
+.fb-foto .fb-ampliar{background:var(--papel-2)}
+.fb-galeria{gap:.6rem}
+@media (max-width:860px){ .fb-galeria{justify-self:center;max-width:min(100%,calc((100dvh - 10rem) * .75))} }
+/* Ficha: foto y texto juntos y centrados, sin el hueco blanco a la izquierda */
+@media (min-width:861px){
+  .fb-principal{grid-template-columns:auto minmax(0,30rem);justify-content:center}
+  .fb-galeria{width:min(max(15rem,calc((100dvh - 18rem) * .75)),52vw);max-width:none;justify-self:start}
+}
 
 /* ====== Tienda conectada: catálogo en vivo, carrito y ficha ====== */
 /* Tarjetas alineadas: cada una ocupa 6 filas de la grilla (foto, nombre, verbo, descripción, precio, botones)

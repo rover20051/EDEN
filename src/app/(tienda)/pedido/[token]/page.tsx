@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PagoTarjeta } from "@/components/pago-tarjeta/pago-tarjeta";
+import { clavePublicaMP } from "@/lib/mercadopago";
 import { ars, fechaHora, linkWhatsApp, numeroPedido } from "@/lib/format";
 import { modoPago, tarjetaHabilitada } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
@@ -60,6 +61,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
   ]);
   if (!data) notFound();
   const p = data as Publico;
+  const modo = await modoPago();
 
   const paso = p.estado === "cancelado" ? -1 : ORDEN.indexOf(p.estado);
   const pasos = [
@@ -71,9 +73,8 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
   ];
   const pendiente = p.estado === "pendiente_pago";
   const esperandoTransferencia = pendiente && p.medio_pago === "transferencia";
-  const esperandoTarjeta = pendiente && p.medio_pago === "nave";
+  const esperandoTarjeta = pendiente && (p.medio_pago === "mercadopago" || p.medio_pago === "nave");
   const vencido = Boolean(p.vence_at && new Date(p.vence_at) < new Date());
-  const modo = await modoPago();
   const puedePagar = esperandoTarjeta && !vencido && (await tarjetaHabilitada()) && modo !== null;
   const wa = linkWhatsApp(p.whatsapp_contacto, `Hola, les mando el comprobante del pedido ${numeroPedido(p.numero)}.`);
   const waAyuda = linkWhatsApp(p.whatsapp_contacto, `Hola, quiero completar el pago del pedido ${numeroPedido(p.numero)}.`);
@@ -119,7 +120,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
               <h2 className="text-2xl font-light text-musgo">Recibimos tu pago</h2>
               <p className="mt-1">
                 {ars(p.total)}
-                {p.medio_pago === "nave" ? " con tarjeta" : p.medio_pago === "transferencia" ? " por transferencia" : ""}
+                {p.medio_pago === "mercadopago" ? " con Mercado Pago" : p.medio_pago === "nave" ? " con tarjeta" : p.medio_pago === "transferencia" ? " por transferencia" : ""}
                 {p.pagado_at && <span className="italic text-tenue"> · {fechaHora(p.pagado_at)}</span>}
               </p>
               <p className="mt-2 italic text-tenue">Te mandamos la confirmación por mail. Ahora lo preparamos a mano y te avisamos cuando salga.</p>
@@ -170,7 +171,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
             <h2 className="mb-4 text-3xl font-light">Completar el pago</h2>
             {puedePagar && modo ? (
               <>
-                <PagoTarjeta token={token} total={p.total} modo={modo} />
+                <PagoTarjeta token={token} total={p.total} modo={modo} clavePublica={clavePublicaMP()} />
                 {p.vence_at && (
                   <p className="mt-4 text-base italic text-tenue">Reservamos tus piezas hasta el {fechaHora(p.vence_at)}.</p>
                 )}
