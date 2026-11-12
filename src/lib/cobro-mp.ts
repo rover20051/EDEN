@@ -16,6 +16,7 @@ import {
   type Cupon,
   type DatosEfectivoMP,
   type DatosTarjetaMP,
+  type EntornoMP,
   type PagoMP,
   type PedidoACobrar,
 } from "@/lib/mercadopago";
@@ -48,14 +49,14 @@ async function avisar(p: PedidoFila, tipo: string, texto: string) {
  * `soloToken`: si se pasa, solo procesa un pago de ese pedido.
  * Los mails y avisos del pago confirmado salen después de responder.
  */
-export async function procesarPagoMP(idPago: string, soloToken?: string): Promise<Procesado> {
+export async function procesarPagoMP(e: EntornoMP, idPago: string, soloToken?: string): Promise<Procesado> {
   if (!/^\d{1,20}$/.test(idPago)) return { estado: "ajeno" };
   let pago: PagoMP;
   try {
-    pago = await buscarPago(idPago);
-  } catch (e) {
-    if (e instanceof ErrorMP && e.status === 404) return { estado: "ajeno" };
-    throw e;
+    pago = await buscarPago(e, idPago);
+  } catch (err) {
+    if (err instanceof ErrorMP && err.status === 404) return { estado: "ajeno" };
+    throw err;
   }
   const ref = pago.external_reference ?? "";
   if (!/^[0-9a-f-]{36}$/i.test(ref)) return { estado: "ajeno" };
@@ -169,18 +170,18 @@ async function pedidoACobrar(token: string): Promise<Cargado> {
 /** Un pago del pedido que ya está en marcha en Mercado Pago: no hay que mostrar el formulario otra vez. */
 export type Pendiente = { tipo: "cupon"; cupon: Cupon } | { tipo: "revision" } | { tipo: "aprobado" };
 
-async function pendienteDe(pedidoId: string, token: string): Promise<Pendiente | null> {
+async function pendienteDe(e: EntornoMP, pedidoId: string, token: string): Promise<Pendiente | null> {
   let pagos: PagoMP[];
   try {
-    pagos = await pagosDelPedido(pedidoId);
-  } catch (e) {
-    console.error("[mercadopago] pagosDelPedido", e);
+    pagos = await pagosDelPedido(e, pedidoId);
+  } catch (err) {
+    console.error("[mercadopago] pagosDelPedido", err);
     return null; // sin la búsqueda, el formulario se muestra igual
   }
   for (const pago of pagos) {
     if (pago.status === "approved") {
       // Aprobado pero el aviso no llegó (o llegó antes de tiempo): se procesa ahora.
-      if ((await procesarPagoMP(String(pago.id), token)).estado === "aprobado") return { tipo: "aprobado" };
+      if ((await procesarPagoMP(e, String(pago.id), token)).estado === "aprobado") return { tipo: "aprobado" };
       continue;
     }
     const cupon = cuponDe(pago);
@@ -197,10 +198,10 @@ export type Preparado = { ok: true; total: number; email: string | null; pendien
  * Lo que necesitan los campos de pago para mostrarse: que el pedido siga esperando el pago, el monto, el mail para
  * precargar y si ya hay un pago en marcha (un cupón sin pagar o un pago en revisión).
  */
-export async function prepararPagoMP(token: string): Promise<Preparado> {
+export async function prepararPagoMP(e: EntornoMP, token: string): Promise<Preparado> {
   const c = await pedidoACobrar(token);
   if (!c.ok) return c;
-  return { ok: true, total: c.pedido.total, email: c.pedido.email, pendiente: await pendienteDe(c.pedido.id, token) };
+  return { ok: true, total: c.pedido.total, email: c.pedido.email, pendiente: await pendienteDe(e, c.pedido.id, token) };
 }
 
 export type ResultadoTarjetaMP =
@@ -226,16 +227,16 @@ const RECHAZOS: Record<string, string> = {
 const RECHAZO_GENERAL = "Tu banco rechazó el pago. Probá con otra tarjeta o pagá por transferencia.";
 
 /** Cobra el pedido con lo elegido en los campos de Mercado Pago (tarjeta o cupón en efectivo) y deja el pedido como corresponde. */
-export async function pagarPedidoMP(token: string, datos: DatosTarjetaMP | DatosEfectivoMP, sesion?: string): Promise<ResultadoTarjetaMP> {
+export async function pagarPedidoMP(e: EntornoMP, token: string, datos: DatosTarjetaMP | DatosEfectivoMP, sesion?: string): Promise<ResultadoTarjetaMP> {
   const c = await pedidoACobrar(token);
   if (!c.ok) return { estado: "rechazado", error: c.error };
-  if (!("token" in datos)) return pagarEnEfectivo(c.pedido, datos);
+  if (!("token" in datos)) return pagarEnEfectivo(e, c.pedido, datos);
   let pago;
   try {
-    pago = await crearPago(c.pedido, datos, sesion);
-  } catch (e) {
-    console.error("[mercadopago] crearPago", e);
-    const datosMal = e instanceof ErrorMP && e.status === 400;
+    pago = await crearPago(e, c.pedido, datos, sesion);
+  } catch (err) {
+    console.error("[mercadopago] crearPago", err);
+    const datosMal = err instanceof ErrorMP && err.status === 400;
     return { estado: "rechazado", error: datosMal ? "Revisá los datos de la tarjeta y probá de nuevo." : "No pudimos procesar el pago. Probá de nuevo en un momento." };
   }
   if (pago.status === "pending" && pago.status_detail === "pending_challenge" && pago.three_ds_info) {
@@ -243,62 +244,62 @@ export async function pagarPedidoMP(token: string, datos: DatosTarjetaMP | Datos
   }
   if (pago.status === "rejected" || pago.status === "cancelled") return { estado: "rechazado", error: RECHAZOS[pago.status_detail] ?? RECHAZO_GENERAL };
   // Aprobado o en revisión: lo confirma lo que diga Mercado Pago al releer el pago (igual que su aviso).
-  return resultadoDe(await procesarPagoMP(String(pago.id), token));
+  return resultadoDe(await procesarPagoMP(e, String(pago.id), token));
 }
 
 /** Genera el cupón para pagar en efectivo. Si ya hay uno vigente para el pedido, devuelve ese. */
-async function pagarEnEfectivo(p: PedidoACobrar, d: DatosEfectivoMP): Promise<ResultadoTarjetaMP> {
-  const ya = await pendienteDe(p.id, p.token);
+async function pagarEnEfectivo(e: EntornoMP, p: PedidoACobrar, d: DatosEfectivoMP): Promise<ResultadoTarjetaMP> {
+  const ya = await pendienteDe(e, p.id, p.token);
   if (ya?.tipo === "cupon") return { estado: "cupon", cupon: ya.cupon };
   if (ya?.tipo === "aprobado") return { estado: "aprobado" };
   if (ya?.tipo === "revision") return { estado: "en_revision" };
   let pago;
   try {
-    pago = await crearPagoEfectivo(p, d, new Date(Date.now() + HORAS_CUPON * 3600_000));
-  } catch (e) {
-    console.error("[mercadopago] crearPagoEfectivo", e);
-    const datosMal = e instanceof ErrorMP && e.status === 400;
+    pago = await crearPagoEfectivo(e, p, d, new Date(Date.now() + HORAS_CUPON * 3600_000));
+  } catch (err) {
+    console.error("[mercadopago] crearPagoEfectivo", err);
+    const datosMal = err instanceof ErrorMP && err.status === 400;
     return { estado: "rechazado", error: datosMal ? "Revisá tu nombre y DNI y probá de nuevo." : "No pudimos generar el cupón. Probá de nuevo en un momento." };
   }
-  const r = await procesarPagoMP(String(pago.id), p.token);
+  const r = await procesarPagoMP(e, String(pago.id), p.token);
   if (r.estado === "cupon") return { estado: "cupon", cupon: r.cupon };
   if (r.estado === "rechazado") return { estado: "rechazado", error: "No pudimos generar el cupón. Probá de nuevo o elegí otro medio." };
   return resultadoDe(r);
 }
 
 /** El cliente prefiere no usar el cupón (por ejemplo, para pagar con tarjeta): se anula en Mercado Pago. */
-export async function anularCuponMP(token: string, pagoId: string): Promise<{ ok: true } | { ok: false; error: string }> {
+export async function anularCuponMP(e: EntornoMP, token: string, pagoId: string): Promise<{ ok: true } | { ok: false; error: string }> {
   const c = await pedidoACobrar(token);
   if (!c.ok) return c;
   try {
-    const pago = await buscarPago(pagoId);
+    const pago = await buscarPago(e, pagoId);
     if (pago.external_reference !== c.pedido.id) return { ok: false, error: "No encontramos ese cupón." };
-    if (cuponDe(pago)) await cancelarPago(pagoId);
+    if (cuponDe(pago)) await cancelarPago(e, pagoId);
     return { ok: true };
-  } catch (e) {
-    if (e instanceof ErrorMP && e.status === 404) return { ok: false, error: "No encontramos ese cupón." };
-    console.error("[mercadopago] anularCuponMP", e);
+  } catch (err) {
+    if (err instanceof ErrorMP && err.status === 404) return { ok: false, error: "No encontramos ese cupón." };
+    console.error("[mercadopago] anularCuponMP", err);
     return { ok: false, error: "No pudimos anular el cupón. Probá de nuevo en un momento." };
   }
 }
 
 /** Anula los cupones sin pagar de un pedido (cuando pasa a transferencia). Si falla, solo queda registrado. */
-export async function anularCuponesDelPedido(pedidoId: string) {
+export async function anularCuponesDelPedido(e: EntornoMP, pedidoId: string) {
   try {
-    for (const pago of await pagosDelPedido(pedidoId)) if (cuponDe(pago)) await cancelarPago(pago.id);
-  } catch (e) {
-    console.error("[mercadopago] anularCuponesDelPedido", e);
+    for (const pago of await pagosDelPedido(e, pedidoId)) if (cuponDe(pago)) await cancelarPago(e, pago.id);
+  } catch (err) {
+    console.error("[mercadopago] anularCuponesDelPedido", err);
   }
 }
 
 /** Estado de un pago después del desafío del banco (los campos lo consultan cada pocos segundos). */
-export async function estadoPagoMP(token: string, pagoId: string): Promise<ResultadoTarjetaMP | { estado: "esperando" }> {
-  const r = await procesarPagoMP(pagoId, token);
+export async function estadoPagoMP(e: EntornoMP, token: string, pagoId: string): Promise<ResultadoTarjetaMP | { estado: "esperando" }> {
+  const r = await procesarPagoMP(e, pagoId, token);
   if (r.estado === "ajeno") return { estado: "rechazado", error: "No encontramos ese pago." };
   if (r.estado === "desafio") return { estado: "esperando" };
   if (r.estado === "cupon") return { estado: "cupon", cupon: r.cupon };
   if (r.estado === "rechazado") {
-    const pago = await buscarPago(pagoId);
+    const pago = await buscarPago(e, pagoId);
     return { estado: "rechazado", error: RECHAZOS[pago.status_detail] ?? RECHAZO_GENERAL };
   }
   return resultadoDe(r);

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
 import { anularCuponesDelPedido, anularCuponMP, estadoPagoMP, pagarPedidoMP, prepararPagoMP, type Preparado, type ResultadoTarjetaMP } from "@/lib/cobro-mp";
 import { mpConfigurado } from "@/lib/mercadopago";
-import { modoPago } from "@/lib/pagos";
+import { entornoMP, modoPago } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { TARJETAS_PRUEBA, soloDigitos, validarTarjeta, type DatosTarjeta } from "./tarjeta";
 
@@ -73,7 +73,7 @@ const NO_DISPONIBLE = "El pago con Mercado Pago no está disponible en este mome
 export async function prepararMercadoPago(token: string): Promise<Preparado> {
   if ((await modoPago()) !== "mercadopago") return { ok: false, error: NO_DISPONIBLE };
   if (!z.uuid().safeParse(token).success) return { ok: false, error: "No encontramos el pedido." };
-  return prepararPagoMP(token);
+  return prepararPagoMP(await entornoMP(), token);
 }
 
 const tarjetaMPSchema = z.object({
@@ -106,24 +106,25 @@ export async function pagarConMercadoPago(token: string, datos: unknown, sesion?
   if ((await modoPago()) !== "mercadopago") return { estado: "rechazado", error: NO_DISPONIBLE };
   if (!z.uuid().safeParse(token).success) return { estado: "rechazado", error: "No encontramos el pedido." };
   const efectivo = efectivoMPSchema.safeParse(datos);
-  if (efectivo.success) return pagarPedidoMP(token, efectivo.data);
+  const e = await entornoMP();
+  if (efectivo.success) return pagarPedidoMP(e, token, efectivo.data);
   const d = tarjetaMPSchema.safeParse(datos);
   if (!d.success) return { estado: "rechazado", error: "Revisá los datos de la tarjeta." };
-  return pagarPedidoMP(token, d.data, typeof sesion === "string" && /^[\w-]{1,100}$/.test(sesion) ? sesion : undefined);
+  return pagarPedidoMP(e, token, d.data, typeof sesion === "string" && /^[\w-]{1,100}$/.test(sesion) ? sesion : undefined);
 }
 
 /** Anula el cupón en efectivo para elegir otro medio (por ejemplo, tarjeta). */
 export async function anularCuponMercadoPago(token: string, pagoId: string): Promise<ResultadoPago> {
   if ((await modoPago()) !== "mercadopago") return { ok: false, error: NO_DISPONIBLE };
   if (!z.uuid().safeParse(token).success || !/^\d{1,20}$/.test(pagoId)) return { ok: false, error: "No encontramos el cupón." };
-  return anularCuponMP(token, pagoId);
+  return anularCuponMP(await entornoMP(), token, pagoId);
 }
 
 /** Después de validar con el banco (3DS): cómo quedó el pago. */
 export async function consultarPagoMercadoPago(token: string, pagoId: string) {
   if ((await modoPago()) !== "mercadopago") return { estado: "rechazado" as const, error: NO_DISPONIBLE };
   if (!z.uuid().safeParse(token).success || !/^\d{1,20}$/.test(pagoId)) return { estado: "rechazado" as const, error: "No encontramos el pago." };
-  return estadoPagoMP(token, pagoId);
+  return estadoPagoMP(await entornoMP(), token, pagoId);
 }
 
 /**
@@ -152,7 +153,8 @@ export async function pasarATransferencia(token: string): Promise<ResultadoPago>
   if (!pedido) return { ok: false, error: "Este pedido ya no está esperando el pago con tarjeta. Mirá su estado en el link del pedido." };
   await sb.from("pagos").update({ medio: "transferencia" }).eq("pedido_id", pedido.id).eq("estado", "pendiente");
   // Si había sacado un cupón para pagar en efectivo, se anula: así no puede pagar dos veces.
-  if (mpConfigurado()) await anularCuponesDelPedido(pedido.id as string);
+  const e = await entornoMP();
+  if (mpConfigurado(e)) await anularCuponesDelPedido(e, pedido.id as string);
   // Le llega el mail con los datos para transferir (con tarjeta no se mandó ninguno).
   after(() => notificarPedidoNuevo(pedido.id as string));
   return { ok: true };

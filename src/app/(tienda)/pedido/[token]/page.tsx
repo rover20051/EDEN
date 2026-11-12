@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { PagoTarjeta } from "@/components/pago-tarjeta/pago-tarjeta";
 import { clavePublicaMP } from "@/lib/mercadopago";
 import { ars, fechaHora, linkWhatsApp, numeroPedido } from "@/lib/format";
-import { modoPago, tarjetaHabilitada } from "@/lib/pagos";
+import { entornoMP, modoPago, tarjetaHabilitada } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { Camino } from "./camino";
 
@@ -171,7 +171,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
             <h2 className="mb-4 text-3xl font-light">Completar el pago</h2>
             {puedePagar && modo ? (
               <>
-                <PagoTarjeta token={token} total={p.total} modo={modo} clavePublica={clavePublicaMP()} />
+                <PagoTarjeta token={token} total={p.total} modo={modo} clavePublica={clavePublicaMP(await entornoMP())} />
                 {p.vence_at && (
                   <p className="mt-4 text-base italic text-tenue">Reservamos tus piezas hasta el {fechaHora(p.vence_at)}.</p>
                 )}

@@ -1,14 +1,15 @@
 import "server-only";
-import { mpConfigurado } from "@/lib/mercadopago";
+import { mpConfigurado, type EntornoMP } from "@/lib/mercadopago";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { estadoVenta } from "@/lib/venta";
 
 /**
  * Cómo se cobra con tarjeta para quien está mirando:
- * - "mercadopago": la pasarela elegida en Ajustes es Mercado Pago y están MP_ACCESS_TOKEN y MP_PUBLIC_KEY.
- *   La tarjeta se carga dentro de la tienda (Checkout Bricks, ver `src/lib/mercadopago.ts`). Con las credenciales
- *   de prueba ("TEST-…") el cobro es simulado, también con el link de prueba.
- * - "prueba": sin pasarela lista, en modo prueba de la tienda (ver `estadoVenta`). Formulario de tarjeta simulado.
+ * - "mercadopago": la pasarela elegida en Ajustes es Mercado Pago y están sus credenciales para quien mira (`entornoMP`):
+ *   las de prueba con el link de prueba, las reales para los clientes. Tarjeta o efectivo dentro de la tienda
+ *   (Checkout Bricks, ver `src/lib/mercadopago.ts`).
+ * - "prueba": con el link de prueba y sin credenciales de prueba de Mercado Pago. Formulario de tarjeta simulado.
+ *   Con el link de prueba nunca se usan las credenciales reales: no se cobra nada.
  * - null: no hay forma de cobrar con tarjeta (en el checkout aparece "Muy pronto").
  *
  * Nave todavía no está conectada: con "nave" elegida en Ajustes, la tarjeta queda como si no hubiera pasarela.
@@ -17,9 +18,13 @@ import { estadoVenta } from "@/lib/venta";
 export async function modoPago(): Promise<"mercadopago" | "prueba" | null> {
   const pasarela = await pasarelaElegida();
   if (!pasarela) return null;
-  if (pasarela === "mercadopago" && mpConfigurado()) return "mercadopago";
-  return (await estadoVenta()) === "prueba" ? "prueba" : null;
+  const venta = await estadoVenta();
+  if (pasarela === "mercadopago" && mpConfigurado(venta === "prueba" ? "prueba" : "real")) return "mercadopago";
+  return venta === "prueba" ? "prueba" : null;
 }
+
+/** Credenciales de Mercado Pago para quien está mirando: las de prueba si entró con el link de prueba; si no, las reales. */
+export const entornoMP = async (): Promise<EntornoMP> => ((await estadoVenta()) === "prueba" ? "prueba" : "real");
 
 /**
  * Pasarela elegida en Ajustes (migración 0013). Sin la migración, null: la base todavía no acepta pedidos con

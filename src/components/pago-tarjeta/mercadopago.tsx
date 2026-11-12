@@ -187,6 +187,7 @@ export function PagoMercadoPago({ token, total, clavePublica }: { token: string;
 
   return (
     <div className="flex flex-col gap-3">
+      {clavePublica.startsWith("TEST-") && <AyudaPrueba />}
       {error && (
         <p role="alert" className="border border-error/40 p-4 italic text-error">
           {error}
@@ -238,6 +239,43 @@ function CuponEfectivo({ cupon, error, anular }: { cupon: Cupon; error: string |
       >
         {anulando ? "Anulando el cupón…" : "Prefiero pagar con tarjeta"}
       </button>
+    </div>
+  );
+}
+
+/**
+ * Solo con las credenciales de prueba (link de prueba): datos de las tarjetas de prueba de Mercado Pago.
+ * Fuente: mercadopago.com.ar/developers/es/docs/checkout-bricks/integration-test/test-cards
+ */
+function AyudaPrueba() {
+  const fila = "flex flex-wrap justify-between gap-x-3";
+  const num = "font-maquina text-[0.9rem] tabular-nums";
+  return (
+    <div className="overflow-hidden rounded-lg border border-dashed border-oro/50 bg-papel/60 text-base">
+      <p className="flex items-center justify-center gap-2 bg-chip-oro px-4 py-2 text-center font-maquina text-[0.72rem] uppercase tracking-[0.14em] text-raiz">
+        <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-oro" />
+        Mercado Pago de prueba · no se cobra nada
+      </p>
+      <div className="flex flex-col gap-1.5 p-3.5">
+        <p className={fila}>
+          <span>Mastercard crédito</span>
+          <span className={num}>5031 7557 3453 0604</span>
+        </p>
+        <p className={fila}>
+          <span>Visa débito</span>
+          <span className={num}>4002 7686 9439 5619</span>
+        </p>
+        <p className={fila}>
+          <span>Con desafío del banco</span>
+          <span className={num}>5483 9281 6457 4623</span>
+        </p>
+        <p className="italic text-tenue">Vencimiento 11/30, código 123, DNI 12345678.</p>
+        <p className="italic text-tenue">
+          En el nombre del titular: <span className="not-italic">APRO</span> aprueba, <span className="not-italic">OTHE</span> rechaza,{" "}
+          <span className="not-italic">CONT</span> queda en revisión.
+        </p>
+        <p className="italic text-tenue">Mail: cualquiera que no sea el de la cuenta de Mercado Pago. En efectivo sale un cupón de prueba.</p>
+      </div>
     </div>
   );
 }
