@@ -4,7 +4,7 @@ import { acreditacionDe, buscarPago, comisionDe, ErrorMP, mpConfigurado, type En
 import { supabaseServidor } from "@/lib/supabase/servidor";
 
 /**
- * Puesta al día diaria de los cobros de Mercado Pago que todavía no se acreditaron (los que aparecen en "Por acreditar").
+ * Puesta al día (dos veces por día) de los cobros de Mercado Pago que todavía no se acreditaron (los que aparecen en "Por acreditar").
  * Al aprobarse un pago se guarda lo que informaba Mercado Pago en ese momento; hasta que se libera puede cambiar:
  * la fecha de liberación (por ejemplo, si Nari cambia el plazo en su cuenta), la comisión o los impuestos, o el pago
  * puede devolverse o tener un contracargo. Acá se vuelve a leer cada uno y se corrige lo que cambió:
