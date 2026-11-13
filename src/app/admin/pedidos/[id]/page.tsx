@@ -37,6 +37,7 @@ const EVENTOS: Record<string, string> = {
   comprobante_rechazado: "Comprobante rechazado",
   vencimiento_extendido: "Reserva extendida",
   nave_intencion_creada: "Pago con Nave preparado",
+  acreditacion_actualizada: "Cambió la fecha de acreditación",
   devolucion: "Devolución registrada",
 };
 
@@ -85,7 +86,12 @@ export default async function DetallePedido({ params }: PageProps<"/admin/pedido
   }, 0);
   const descuentoManual = Math.max(0, p.descuento - (p.descuento_cupon ?? 0));
 
-  const etiquetaEvento = (e: Evento) => (e.tipo === "estado" && e.detalle.a ? ESTADOS[e.detalle.a].label : e.tipo === "vencimiento_extendido" && e.detalle.motivo ? `Reserva extendida: ${e.detalle.motivo}` : (EVENTOS[e.tipo] ?? e.tipo));
+  const etiquetaEvento = (e: Evento) => {
+    if (e.tipo === "estado" && e.detalle.a) return ESTADOS[e.detalle.a].label;
+    if (e.tipo === "acreditacion_actualizada" && e.detalle.motivo) return e.detalle.motivo;
+    if (e.tipo === "vencimiento_extendido" && e.detalle.motivo) return `Reserva extendida: ${e.detalle.motivo}`;
+    return EVENTOS[e.tipo] ?? e.tipo;
+  };
   const seccion = "rounded-2xl bg-surface-container-low p-3.5 shadow-sm";
   const cabecera = "mb-2.5 flex items-center justify-between border-b border-primary/10 pb-1.5";
   const rotulo = "font-label-sm text-label-sm uppercase tracking-[0.12em] text-outline";
