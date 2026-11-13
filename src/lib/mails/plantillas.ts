@@ -42,7 +42,6 @@ export const VARIABLES: Record<Plantilla, string[]> = {
   en_camino: ["nombre", "pedido"],
   lista_espera: ["nombre", "producto"],
   reserva_vencida: ["nombre", "pedido"],
-  devolucion: ["nombre", "pedido", "monto"],
 };
 
 const rellenar = (texto: string, vars: Record<string, string>) => texto.replace(/\{(\w+)\}/g, (todo, k: string) => vars[k] ?? todo);
@@ -63,7 +62,6 @@ export const PLANTILLAS = {
   en_camino: "Tu pedido está en camino",
   lista_espera: "Volvió un producto",
   reserva_vencida: "Venció la reserva (transferencia)",
-  devolucion: "Te devolvimos tu dinero",
 } as const;
 export type Plantilla = keyof typeof PLANTILLAS;
 
@@ -378,35 +376,6 @@ export function mailReservaVencida(p: PedidoMail, c: ContactoMail, t?: TextosMai
   });
 }
 
-// ───────────── Devolución ─────────────
-
-export function mailDevolucion(p: PedidoMail, d: { monto: number; completa: boolean }, c: ContactoMail, t?: TextosMail): Mail {
-  const nombre = primerNombre(p.nombre);
-  const num = numeroPedido(p.numero);
-  const monto = ars(d.monto);
-  const conTarjeta = p.medio_pago === "nave" || p.medio_pago === "mercadopago";
-  const cuerpo = [
-    caja(dato("Te devolvimos", `<span style="font-family:${MONO};font-size:20px;">${escapar(monto)}</span>`)),
-    espacio(16),
-    parrafo(
-      conTarjeta
-        ? "Lo devolvimos a la tarjeta con la que pagaste. El banco lo acredita según sus tiempos y lo vas a ver en tu resumen."
-        : "Si en unos días no lo ves en tu cuenta, escribinos y lo revisamos.",
-    ),
-    espacio(8),
-  ].join("");
-  return armar(t, { nombre, pedido: num, monto }, {
-    asunto: `Te devolvimos ${monto} del pedido ${num} · Edén`,
-    preheader: `Registramos la devolución de ${monto} de tu pedido ${num}.`,
-    ceja: `Pedido ${num}`,
-    titulo: d.completa ? `Te devolvimos tu dinero, ${nombre}.` : `Te devolvimos una parte, ${nombre}.`,
-    bajada: d.completa ? "Gracias por tu paciencia." : "El resto de tu pedido sigue igual.",
-    cuerpo,
-    contacto: contactoDe(c, `Hola! Tengo una consulta por la devolución del pedido ${num}.`),
-    motivo: "Recibiste este mail porque hiciste una compra en Edén.",
-  });
-}
-
 // ───────────── Cartas del jardín ─────────────
 
 /** Texto de una carta: párrafos separados por una línea en blanco, y los links quedan clickeables. */
@@ -455,7 +424,5 @@ export function vistaPrevia(plantilla: Plantilla, c: ContactoMail, t?: TextosMai
       return mailListaEspera({ nombre: "Lucía", producto: "Biblia Origen", tipo: "biblia", precio: 75000 }, c, t);
     case "reserva_vencida":
       return mailReservaVencida(p, c, t);
-    case "devolucion":
-      return mailDevolucion(p, { monto: p.total, completa: true }, c, t);
   }
 }

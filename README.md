@@ -46,7 +46,7 @@ La pasarela de la tarjeta se elige en **Ajustes → Pasarela de tarjeta** (`ajus
 - Les llega un aviso a las socias si un pago se aprueba para un pedido ya cancelado, si el monto no coincide, o si el pago se devuelve, se reclama o se desconoce.
 - La comisión real y la fecha en que se libera la plata de cada pago se guardan en el pago (Plata). El plazo (al instante, 10, 18 o 35 días) se elige en la cuenta de Mercado Pago.
 - Dos veces por día, a las 10 y las 16 hs de Argentina (cron de Vercel, `/api/cron/mercadopago`, 13 y 19 UTC) se vuelven a leer los cobros por acreditar (`src/lib/sync-mp.ts`): se corrigen la comisión y la fecha de acreditación si Mercado Pago las cambió (queda registrado en el historial del pedido) y se avisa a las socias de un pago devuelto, en reclamo o con contracargo. Los pagos de prueba se saltean.
-- Devoluciones: primero desde Mercado Pago ("Devolver dinero" en ese cobro) y después se registran en el pedido.
+- Devoluciones: se hacen desde Mercado Pago ("Devolver dinero" en ese cobro); el back office ya no las registra.
 
 **Nave (checkout embebido).** `src/lib/nave.ts` (API), `src/lib/cobro-nave.ts` (cobro) y `src/components/pago-tarjeta/nave.tsx` (el SDK `@ranty/ranty-sdk`, un web component que se muestra en la página). El servidor crea una "intención de pago" por pedido, que dura lo que le queda a la reserva y se reutiliza al recargar; si venció, se bloqueó o se rechazó, se crea otra. Como con Mercado Pago, el pedido queda pagado solo con lo que responde la API de Nave (`GET /payments/{id}`), nunca con lo que traiga el aviso o el navegador: el aviso de Nave no está firmado.
 
@@ -95,7 +95,7 @@ Todo lo que depende del dominio sale de variables, así que el cambio es de conf
 ## Pendientes conocidos
 
 - La suscripción a las cartas de la web usa Netlify Forms: todavía no guarda los mails.
-- Devoluciones: se registran en cada pedido; la plata se devuelve afuera (banco o panel de cobros). La web no ofrece botón de arrepentimiento ni página de cambios y devoluciones (decisión del 12/11/2026): se sacaron de la landing, del pie de la tienda y de los mails, y se borraron las páginas `/arrepentimiento` y `/devoluciones`. En el back office quedan Devoluciones (registrar plata devuelta) y los pedidos de arrepentimiento ya recibidos, si los hubiera.
+- Devoluciones y arrepentimiento: la web y el back office no los ofrecen (decisión del 12/11/2026). Se sacaron la landing, el pie de la tienda, los mails, las páginas `/arrepentimiento` y `/devoluciones` y la sección Devoluciones del back office. Las tablas `devoluciones` y `arrepentimientos` siguen en la base (migración 0011) con sus datos; una devolución hecha en Mercado Pago o Nave no se registra en el pedido, así que no descuenta de Plata.
 
 ## Notas técnicas
 

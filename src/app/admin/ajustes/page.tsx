@@ -16,7 +16,6 @@ const MAILS = [
   { titulo: "Confirmamos tu pago", cuando: "Al confirmar el pago (tarjeta o transferencia).", contenido: "Qué compró y que empieza la preparación.", ejemplo: `${PREVIA}pago_confirmado` },
   { titulo: "Tu pedido está en camino", cuando: "Al cargar la empresa de envío y el número de seguimiento.", contenido: "Empresa, número de seguimiento y link para seguir el pedido.", ejemplo: `${PREVIA}en_camino` },
   { titulo: "Volvió un producto", cuando: "Al cargar una tanda de un producto con lista de espera.", contenido: "Aviso por única vez y link a la tienda.", ejemplo: `${PREVIA}lista_espera` },
-  { titulo: "Te devolvimos tu dinero", cuando: "Al registrar una devolución en el pedido.", contenido: "Cuánto se devolvió y cómo le llega.", ejemplo: `${PREVIA}devolucion` },
 ];
 
 const tarjeta = "flex flex-col gap-3 rounded-2xl bg-surface-container-low p-4 shadow-sm";

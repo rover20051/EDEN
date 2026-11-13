@@ -125,7 +125,7 @@ export async function procesarPagoMP(e: EntornoMP, idPago: string, soloToken?: s
       await avisar(
         p,
         `mp_${pago.status}_${pago.id}`,
-        `↩️ Mercado Pago: ${que} · ${cuanto}\n${pago.status === "refunded" ? "Si no lo registraste, cargalo en Devoluciones del pedido." : "Respondé desde Mercado Pago y frená el envío si todavía no salió."}`,
+        `↩️ Mercado Pago: ${que} · ${cuanto}\n${pago.status === "refunded" ? "Si el pedido todavía no salió, frená el envío." : "Respondé desde Mercado Pago y frená el envío si todavía no salió."}`,
       );
       return { estado: "revisar", pedidoId: p.id };
     }

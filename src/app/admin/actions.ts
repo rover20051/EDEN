@@ -9,7 +9,7 @@ import { requireAdmin } from "@/lib/auth";
 import { MAX_FOTO_BYTES, MIME_FOTO, tipoRealFoto } from "@/lib/fotos";
 import { aPesos } from "@/lib/format";
 import { credencialesListas } from "@/lib/pagos";
-import { avisarListaEspera, notificarDespacho, notificarDevolucion, notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
+import { avisarListaEspera, notificarDespacho, notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
 import { createClient } from "@/lib/supabase/server";
 
 export type Resultado = { ok: true; mensaje?: string } | { ok: false; error: string };
@@ -97,33 +97,6 @@ export async function marcarEntregado(pedidoId: string) {
 
 export async function cancelarPedido(pedidoId: string) {
   return rpc("cancelar_pedido", { p_pedido: pedidoId });
-}
-
-/** Registra plata ya devuelta y le avisa al cliente. La plata se devuelve afuera: en el banco o en el panel de cobros. */
-export async function registrarDevolucion(pedidoId: string, _prev: Resultado | null, form: FormData): Promise<Resultado> {
-  const monto = aPesos(form.get("monto"));
-  if (!monto) return fallo("Falta el monto a devolver");
-  const { supabase } = await requireAdmin();
-  const { data, error } = await supabase.rpc("registrar_devolucion", {
-    p_pedido: pedidoId,
-    p_monto: monto,
-    p_motivo: String(form.get("motivo") ?? ""),
-    p_referencia: String(form.get("referencia") ?? ""),
-    p_vuelve_al_stock: form.get("vuelve_al_stock") === "si",
-  });
-  if (error) return fallo(error.message);
-  const completa = Boolean((data as { completa: boolean }).completa);
-  after(() => notificarDevolucion(pedidoId, monto, completa));
-  revalidatePath("/admin", "layout");
-  return ok("Devolución registrada");
-}
-
-export async function resolverArrepentimiento(id: string): Promise<Resultado> {
-  const { supabase, admin } = await requireAdmin();
-  const { error } = await supabase.from("arrepentimientos").update({ estado: "resuelto", resuelto_por: admin.email, resuelto_at: new Date().toISOString() }).eq("id", id);
-  if (error) return fallo(error.message);
-  revalidatePath("/admin", "layout");
-  return ok("Marcado como resuelto");
 }
 
 export async function extenderVencimiento(pedidoId: string) {

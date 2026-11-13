@@ -7,7 +7,6 @@ export const REMITENTES = {
   pedido_recibido: { nombre: "Edén Pagos", usuario: "pagos" },
   cupon_efectivo: { nombre: "Edén Pagos", usuario: "pagos" },
   reserva_vencida: { nombre: "Edén Pagos", usuario: "pagos" },
-  devolucion: { nombre: "Edén Pagos", usuario: "pagos" },
   pago_confirmado: { nombre: "Edén Pedidos", usuario: "pedidos" },
   en_camino: { nombre: "Edén Envíos", usuario: "envios" },
   lista_espera: { nombre: "Edén", usuario: "hola" },

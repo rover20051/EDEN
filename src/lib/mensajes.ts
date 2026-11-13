@@ -5,7 +5,6 @@ import { textosDeMail } from "@/lib/mails/textos";
 import { escapar } from "@/lib/mails/html";
 import {
   mailCuponEfectivo,
-  mailDevolucion,
   mailEnCamino,
   mailListaEspera, mailReservaVencida,
   mailPagoConfirmado,
@@ -240,18 +239,6 @@ export async function notificarDespacho(pedidoId: string): Promise<void> {
     await mandarMail({ pedidoId: p.id, tipo: "en_camino", para: d.p.email, asunto: mail.asunto, html: mail.html });
   } catch (e) {
     console.error("[mensajes] notificarDespacho", e);
-  }
-}
-
-/** Devolución registrada: mail al cliente. Cada devolución manda el suyo (puede haber varias parciales). */
-export async function notificarDevolucion(pedidoId: string, monto: number, completa: boolean): Promise<void> {
-  try {
-    const d = await cargar(pedidoId);
-    if (!d?.p.email) return;
-    const mail = mailDevolucion(d.p, { monto, completa }, d.c, await textosDeMail("devolucion"));
-    await mandarMail({ pedidoId, tipo: "devolucion", para: d.p.email, asunto: mail.asunto, html: mail.html });
-  } catch (e) {
-    console.error("[mensajes] notificarDevolucion", e);
   }
 }
 

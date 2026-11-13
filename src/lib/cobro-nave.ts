@@ -102,7 +102,7 @@ export async function procesarPagoNave(e: EntornoNave, idPago: string, soloToken
       await avisar(
         p,
         `nave_${pago.status.name.toLowerCase()}_${pago.id}`,
-        `↩️ Nave: ${que} · ${cuanto}\n${pago.status.name === "REFUNDED" || pago.status.name === "PURCHASE_REVERSED" ? "Si no lo registraste, cargalo en Devoluciones del pedido." : "Respondé desde Nave y frená el envío si todavía no salió."}`,
+        `↩️ Nave: ${que} · ${cuanto}\n${pago.status.name === "REFUNDED" || pago.status.name === "PURCHASE_REVERSED" ? "Si el pedido todavía no salió, frená el envío." : "Respondé desde Nave y frená el envío si todavía no salió."}`,
       );
       return { estado: "revisar", pedidoId: p.id };
     }

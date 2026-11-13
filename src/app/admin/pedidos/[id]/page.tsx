@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AccionesPedido } from "@/components/acciones-pedido";
-import { FormDevolucion } from "@/components/form-devolucion";
 import { EstadoBadge } from "@/components/ui";
 import { fotoDe } from "@/lib/fotos";
 import { requireAdmin } from "@/lib/auth";
@@ -45,7 +44,7 @@ export default async function DetallePedido({ params }: PageProps<"/admin/pedido
   const { id } = await params;
   const { supabase } = await requireAdmin();
 
-  const [{ data }, { data: eventos }, { data: ajustes }, { data: devueltas }, { data: arrepentimientos }] = await Promise.all([
+  const [{ data }, { data: eventos }, { data: ajustes }] = await Promise.all([
     supabase
       .from("pedidos")
       .select(
@@ -61,8 +60,6 @@ export default async function DetallePedido({ params }: PageProps<"/admin/pedido
       .maybeSingle(),
     supabase.from("eventos").select("id, tipo, detalle, actor, created_at").eq("pedido_id", id).order("created_at"),
     supabase.from("ajustes").select("alias_transferencia, envio_estimado").eq("id", 1).single(),
-    supabase.from("devoluciones").select("id, monto, motivo, referencia, created_by, created_at").eq("pedido_id", id).order("created_at"),
-    supabase.from("arrepentimientos").select("codigo, estado, created_at").eq("pedido_id", id).order("created_at"),
   ]);
   const { count: pedidosCliente } = data
     ? await supabase
@@ -75,7 +72,6 @@ export default async function DetallePedido({ params }: PageProps<"/admin/pedido
   const p = data as unknown as Detalle;
   const pago = p.pagos.find((g) => g.estado === "aprobado");
   const salida = esSalida(p);
-  const restante = p.total - (devueltas ?? []).reduce((suma, d) => suma + (d.monto as number), 0);
   const { sueltos, packs } = lineasAgrupadas(p.items);
   const costoPiezas = p.items.reduce((s, i) => s + i.cantidad * i.costo_unitario, 0);
   const costoEnvio = p.envio?.costo_real ?? null;
@@ -417,38 +413,6 @@ export default async function DetallePedido({ params }: PageProps<"/admin/pedido
               <AccionesPedido pedido={p} alias={ajustes?.alias_transferencia ?? ""} envioEstimado={ajustes?.envio_estimado ?? 12000} completo />
             )}
           </section>
-
-          {!salida && (["pagado", "en_preparacion", "despachado", "entregado"].includes(p.estado) || (devueltas ?? []).length > 0 || (arrepentimientos ?? []).length > 0) && (
-            <section className={seccion}>
-              <div className={`${cabecera} mb-2`}>
-                <span className={rotulo}>Devoluciones</span>
-                <span className="ms text-[16px] text-outline">undo</span>
-              </div>
-              <div className="flex flex-col gap-2">
-                {(arrepentimientos ?? []).map((a) => (
-                  <Link key={a.codigo as string} href="/admin/devoluciones" className="rounded-xl bg-secondary-fixed/40 px-3 py-2 font-body-md text-body-sm text-on-surface">
-                    Pidió arrepentimiento <span className="font-code-num">{a.codigo as string}</span> · {fecha(a.created_at as string)}
-                    {a.estado === "resuelto" ? " · resuelto" : ""}
-                  </Link>
-                ))}
-                {(devueltas ?? []).map((d) => (
-                  <div key={d.id as string} className="rounded-xl bg-surface-container-lowest px-3 py-2 shadow-sm">
-                    <div className="flex justify-between gap-2 font-body-md text-body-sm text-on-surface">
-                      <span className="min-w-0">{d.motivo as string}</span>
-                      <span className="shrink-0 font-code-num font-bold text-primary">{ars(d.monto as number)}</span>
-                    </div>
-                    <p className="font-label-sm text-label-sm text-outline">
-                      {fechaHora(d.created_at as string)} · {(d.created_by as string).split("@")[0]}
-                      {d.referencia ? ` · ${d.referencia as string}` : ""}
-                    </p>
-                  </div>
-                ))}
-                {p.estado !== "cancelado" && restante > 0 && (
-                  <FormDevolucion pedidoId={p.id} restante={restante} medio={p.medio_pago} nombre={p.cliente.nombre.split(" ")[0]} />
-                )}
-              </div>
-            </section>
-          )}
 
           <section className={seccion}>
             <div className={`${cabecera} mb-2`}>
