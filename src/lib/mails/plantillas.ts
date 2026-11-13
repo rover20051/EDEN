@@ -43,7 +43,6 @@ export const VARIABLES: Record<Plantilla, string[]> = {
   lista_espera: ["nombre", "producto"],
   reserva_vencida: ["nombre", "pedido"],
   devolucion: ["nombre", "pedido", "monto"],
-  arrepentimiento: ["nombre", "codigo"],
 };
 
 const rellenar = (texto: string, vars: Record<string, string>) => texto.replace(/\{(\w+)\}/g, (todo, k: string) => vars[k] ?? todo);
@@ -65,14 +64,12 @@ export const PLANTILLAS = {
   lista_espera: "Volvió un producto",
   reserva_vencida: "Venció la reserva (transferencia)",
   devolucion: "Te devolvimos tu dinero",
-  arrepentimiento: "Recibimos tu arrepentimiento",
 } as const;
 export type Plantilla = keyof typeof PLANTILLAS;
 
 /** Dirección pública del sitio, sin barra final. */
 export const sitio = () => (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
 export const linkSeguimiento = (token: string) => `${sitio()}/pedido/${encodeURIComponent(token)}`;
-const linkArrepentimiento = () => `${sitio()}/arrepentimiento`;
 
 const primerNombre = (n: string) => n.trim().split(/\s+/)[0] || n;
 
@@ -179,7 +176,6 @@ export function mailPedidoRecibido(p: PedidoMail, c: ContactoMail, t?: TextosMai
       bajada: "Tu pedido quedó reservado. Lo confirmamos apenas veamos la transferencia.",
       cuerpo,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
-      arrepentimiento: linkArrepentimiento(),
       motivo: "Recibiste este mail porque hiciste un pedido en Edén.",
     });
 }
@@ -213,7 +209,6 @@ export function mailCuponEfectivo(p: PedidoMail, cupon: CuponMail, c: ContactoMa
     bajada: "Tu pedido quedó reservado. Lo confirmamos apenas pagues el cupón.",
     cuerpo,
     contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
-    arrepentimiento: linkArrepentimiento(),
     motivo: "Recibiste este mail porque hiciste un pedido en Edén.",
   });
 }
@@ -252,7 +247,6 @@ export function mailPagoConfirmado(p: PedidoMail, c: ContactoMail, t?: TextosMai
       cuerpo,
       automatico: true,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el pedido ${num}.`),
-      arrepentimiento: linkArrepentimiento(),
       motivo: "Recibiste este mail porque hiciste una compra en Edén.",
     });
 }
@@ -294,7 +288,6 @@ export function mailEnCamino(p: PedidoMail, c: ContactoMail, t?: TextosMail): Ma
       cuerpo,
       automatico: true,
       contacto: contactoDe(c, `Hola! Tengo una consulta por el envío del pedido ${num}.`),
-      arrepentimiento: linkArrepentimiento(),
       motivo: "Recibiste este mail porque hiciste una compra en Edén.",
     });
 }
@@ -385,7 +378,7 @@ export function mailReservaVencida(p: PedidoMail, c: ContactoMail, t?: TextosMai
   });
 }
 
-// ───────────── Devolución y arrepentimiento ─────────────
+// ───────────── Devolución ─────────────
 
 export function mailDevolucion(p: PedidoMail, d: { monto: number; completa: boolean }, c: ContactoMail, t?: TextosMail): Mail {
   const nombre = primerNombre(p.nombre);
@@ -411,26 +404,6 @@ export function mailDevolucion(p: PedidoMail, d: { monto: number; completa: bool
     cuerpo,
     contacto: contactoDe(c, `Hola! Tengo una consulta por la devolución del pedido ${num}.`),
     motivo: "Recibiste este mail porque hiciste una compra en Edén.",
-  });
-}
-
-export function mailArrepentimiento(d: { nombre: string; codigo: string; pedido: string | null }, c: ContactoMail, t?: TextosMail): Mail {
-  const nombre = primerNombre(d.nombre);
-  const cuerpo = [
-    caja(dato("Tu código", `<span style="font-family:${MONO};font-size:20px;">${escapar(d.codigo)}</span>`) + (d.pedido ? dato("Pedido", escapar(d.pedido)) : "")),
-    espacio(16),
-    parrafo("Te vamos a escribir para coordinar cómo vuelve la pieza. El envío corre por nuestra cuenta y, cuando la recibamos, te devolvemos lo que pagaste por el mismo medio."),
-    espacio(8),
-  ].join("");
-  return armar(t, { nombre, codigo: d.codigo }, {
-    asunto: `Recibimos tu arrepentimiento · ${d.codigo}`,
-    preheader: `Tu código es ${d.codigo}. Te escribimos para coordinar la devolución.`,
-    ceja: "Botón de arrepentimiento",
-    titulo: `Recibimos tu pedido, ${nombre}.`,
-    bajada: "Guardá este código por cualquier consulta.",
-    cuerpo,
-    contacto: contactoDe(c, `Hola! Les escribo por mi arrepentimiento ${d.codigo}.`),
-    motivo: "Recibiste este mail porque usaste el botón de arrepentimiento en casaeden.com.ar.",
   });
 }
 
@@ -484,7 +457,5 @@ export function vistaPrevia(plantilla: Plantilla, c: ContactoMail, t?: TextosMai
       return mailReservaVencida(p, c, t);
     case "devolucion":
       return mailDevolucion(p, { monto: p.total, completa: true }, c, t);
-    case "arrepentimiento":
-      return mailArrepentimiento({ nombre: p.nombre, codigo: "ARR-7K2M9Q", pedido: numeroPedido(p.numero) }, c, t);
   }
 }

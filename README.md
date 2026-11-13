@@ -95,7 +95,7 @@ Todo lo que depende del dominio sale de variables, así que el cambio es de conf
 ## Pendientes conocidos
 
 - La suscripción a las cartas de la web usa Netlify Forms: todavía no guarda los mails.
-- Devoluciones: se registran en cada pedido; la plata se devuelve afuera (banco o panel de cobros). El botón de arrepentimiento (`/arrepentimiento`, exigido por la Disposición 954/2025) entrega un código en el momento y avisa a las socias.
+- Devoluciones: se registran en cada pedido; la plata se devuelve afuera (banco o panel de cobros). La web no ofrece botón de arrepentimiento ni página de cambios y devoluciones (decisión del 12/11/2026): se sacaron de la landing, del pie de la tienda y de los mails, y se borraron las páginas `/arrepentimiento` y `/devoluciones`. En el back office quedan Devoluciones (registrar plata devuelta) y los pedidos de arrepentimiento ya recibidos, si los hubiera.
 
 ## Notas técnicas
 

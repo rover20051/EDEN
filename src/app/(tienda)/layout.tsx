@@ -20,14 +20,6 @@ export default function TiendaLayout({ children }: { children: React.ReactNode }
       <main className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 md:px-10 md:py-14">{children}</main>
       <footer className="border-t border-borde py-6 text-center text-base italic text-tenue">
         Edén · Biblias artesanales de cuero, hechas a mano en Argentina.
-        <p className="mt-1 flex flex-wrap justify-center gap-x-4 text-[0.95rem] not-italic">
-          <Link href="/arrepentimiento" className="underline underline-offset-4">
-            Botón de arrepentimiento
-          </Link>
-          <Link href="/devoluciones" className="underline underline-offset-4">
-            Cambios y devoluciones
-          </Link>
-        </p>
       </footer>
     </div>
   );
