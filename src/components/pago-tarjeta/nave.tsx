@@ -28,6 +28,11 @@ export function PagoNave({ token, clavePublica, entorno }: { token: string; clav
   const [listo, setListo] = useState(false);
   // La misma consulta se comparte entre los dos montajes de desarrollo (Strict Mode): una sola intención por intento.
   const consulta = useRef<{ intento: number; promesa: ReturnType<typeof prepararNave> } | null>(null);
+  const reintentos = useRef(0);
+  const espera = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (espera.current) clearTimeout(espera.current);
+  }, []);
 
   const irAlPedido = useCallback(() => {
     const destino = `/pedido/${token}`;
@@ -41,7 +46,16 @@ export function PagoNave({ token, clavePublica, entorno }: { token: string; clav
     if (consulta.current?.intento !== intento) consulta.current = { intento, promesa: prepararNave(token) };
     consulta.current.promesa.then((r) => {
       if (!vivo) return;
-      if (!r.ok) return setFase({ tipo: "sin_pago", error: r.error });
+      if (!r.ok) {
+        // Nave (sobre todo el sandbox) a veces tarda o falla de a ratos: se reintenta solo dos veces antes de mostrar el error.
+        if (reintentos.current < 2) {
+          reintentos.current++;
+          espera.current = setTimeout(() => setIntento((i) => i + 1), 2000 * reintentos.current);
+          return;
+        }
+        return setFase({ tipo: "sin_pago", error: r.error });
+      }
+      reintentos.current = 0;
       if (r.aprobado) return irAlPedido();
       setFase({ tipo: "pago", intencion: r.intencion, checkoutUrl: r.checkoutUrl });
     });

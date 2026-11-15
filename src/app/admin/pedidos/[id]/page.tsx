@@ -36,6 +36,7 @@ const EVENTOS: Record<string, string> = {
   comprobante_rechazado: "Comprobante rechazado",
   vencimiento_extendido: "Reserva extendida",
   nave_intencion_creada: "Pago con Nave preparado",
+  nave_error: "Nave no pudo preparar el pago",
   acreditacion_actualizada: "Cambió la fecha de acreditación",
   devolucion: "Devolución registrada",
 };

@@ -164,12 +164,16 @@ export async function prepararPagoNave(e: EntornoNave, token: string): Promise<P
     return { ok: false, error: "No pudimos preparar el pago. Probá de nuevo en un momento." };
   }
   const segundos = p.vence_at ? (new Date(p.vence_at).getTime() - Date.now()) / 1000 : 3600;
+  const inicio = Date.now();
   try {
     const i = await crearIntencion(e, p, externo, segundos);
     await sb.from("eventos").insert({ pedido_id: p.id, tipo: "nave_intencion_creada", detalle: { external: externo, id: i.id } });
     return { ok: true, aprobado: false, total: p.total, intencion: i.id, checkoutUrl: i.checkout_url };
   } catch (err) {
     console.error("[nave] crearIntencion", err);
+    // Queda en la historia del pedido con lo que respondió Nave (o el tiempo que tardó), para poder revisarlo después.
+    const mensaje = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    await sb.from("eventos").insert({ pedido_id: p.id, tipo: "nave_error", detalle: { external: externo, mensaje: mensaje.slice(0, 500), ms: Date.now() - inicio } });
     return { ok: false, error: "No pudimos preparar el pago con tarjeta. Probá de nuevo en un momento o pagá por transferencia." };
   }
 }
