@@ -30,6 +30,24 @@ const leerRegalo = () => {
     return false;
   }
 };
+// Datos de contacto y envío de la última compra en este navegador: el formulario vuelve a aparecer completo.
+// Nunca se guarda nada de la tarjeta.
+const DATOS_GUARDADOS = ["nombre", "email", "whatsapp", "direccion", "provincia", "ciudad", "codigo_postal"] as const;
+type DatosGuardados = Partial<Record<(typeof DATOS_GUARDADOS)[number], string>>;
+const leerDatos = () => {
+  try {
+    return localStorage.getItem("eden-datos") ?? "";
+  } catch {
+    return "";
+  }
+};
+function guardarDatos(form: FormData, provincia: string) {
+  const datos: DatosGuardados = {};
+  for (const k of DATOS_GUARDADOS) datos[k] = k === "provincia" ? provincia : String(form.get(k) ?? "").trim();
+  try {
+    localStorage.setItem("eden-datos", JSON.stringify(datos));
+  } catch {}
+}
 const suscribir = (cb: () => void) => {
   addEventListener("storage", cb);
   return () => removeEventListener("storage", cb);
@@ -167,7 +185,14 @@ export function Checkout({
   const regalo = regaloElegido ?? regaloGuardado;
   const router = useRouter();
   const [medio, setMedio] = useState<"tarjeta" | "efectivo" | "transferencia">(modoTarjeta ? "tarjeta" : "transferencia");
-  const [provincia, setProvincia] = useState("");
+  const datosCrudos = useSyncExternalStore(suscribir, leerDatos, () => "");
+  let guardados: DatosGuardados = {};
+  try {
+    const d: unknown = datosCrudos ? JSON.parse(datosCrudos) : {};
+    if (d && typeof d === "object") guardados = d as DatosGuardados;
+  } catch {}
+  const [provinciaElegida, setProvincia] = useState<string | null>(null);
+  const provincia = provinciaElegida ?? ((PROVINCIAS as readonly string[]).includes(guardados.provincia ?? "") ? (guardados.provincia as string) : "");
   const [error, setError] = useState<string | null>(null);
   const [errores, setErrores] = useState<Partial<Record<CampoObligatorio, string>>>({});
   const [pendiente, iniciar] = useTransition();
@@ -189,9 +214,16 @@ export function Checkout({
         <h1 className="mt-2 text-4xl font-light md:text-5xl">Último paso: el pago</h1>
         <p className="mb-8 mt-2 italic text-tenue">Ya reservamos tus piezas. Completá el pago y empezamos a prepararlas.</p>
         {creado.soloEfectivo ? (
-          <PagoTarjeta token={creado.token} total={creado.total} modo="mercadopago" clavePublica={clavePublicaEfectivo} entorno={entorno} soloEfectivo />
+          <PagoTarjeta token={creado.token} total={creado.total} modo="mercadopago" clavePublica={clavePublicaEfectivo} entorno={entorno} soloEfectivo otros={["tarjeta"]} />
         ) : (
-          <PagoTarjeta token={creado.token} total={creado.total} modo={modoTarjeta} clavePublica={clavePublica} entorno={entorno} />
+          <PagoTarjeta
+            token={creado.token}
+            total={creado.total}
+            modo={modoTarjeta}
+            clavePublica={clavePublica}
+            entorno={entorno}
+            otros={modoTarjeta === "nave" && efectivoAparte ? ["efectivo"] : []}
+          />
         )}
         <p className="mt-6 text-center text-base italic text-tenue">
           ¿Preferís pagar más tarde?{" "}
@@ -343,6 +375,7 @@ export function Checkout({
       web: texto("web"),
     };
     setError(null);
+    guardarDatos(form, provincia);
     iniciar(async () => {
       const r = await confirmarPedido(datos);
       if (!r.ok) return setError(r.error);
@@ -421,7 +454,7 @@ export function Checkout({
   const bloqueado = sinStock.size > 0;
 
   return (
-    <form onSubmit={alEnviar} onBlur={revisar} onChange={revisar} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-16">
+    <form key={datosCrudos ? "con-datos" : "sin-datos"} onSubmit={alEnviar} onBlur={revisar} onChange={revisar} noValidate className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_23rem] lg:gap-16">
       <div className="flex min-w-0 flex-col gap-10">
         <header>
           <Pasos />
@@ -444,13 +477,13 @@ export function Checkout({
         <Capitulo num="I." titulo="Tus datos">
           <div className="grid items-start gap-6 md:grid-cols-2">
             <Campo etiqueta="Nombre y apellido" error={errores.nombre} id="error-nombre" className="md:col-span-2">
-              <input {...obligatorio("nombre")} autoComplete="name" maxLength={120} className={campo} />
+              <input {...obligatorio("nombre")} defaultValue={guardados.nombre} autoComplete="name" maxLength={120} className={campo} />
             </Campo>
             <Campo etiqueta="Mail" error={errores.email} id="error-email">
-              <input {...obligatorio("email")} type="email" autoComplete="email" maxLength={200} placeholder="nombre@ejemplo.com" className={campo} />
+              <input {...obligatorio("email")} defaultValue={guardados.email} type="email" autoComplete="email" maxLength={200} placeholder="nombre@ejemplo.com" className={campo} />
             </Campo>
             <Campo etiqueta="WhatsApp" error={errores.whatsapp} id="error-whatsapp">
-              <input {...obligatorio("whatsapp")} type="tel" autoComplete="tel" maxLength={40} placeholder="11 2345 6789" className={campo} />
+              <input {...obligatorio("whatsapp")} defaultValue={guardados.whatsapp} type="tel" autoComplete="tel" maxLength={40} placeholder="11 2345 6789" className={campo} />
             </Campo>
           </div>
         </Capitulo>
@@ -458,7 +491,7 @@ export function Checkout({
         <Capitulo num="II." titulo="Envío">
           <div className="grid items-start gap-6 md:grid-cols-5">
             <Campo etiqueta="Dirección" error={errores.direccion} id="error-direccion" className="md:col-span-5">
-              <input {...obligatorio("direccion")} autoComplete="street-address" maxLength={200} placeholder="Calle, número, piso" className={campo} />
+              <input {...obligatorio("direccion")} defaultValue={guardados.direccion} autoComplete="street-address" maxLength={200} placeholder="Calle, número, piso" className={campo} />
             </Campo>
             <Campo etiqueta="Provincia" error={errores.provincia} id="error-provincia" className="md:col-span-2">
               <select
@@ -480,10 +513,10 @@ export function Checkout({
               </select>
             </Campo>
             <Campo etiqueta="Ciudad" error={errores.ciudad} id="error-ciudad" className="md:col-span-2">
-              <input {...obligatorio("ciudad")} autoComplete="address-level2" maxLength={100} className={campo} />
+              <input {...obligatorio("ciudad")} defaultValue={guardados.ciudad} autoComplete="address-level2" maxLength={100} className={campo} />
             </Campo>
             <Campo etiqueta="C. P." error={errores.codigo_postal} id="error-codigo_postal">
-              <input {...obligatorio("codigo_postal")} autoComplete="postal-code" maxLength={10} placeholder="1425" className={campo} />
+              <input {...obligatorio("codigo_postal")} defaultValue={guardados.codigo_postal} autoComplete="postal-code" maxLength={10} placeholder="1425" className={campo} />
             </Campo>
           </div>
           <p className="mt-4 text-base italic text-tenue">

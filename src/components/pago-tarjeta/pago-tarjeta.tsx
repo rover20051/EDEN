@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { ars } from "@/lib/format";
-import { pagarConTarjetaPrueba, pasarATransferencia } from "./acciones";
+import { cambiarMedioPago, pagarConTarjetaPrueba } from "./acciones";
 import { PagoMercadoPago } from "./mercadopago";
 import { PagoNave } from "./nave";
 import {
@@ -25,6 +25,7 @@ import {
  * - "nave": el checkout embebido de Nave (`./nave.tsx`).
  * - "prueba": formulario de tarjeta simulado, sin pasarela configurada.
  * `clavePublica` es la de la pasarela (la de Mercado Pago o la de Nave); `entorno`, si son las de prueba o las reales.
+ * `otros`: a qué otro medio puede pasar el mismo pedido además de transferencia (`otrosMediosDelPedido`).
  */
 export function PagoTarjeta({
   token,
@@ -33,6 +34,7 @@ export function PagoTarjeta({
   clavePublica = "",
   entorno = "real",
   soloEfectivo = false,
+  otros = [],
 }: {
   token: string;
   total: number;
@@ -40,6 +42,7 @@ export function PagoTarjeta({
   clavePublica?: string;
   entorno?: "real" | "prueba";
   soloEfectivo?: boolean;
+  otros?: ("tarjeta" | "efectivo")[];
 }) {
   return (
     <div className="flex flex-col gap-4">
@@ -50,40 +53,59 @@ export function PagoTarjeta({
       ) : (
         <FormularioPrueba token={token} total={total} />
       )}
-      <CambiarATransferencia token={token} />
+      <OtroMedio token={token} otros={otros} />
     </div>
   );
 }
 
-/** Salida del paso de tarjeta: el mismo pedido pasa a pagarse por transferencia (sin rearmar el carrito). */
-function CambiarATransferencia({ token }: { token: string }) {
+const OPCIONES = {
+  tarjeta: { texto: "Pagar con tarjeta", detalle: "Crédito o débito, acá mismo." },
+  efectivo: { texto: "Pagar en efectivo", detalle: "Cupón para Rapipago o Pago Fácil." },
+  transferencia: { texto: "Pagar por transferencia", detalle: "Te mostramos los datos para transferir." },
+} as const;
+
+/**
+ * Salida del paso de pago: el mismo pedido pasa a otro medio (sin rearmar el carrito ni volver a cargar los datos).
+ * Después se muestra la página del pedido, que ya sabe cómo cobrar con el medio nuevo.
+ */
+function OtroMedio({ token, otros }: { token: string; otros: ("tarjeta" | "efectivo")[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const [error, setError] = useState<string | null>(null);
+  const [eligiendo, setEligiendo] = useState<keyof typeof OPCIONES | null>(null);
   const [pendiente, iniciar] = useTransition();
 
-  function cambiar() {
+  function cambiar(destino: keyof typeof OPCIONES) {
     setError(null);
+    setEligiendo(destino);
     iniciar(async () => {
-      const r = await pasarATransferencia(token);
+      const r = await cambiarMedioPago(token, destino);
       if (!r.ok) return setError(r.error);
-      const destino = `/pedido/${token}`;
-      if (pathname === destino) router.refresh();
-      else router.push(destino);
+      const pedido = `/pedido/${token}`;
+      if (pathname === pedido) router.refresh();
+      else router.push(pedido);
     });
   }
 
+  const opciones = [...otros, "transferencia" as const];
   return (
     <div className="rounded-lg border border-borde p-4 text-center">
       <p className="italic text-tenue">¿Preferís pagar de otra forma?</p>
-      <button
-        type="button"
-        onClick={cambiar}
-        disabled={pendiente}
-        className="mt-2 rounded-full border border-tinta px-5 py-2 text-[1.05rem] transition-colors hover:bg-tinta hover:text-papel disabled:opacity-50"
-      >
-        {pendiente ? "Cambiando…" : "Pagar por transferencia"}
-      </button>
+      <div className="mt-3 flex flex-wrap justify-center gap-2">
+        {opciones.map((o) => (
+          <button
+            key={o}
+            type="button"
+            onClick={() => cambiar(o)}
+            disabled={pendiente}
+            title={OPCIONES[o].detalle}
+            className="rounded-full border border-tinta px-5 py-2 text-[1.05rem] transition-colors hover:bg-tinta hover:text-papel disabled:opacity-50"
+          >
+            {pendiente && eligiendo === o ? "Cambiando…" : OPCIONES[o].texto}
+          </button>
+        ))}
+      </div>
+      {opciones.length > 1 && <p className="mt-2 text-base italic text-tenue">Tus datos y tu pedido quedan como están.</p>}
       {error && (
         <p role="alert" className="mt-2 italic text-error">
           {error}

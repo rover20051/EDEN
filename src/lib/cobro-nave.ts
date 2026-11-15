@@ -226,6 +226,24 @@ export async function estadoPagoNave(e: EntornoNave, token: string): Promise<Est
 }
 
 /** Anula las intenciones sin usar de un pedido (cuando pasa a transferencia), para que no se pueda pagar dos veces. */
+/**
+ * Antes de cambiar de medio: ¿hay un pago con Nave aprobado o en proceso para este pedido? "error" si Nave no respondió
+ * (en ese caso no se cambia: mejor que el cliente pruebe de nuevo a que pague dos veces).
+ */
+export async function pagoNaveEnCurso(e: EntornoNave, pedidoId: string): Promise<"si" | "no" | "error"> {
+  for (const previa of await intencionesDe(pedidoId)) {
+    try {
+      const i = await buscarIntencion(e, previa.id);
+      const pagos = i.payment_attempts?.payments ?? [];
+      if (i.status.name === "SUCCESS_PROCESSED" || pagos.some((x) => x.status === "APPROVED" || x.status === "PENDING")) return "si";
+    } catch (err) {
+      console.error("[nave] pagoNaveEnCurso", previa.id, err);
+      return "error";
+    }
+  }
+  return "no";
+}
+
 export async function anularIntencionesDelPedido(e: EntornoNave, pedidoId: string) {
   try {
     for (const previa of await intencionesDe(pedidoId)) {

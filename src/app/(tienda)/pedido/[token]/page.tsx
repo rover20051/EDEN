@@ -4,7 +4,7 @@ import { PagoTarjeta } from "@/components/pago-tarjeta/pago-tarjeta";
 import { clavePublicaMP } from "@/lib/mercadopago";
 import { clavePublicaNave } from "@/lib/nave";
 import { ars, fechaHora, linkWhatsApp, numeroPedido } from "@/lib/format";
-import { entornoPago, modoDelPedido } from "@/lib/pagos";
+import { entornoPago, modoDelPedido, otrosMediosDelPedido } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { Camino } from "./camino";
 
@@ -63,6 +63,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
   if (!data) notFound();
   const p = data as Publico;
   const { modo, soloEfectivo } = await modoDelPedido(p.medio_pago);
+  const otros = await otrosMediosDelPedido(p.medio_pago);
   const entorno = await entornoPago();
 
   const paso = p.estado === "cancelado" ? -1 : ORDEN.indexOf(p.estado);
@@ -180,6 +181,7 @@ export default async function Seguimiento({ params }: PageProps<"/pedido/[token]
                   clavePublica={modo === "mercadopago" ? clavePublicaMP(entorno) : modo === "nave" ? clavePublicaNave(entorno) : ""}
                   entorno={entorno}
                   soloEfectivo={soloEfectivo}
+                  otros={otros}
                 />
                 {p.vence_at && (
                   <p className="mt-4 text-base italic text-tenue">Reservamos tus piezas hasta el {fechaHora(p.vence_at)}.</p>

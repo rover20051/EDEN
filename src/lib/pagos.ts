@@ -62,5 +62,17 @@ export async function modoDelPedido(medio: string): Promise<{ modo: ModoPago | n
   return { modo: pasarela && venta === "prueba" ? "prueba" : null, soloEfectivo: false };
 }
 
+export type OtroMedio = "tarjeta" | "efectivo";
+
+/**
+ * A qué otro medio (además de transferencia, que siempre se puede) puede pasar un pedido que espera el pago con tarjeta
+ * o efectivo. Solo importa con Nave elegida y el efectivo aparte: con Mercado Pago, tarjeta y efectivo van juntos.
+ */
+export async function otrosMediosDelPedido(medio: string): Promise<OtroMedio[]> {
+  if (medio === "nave") return (await efectivoAparte()) ? ["efectivo"] : [];
+  if (medio === "mercadopago" && (await pasarelaElegida()) === "nave" && (await modoPago()) !== null) return ["tarjeta"];
+  return [];
+}
+
 /** ¿El cliente puede elegir tarjeta y pagar ahora? */
 export const tarjetaHabilitada = async () => (await modoPago()) !== null;

@@ -5,10 +5,10 @@ import { after } from "next/server";
 import { z } from "zod";
 import { notificarPagoConfirmado, notificarPedidoNuevo } from "@/lib/mensajes";
 import { anularCuponesDelPedido, anularCuponMP, estadoPagoMP, pagarPedidoMP, prepararPagoMP, type Preparado, type ResultadoTarjetaMP } from "@/lib/cobro-mp";
-import { anularIntencionesDelPedido, estadoPagoNave, prepararPagoNave, type EstadoNave, type PreparadoNave } from "@/lib/cobro-nave";
+import { anularIntencionesDelPedido, estadoPagoNave, pagoNaveEnCurso, prepararPagoNave, type EstadoNave, type PreparadoNave } from "@/lib/cobro-nave";
 import { mpConfigurado } from "@/lib/mercadopago";
 import { naveConfigurado } from "@/lib/nave";
-import { entornoPago, modoDelPedido } from "@/lib/pagos";
+import { entornoPago, modoDelPedido, otrosMediosDelPedido } from "@/lib/pagos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { TARJETAS_PRUEBA, soloDigitos, validarTarjeta, type DatosTarjeta } from "./tarjeta";
 
@@ -149,12 +149,76 @@ export async function consultarPagoNave(token: string): Promise<EstadoNave> {
 }
 
 /**
+ * Cambia el medio de pago del mismo pedido (sin rearmar el carrito ni crear otro): tarjeta ⇄ efectivo, o transferencia.
+ * Lo que quedó abierto con el medio anterior (la intención de Nave o el cupón de efectivo) se anula; si ya hay un pago
+ * en curso, no se cambia. Cambiar no alarga la reserva: con tarjeta o efectivo vence como mucho a las horas de Ajustes
+ * (al sacar el cupón de efectivo se extiende, como siempre).
+ */
+export async function cambiarMedioPago(token: string, destino: "tarjeta" | "efectivo" | "transferencia"): Promise<ResultadoPago> {
+  if (!z.uuid().safeParse(token).success) return { ok: false, error: "No encontramos el pedido." };
+  const d = z.enum(["tarjeta", "efectivo", "transferencia"]).safeParse(destino);
+  if (!d.success) return { ok: false, error: "Ese medio de pago no está disponible." };
+  if (d.data === "transferencia") return pasarATransferencia(token);
+
+  const sb = supabaseServidor();
+  const ahora = new Date();
+  const { data: actual } = await sb
+    .from("pedidos")
+    .select("id, medio_pago, vence_at")
+    .eq("token_publico", token)
+    .eq("estado", "pendiente_pago")
+    .gt("vence_at", ahora.toISOString())
+    .maybeSingle();
+  if (!actual) return { ok: false, error: "Este pedido ya no está esperando el pago. Mirá su estado en el link del pedido." };
+  const id = actual.id as string;
+  const medio = actual.medio_pago as string;
+  if (!(await otrosMediosDelPedido(medio)).includes(d.data)) return { ok: false, error: "Ese medio de pago no está disponible en este momento." };
+
+  const e = await entornoPago();
+  if (medio === "nave" && naveConfigurado(e)) {
+    const enCurso = await pagoNaveEnCurso(e, id);
+    if (enCurso === "si") return { ok: false, error: "Ya hay un pago con tarjeta en curso para este pedido. Esperá unos segundos y recargá la página." };
+    if (enCurso === "error") return { ok: false, error: "No pudimos cambiar el medio de pago. Probá de nuevo en un momento." };
+    await anularIntencionesDelPedido(e, id);
+  }
+  if (medio === "mercadopago" && mpConfigurado(e)) await anularCuponesDelPedido(e, id);
+
+  const { data: aj } = await sb.from("ajustes").select("horas_vencimiento_nave").eq("id", 1).single();
+  const horas = (aj?.horas_vencimiento_nave as number | undefined) ?? 2;
+  const tope = ahora.getTime() + horas * 3600_000;
+  const vence = new Date(Math.min(new Date(actual.vence_at as string).getTime(), tope)).toISOString();
+  const nuevo = d.data === "efectivo" ? "mercadopago" : "nave";
+  const { data: cambiado, error } = await sb
+    .from("pedidos")
+    .update({ medio_pago: nuevo, vence_at: vence })
+    .eq("id", id)
+    .eq("estado", "pendiente_pago")
+    .eq("medio_pago", medio)
+    .select("id")
+    .maybeSingle();
+  if (error || !cambiado) {
+    if (error) console.error("cambiarMedioPago", error.message);
+    return { ok: false, error: "No pudimos cambiar el medio de pago. Probá de nuevo." };
+  }
+  await sb.from("pagos").update({ medio: nuevo }).eq("pedido_id", id).eq("estado", "pendiente");
+  return { ok: true };
+}
+
+/**
  * El cliente eligió tarjeta o efectivo pero prefiere transferir (por ejemplo, después de un rechazo): el mismo pedido pasa a
  * transferencia, con el plazo de la transferencia para mandar el comprobante. Las piezas siguen reservadas.
  */
 export async function pasarATransferencia(token: string): Promise<ResultadoPago> {
   if (!z.uuid().safeParse(token).success) return { ok: false, error: "No encontramos el pedido." };
   const sb = supabaseServidor();
+  // Si ya hay un pago con Nave aprobado o en proceso, no se cambia (podría terminar pagando dos veces).
+  const { data: previo } = await sb.from("pedidos").select("id, medio_pago").eq("token_publico", token).eq("estado", "pendiente_pago").maybeSingle();
+  const ep = await entornoPago();
+  if (previo?.medio_pago === "nave" && naveConfigurado(ep)) {
+    const enCurso = await pagoNaveEnCurso(ep, previo.id as string);
+    if (enCurso === "si") return { ok: false, error: "Ya hay un pago con tarjeta en curso para este pedido. Esperá unos segundos y recargá la página." };
+    if (enCurso === "error") return { ok: false, error: "No pudimos cambiar el medio de pago. Probá de nuevo en un momento." };
+  }
   const { data: aj } = await sb.from("ajustes").select("horas_vencimiento_transferencia").eq("id", 1).single();
   const horas = (aj?.horas_vencimiento_transferencia as number | undefined) ?? 48;
   // Solo si sigue esperando el pago con tarjeta y no venció: el filtro va en el mismo update.
