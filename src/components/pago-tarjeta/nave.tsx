@@ -154,7 +154,9 @@ export function PagoNave({ token, clavePublica, entorno }: { token: string; clav
               key: fase.intencion,
               paymentRequestId: fase.intencion,
               publicKey: clavePublica,
-              env: entorno === "prueba" ? "staging" : "production",
+              // "sandbox" (no figura en el README del SDK) apunta a api-sandbox.ranty.io, donde se crean las intenciones de
+              // prueba; "staging" es otro ambiente de Nave y ahí la intención no existe (responde not_found).
+              env: entorno === "prueba" ? "sandbox" : "production",
             })}
           </div>
           <p className="text-center text-base italic text-tenue">

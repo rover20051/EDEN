@@ -27,6 +27,9 @@ const AUTH = {
   prueba: (local && process.env.NAVE_AUTH_URL) || "https://homoservices.apinaranja.com/security-ms/api/security/auth0/b2b/m2msPrivate",
 };
 
+// Nave (sobre todo el sandbox) llega a tardar más de 10 s en crear una intención: se le da margen.
+const ESPERA = 25_000;
+
 const credenciales = (e: EntornoNave) => {
   const v = (k: string) => process.env[`NAVE_${e === "prueba" ? "TEST_" : ""}${k}`]?.trim() ?? "";
   return { id: v("CLIENT_ID"), secreto: v("CLIENT_SECRET"), audiencia: v("AUDIENCE"), pos: v("POS_ID"), publica: v("PUBLIC_KEY") };
@@ -57,7 +60,7 @@ async function pedirToken(e: EntornoNave): Promise<string> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ client_id: c.id, client_secret: c.secreto, audience: c.audiencia }),
     cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
+    signal: AbortSignal.timeout(ESPERA),
   });
   if (!res.ok) throw new ErrorNave(res.status, `Nave no dio el token de acceso (${res.status})`);
   const d = (await res.json()) as { access_token?: string; expires_in?: string | number };
@@ -78,7 +81,7 @@ async function llamar<T>(e: EntornoNave, ruta: string, init: { method?: "GET" | 
     headers: { Authorization: `Bearer ${await token(e, !reintento)}`, "Content-Type": "application/json" },
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
     cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
+    signal: AbortSignal.timeout(ESPERA),
   });
   // Token vencido o revocado: se pide uno nuevo y se repite una sola vez.
   if (res.status === 401 && reintento) return llamar<T>(e, ruta, init, false);
