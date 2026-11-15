@@ -237,6 +237,8 @@ export async function pagoNaveEnCurso(e: EntornoNave, pedidoId: string): Promise
       const pagos = i.payment_attempts?.payments ?? [];
       if (i.status.name === "SUCCESS_PROCESSED" || pagos.some((x) => x.status === "APPROVED" || x.status === "PENDING")) return "si";
     } catch (err) {
+      // Una intención anulada ya no se puede consultar (Nave responde payment_request_is_disabled): no tiene pagos.
+      if (err instanceof ErrorNave && (err.status === 404 || err.message.includes("payment_request_is_disabled"))) continue;
       console.error("[nave] pagoNaveEnCurso", previa.id, err);
       return "error";
     }
