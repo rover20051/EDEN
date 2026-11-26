@@ -25,7 +25,6 @@ export default async function Login({ searchParams }: PageProps<"/login">) {
             </div>
             <FormLogin aviso={aviso} />
             <div className="mt-8 flex w-full flex-col items-center pt-6 text-center">
-              <p className="font-caption-italic text-caption-italic italic text-on-surface-variant/80">Solo para Fede, Nari y Mich.</p>
               <div className="mt-4 flex items-center space-x-2 opacity-50">
                 <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
                 <span className="font-label-sm text-[10px] uppercase tracking-widest text-outline">Acceso privado</span>

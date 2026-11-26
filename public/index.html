@@ -2054,7 +2054,7 @@ const carritoTienda = (() => {
       return "";
     }
     const p = l.p;
-    return p.stock != null && usoDe(p) + d > p.stock ? (p.stock ? `Quedan ${p.stock} de ${p.nombre}.` : `${p.nombre} está agotado.`) : "";
+    return p.stock != null && usoDe(p) + d > p.stock ? (!p.stock ? `${p.nombre} está agotado.` : p.stock >= 10 ? `Se pueden pedir hasta 10 de ${p.nombre} por compra.` : `Quedan ${p.stock} de ${p.nombre}.`) : "";
   }
   /* Set: cada Biblia + Journal sueltos (fuera de los sets armados) sale al precio del Set */
   function ahorroSet(ls){

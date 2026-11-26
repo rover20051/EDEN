@@ -8,7 +8,7 @@ import { efectivoAparte, modoPago, pasarelaElegida } from "@/lib/pagos";
 import { esProvincia } from "@/lib/provincias";
 import { supabaseServidor } from "@/lib/supabase/servidor";
 import { estadoVenta } from "@/lib/venta";
-import { PREFIJO_PACK } from "@/lib/pack";
+import { MAXIMO_POR_PERSONA, PREFIJO_PACK, superaMaximo } from "@/lib/pack";
 import { OBLIGATORIOS } from "./checkout/validar";
 
 const ORIGENES = ["anuncio", "instagram", "tiktok", "recomendacion", "iglesia", "google", "otro"] as const;
@@ -90,7 +90,7 @@ export async function confirmarPedido(datos: DatosCheckout): Promise<ResultadoCh
   const slugsProducto = d.items.filter((i) => !esPack(i.slug)).map((i) => i.slug);
   const [{ data: productos }, { data: packs }] = await Promise.all([
     slugsProducto.length ? sb.from("productos").select("id, slug").in("slug", slugsProducto) : Promise.resolve({ data: [] }),
-    slugsPack.length ? sb.from("packs").select("id, slug").in("slug", slugsPack) : Promise.resolve({ data: [] }),
+    slugsPack.length ? sb.from("packs").select("id, slug, pack_items(producto_id, cantidad)").in("slug", slugsPack) : Promise.resolve({ data: [] }),
   ]);
   const idProducto = new Map((productos ?? []).map((p) => [p.slug as string, p.id as string]));
   const idPack = new Map((packs ?? []).map((p) => [p.slug as string, p.id as string]));
@@ -106,6 +106,9 @@ export async function confirmarPedido(datos: DatosCheckout): Promise<ResultadoCh
       items.push({ producto_id: id, cantidad: i.cantidad });
     }
   }
+
+  const contenido = new Map((packs ?? []).map((k) => [k.id as string, (k as { pack_items?: { producto_id: string; cantidad: number }[] }).pack_items ?? []]));
+  if (superaMaximo(items, contenido)) return { ok: false, error: `Se pueden pedir hasta ${MAXIMO_POR_PERSONA} unidades de un mismo producto por compra.` };
 
   // El envío no se manda: la base lo calcula por provincia. Precios, descuentos y total también.
   const { data, error } = await sb.rpc("crear_pedido_web", {

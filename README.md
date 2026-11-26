@@ -17,7 +17,13 @@ Requiere Node 22.12 o más nuevo.
 
 Con esas claves se trabaja sobre la base real: lo que se compre o cargue queda ahí.
 
-Para entrar a `/admin`, el mail tiene que estar en **Ajustes → Cuentas** y tener usuario en Supabase → Authentication → Users → *Add user*, con *Auto Confirm User* tildado.
+Para entrar a `/admin`, el mail tiene que estar en **Ajustes → Cuentas** y tener usuario en Supabase → Authentication → Users. No se crean cuentas nuevas (ver "Seguridad del ingreso"); en una base nueva, cargarlas antes de correr la migración 0014.
+
+## Seguridad del ingreso
+
+- Las cuentas son las que ya existen: la migración 0014 impide crear usuarios y sumar o cambiar mails en `admins`.
+- Freno: 8 intentos de contraseña cada 15 minutos por conexión (también 0014; sin ella no frena).
+- En la web se pueden pedir hasta 10 unidades de un mismo producto por compra, contando los sets.
 
 ## Abrir la tienda
 

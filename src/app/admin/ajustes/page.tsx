@@ -8,7 +8,7 @@ import { SOCIOS } from "@/lib/textos";
 import { mpConfigurado } from "@/lib/mercadopago";
 import { naveConfigurado } from "@/lib/nave";
 import { pasarelaElegida } from "@/lib/pagos";
-import { EditarAdmin, FormAdmin, FormAjustes, FormPasarela } from "./forms";
+import { EditarAdmin, FormAjustes, FormPasarela } from "./forms";
 
 const PREVIA = "/admin/ajustes/mensajes?plantilla=";
 const MAILS = [
@@ -125,10 +125,7 @@ export default async function Ajustes() {
                 </div>
               ))}
             </div>
-            <FormAdmin />
-            <p className="font-caption-italic text-[12px] italic text-outline">
-              Después de autorizarla, creale el usuario en Supabase → Authentication → Add user.
-            </p>
+            <p className="font-caption-italic text-[12px] italic text-outline">Son las únicas cuentas: no se pueden crear más.</p>
           </article>
         </div>
 

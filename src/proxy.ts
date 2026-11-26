@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { OPCIONES_COOKIE } from "@/lib/supabase/cookies";
 
 // Refresca la sesión de Supabase en cada request y saca del /admin a quien no está logueado.
 // Es un chequeo rápido: el permiso real lo validan requireAdmin() y las reglas RLS de la base.
@@ -10,6 +11,7 @@ export async function proxy(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: OPCIONES_COOKIE,
       cookies: {
         getAll() {
           return request.cookies.getAll();

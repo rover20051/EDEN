@@ -323,20 +323,6 @@ const adminSchema = z.object({
   socio: z.enum(["fede", "nari", "mich"]),
 });
 
-export async function agregarAdmin(_prev: Resultado | null, form: FormData): Promise<Resultado> {
-  const parsed = adminSchema.safeParse({
-    email: form.get("email"),
-    nombre: form.get("nombre"),
-    socio: form.get("socio"),
-  });
-  if (!parsed.success) return fallo(parsed.error.issues[0]?.message ?? "Datos inválidos");
-  const { supabase } = await requireAdmin();
-  const { error } = await supabase.from("admins").upsert(parsed.data);
-  if (error) return fallo(error.message);
-  revalidatePath("/admin", "layout");
-  return ok("Autorizado. Falta crearle el usuario en Supabase (ver README).");
-}
-
 /** Corrige el nombre o a quién corresponde un acceso. El mail no se cambia: es con el que entra a su usuario. */
 export async function editarAdmin(_prev: Resultado | null, form: FormData): Promise<Resultado> {
   const parsed = adminSchema.safeParse({

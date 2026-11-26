@@ -2,6 +2,7 @@ import "server-only";
 import { categoriasDeProductos, type Categoria, type TipoProducto } from "@/lib/categorias";
 import { urlFotoPublica } from "@/lib/fotos";
 import { supabaseServidor } from "@/lib/supabase/servidor";
+import { MAXIMO_POR_PERSONA } from "@/lib/pack";
 
 export type ProductoPublico = {
   slug: string;
@@ -91,7 +92,10 @@ export function stockDePack(items: { producto_id: string; cantidad: number }[], 
 
 const COLUMNAS_BASE = "id, slug, nombre, tipo, diseno, precio, precio_anterior, etiqueta, activo";
 
-/** Lo que la web pública puede saber del catálogo: precio, stock y si está a la venta. Nunca costos. */
+/**
+ * Lo que la web pública puede saber del catálogo: precio, stock y si está a la venta. Nunca costos.
+ * El stock va hasta MAXIMO_POR_PERSONA, que es lo que el carrito deja pedir.
+ */
 export async function catalogoPublico(): Promise<CatalogoPublico> {
   const sb = supabaseServidor();
   const [completo, { data: stock }, { data: ajustes }, packsRes, categorias, fichas] = await Promise.all([
@@ -130,7 +134,7 @@ export async function catalogoPublico(): Promise<CatalogoPublico> {
       verbo: verbo ?? null,
       foto_url: urlFoto(foto_path ?? null),
       ...(textosFicha ? (textosFicha.get(id) ?? { frase: null, medidas: null }) : {}),
-      stock: disp.get(id) ?? 0,
+      stock: Math.min(MAXIMO_POR_PERSONA, disp.get(id) ?? 0),
     })),
     packs: packs.map(({ foto_path, pack_items, ...k }) => {
       const items = pack_items ?? [];
@@ -144,7 +148,7 @@ export async function catalogoPublico(): Promise<CatalogoPublico> {
         etiqueta: k.etiqueta,
         activo: k.activo && todosActivos && items.length > 0,
         foto_url: urlFoto(foto_path),
-        stock: stockDePack(items, disp),
+        stock: Math.min(MAXIMO_POR_PERSONA, stockDePack(items, disp)),
         items: items.map((i) => ({ slug: porId.get(i.producto_id)?.slug as string, cantidad: i.cantidad })),
       };
     }),

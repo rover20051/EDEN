@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useActionState, useState } from "react";
-import { agregarAdmin, editarAdmin, guardarAjustes, guardarPasarela, type Resultado } from "@/app/admin/actions";
+import { editarAdmin, guardarAjustes, guardarPasarela, type Resultado } from "@/app/admin/actions";
 import { Mensaje } from "@/components/accion";
 import { ars } from "@/lib/format";
 
@@ -227,32 +227,5 @@ export function EditarAdmin({ a }: { a: { email: string; nombre: string; socio: 
         </form>
       )}
     </>
-  );
-}
-
-/** Autorizar a otra persona (diseño de Stitch, con nombre y socio porque el sistema los necesita). */
-export function FormAdmin() {
-  const { estado, onSubmit, pendiente } = useForm(agregarAdmin);
-  return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-1.5 rounded-2xl bg-surface-container p-space-sm">
-      <span className={rotulo}>Autorizar a otra persona</span>
-      <div className="flex flex-wrap gap-space-sm">
-        <input name="nombre" required placeholder="Nombre" className={`${chico} w-28 min-w-0`} />
-        <input name="email" type="email" required placeholder="mail@…" className={`${chico} min-w-0 flex-1`} />
-        <select name="socio" required defaultValue="" aria-label="Socia o socio" className={chico}>
-          <option value="" disabled>
-            ¿Quién es?
-          </option>
-          <OpcionesSocio />
-        </select>
-        <button
-          disabled={pendiente}
-          className="whitespace-nowrap rounded-full bg-primary px-3 py-1.5 font-label-md text-label-md uppercase tracking-wider text-surface transition-all hover:bg-primary-container disabled:opacity-50"
-        >
-          {pendiente ? "…" : "+ Autorizar"}
-        </button>
-      </div>
-      <Mensaje estado={estado} />
-    </form>
   );
 }

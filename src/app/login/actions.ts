@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { AVISO_FRENO, frenarIntento, olvidarIntentos, porConexion } from "@/lib/freno-acceso";
 import { createClient } from "@/lib/supabase/server";
 
 export async function iniciarSesion(_prev: string | null, form: FormData): Promise<string | null> {
@@ -8,9 +9,13 @@ export async function iniciarSesion(_prev: string | null, form: FormData): Promi
   const password = String(form.get("password") ?? "");
   if (!email || !password) return "Completá mail y contraseña";
 
+  const conexion = await porConexion();
+  if (await frenarIntento(conexion)) return AVISO_FRENO;
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return "Mail o contraseña incorrectos";
 
+  await olvidarIntentos(conexion);
   redirect("/admin");
 }
