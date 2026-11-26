@@ -14,6 +14,14 @@ const literata = Literata({ variable: "--font-literata", subsets: ["latin"], wei
 export const metadata: Metadata = {
   title: "Edén",
   description: "Biblias artesanales de cuero, hechas a mano en Argentina.",
+  // La web pública (public/index.html) lleva las mismas etiquetas: las pone montar-landing.
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/marca/favicon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/marca/favicon-180.png",
+  },
 };
 
 export const viewport: Viewport = {
